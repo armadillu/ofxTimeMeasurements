@@ -62,7 +62,7 @@ void ofxTimeMeasurements::draw(int x, int y){
 
 	int c = 1;
 
-	ofDrawBitmapString( "-- Measured Times ------", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	ofDrawBitmapString( "-- Measured Times --", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 	
 	for( map<string,TimeMeasurement>::iterator ii = times.begin(); ii != times.end(); ++ii ){
 
@@ -70,14 +70,14 @@ void ofxTimeMeasurements::draw(int x, int y){
 		string key = (*ii).first;
 		TimeMeasurement t = (*ii).second;
 		if ( t.error == false ){
-			//ofDrawBitmapString( key + " = " + ofToString(t.duration / 1000.0f, 2) + "ms (" + ofToString(t.duration) + ")" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-			ofDrawBitmapString( key + " = " + ofToString(t.duration / 1000.0f, 2)  , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+			//ofDrawBitmapString( " " + key + " = " + ofToString(t.duration / 1000.0f, 2) + "ms (" + ofToString(t.duration) + ")" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+			ofDrawBitmapString( " " + key + " = " + ofToString(t.duration / 1000.0f, 2)  + "ms" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}else{
-			ofDrawBitmapString( key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+			ofDrawBitmapString( " " + key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}
 	}
 	c++;
-	ofDrawBitmapString( "------------------------", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	ofDrawBitmapString( "-------------------", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 }
 
 

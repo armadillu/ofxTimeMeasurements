@@ -62,7 +62,7 @@ void ofxTimeMeasurements::draw(int x, int y, bool drawFPS){
 
 	int c = 1;
 
-	ofDrawBitmapString( "-- Measured Times --", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	ofDrawBitmapString( "--------------------", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 	
 	for( map<string,TimeMeasurement>::iterator ii = times.begin(); ii != times.end(); ++ii ){
 
@@ -80,7 +80,7 @@ void ofxTimeMeasurements::draw(int x, int y, bool drawFPS){
 	if (drawFPS){
 		ofDrawBitmapString( "--------------------", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		c++;
-		ofDrawBitmapString( "   App fps " + ofToString( ofGetFrameRate(), 1) , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+		ofDrawBitmapString( " App fps " + ofToString( ofGetFrameRate(), 1) , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		c++;
 	}
 	ofDrawBitmapString( "--------------------", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );

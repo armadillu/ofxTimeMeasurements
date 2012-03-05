@@ -13,6 +13,7 @@
 #include <map>
 
 #define TIME_MEASUREMENTS_LINE_HEIGHT 14
+#define SEPARATOR "---------------------------------"
 
 typedef struct TimeMeasurement{
 	unsigned long microsecondsStart;
@@ -30,7 +31,7 @@ class ofxTimeMeasurements {
 		void startMeasuring(string ID);
 		void stopMeasuring(string ID);
 
-		void draw(int x, int y, bool drawFPS = false);
+		void draw(int x, int y);
 		unsigned long durationForID( string ID);
 	
 	private:

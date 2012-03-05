@@ -58,32 +58,32 @@ void ofxTimeMeasurements::stopMeasuring(string ID){
 }
 
 
-void ofxTimeMeasurements::draw(int x, int y, bool drawFPS){
+void ofxTimeMeasurements::draw(int x, int y){
 
 	int c = 1;
 
-	ofDrawBitmapString( "--------------------", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	float timePerFrame =  1000.0f/ofGetFrameRate();
+	ofDrawBitmapString( SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 	
 	for( map<string,TimeMeasurement>::iterator ii = times.begin(); ii != times.end(); ++ii ){
 
 		c++;
 		string key = (*ii).first;
 		TimeMeasurement t = (*ii).second;
+		float ms = t.duration / 1000.0f;
+		float percent = 100.0f * ms / timePerFrame;
 		if ( t.error == false ){
-			//ofDrawBitmapString( " " + key + " = " + ofToString(t.duration / 1000.0f, 2) + "ms (" + ofToString(t.duration) + ")" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-			ofDrawBitmapString( " " + key + " = " + ofToString(t.duration / 1000.0f, 2)  + "ms" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+			ofDrawBitmapString( " " + key + " = " + ofToString( t.duration / 1000.0f, 2)  + "ms (" + ofToString(percent, 1) + "\%)" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}else{
 			ofDrawBitmapString( " " + key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}
 	}
 	c++;
-	if (drawFPS){
-		ofDrawBitmapString( "--------------------", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-		c++;
-		ofDrawBitmapString( " App fps " + ofToString( ofGetFrameRate(), 1) , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-		c++;
-	}
-	ofDrawBitmapString( "--------------------", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	ofDrawBitmapString( SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	c++;
+	ofDrawBitmapString( " App fps " + ofToString( ofGetFrameRate(), 1) + " (" + ofToString( timePerFrame, 1) + "ms per frame)" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	c++;
+	ofDrawBitmapString( SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 }
 
 

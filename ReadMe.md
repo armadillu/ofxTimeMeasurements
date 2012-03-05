@@ -1,5 +1,7 @@
 Simple of addon to easily mesure execution times on any parts of your code
 
+	ofxTimeMeasurements  chrono;
+	
 	void testApp::update(){
 		chrono.startMeasuring("update");
 		//YOUR UPDATE CODE HERE
@@ -10,6 +12,7 @@ Simple of addon to easily mesure execution times on any parts of your code
 		chrono.startMeasuring("draw");
 		//YOUR DRAW CODE HERE
 		chrono.stopMeasuring("draw");
+	
 		chrono.draw(10, 10);
 	}
 

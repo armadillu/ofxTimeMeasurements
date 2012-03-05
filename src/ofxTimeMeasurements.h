@@ -30,7 +30,7 @@ class ofxTimeMeasurements {
 		void startMeasuring(string ID);
 		void stopMeasuring(string ID);
 
-		void draw(int x, int y);
+		void draw(int x, int y, bool drawFPS = false);
 		unsigned long durationForID( string ID);
 	
 	private:

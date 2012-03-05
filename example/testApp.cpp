@@ -27,7 +27,7 @@ void testApp::draw(){
 	ofSleepMillis(4);
 	chrono.stopMeasuring("draw");
 	
-	chrono.draw(10, 10);
+	chrono.draw(10, 10, true);
 }
 
 //--------------------------------------------------------------

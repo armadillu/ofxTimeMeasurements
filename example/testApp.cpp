@@ -15,16 +15,17 @@ void testApp::setup(){
 //--------------------------------------------------------------
 void testApp::update(){
 
-	chrono.startMeasuring("update");
-	ofSleepMillis(4);
+	chrono.startMeasuring("update");	
+	ofSleepMillis(1);	
 	chrono.stopMeasuring("update");
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
 
+	
 	chrono.startMeasuring("draw");
-	ofSleepMillis(4);
+	ofSleepMillis(3);	
 	chrono.stopMeasuring("draw");
 	
 	chrono.draw(10, 10);

@@ -1,19 +1,19 @@
 Simple of addon to easily mesure execution times on any parts of your code
 
-	ofxTimeMeasurements  chrono;
+	ofxTimeMeasurements * chrono = ofxTimeMeasurements::instance();
 	
 	void testApp::update(){
-		chrono.startMeasuring("update");
+		chrono->startMeasuring("update");
 		//YOUR UPDATE CODE HERE
-		chrono.stopMeasuring("update");
+		chrono->stopMeasuring("update");
 	}
 	
 	void testApp::draw(){
-		chrono.startMeasuring("draw");
+		chrono->startMeasuring("draw");
 		//YOUR DRAW CODE HERE
-		chrono.stopMeasuring("draw");
+		chrono->stopMeasuring("draw");
 	
-		chrono.draw(10, 10);
+		chrono->draw(10, 10);
 	}
 
 

@@ -9,26 +9,27 @@ void testApp::setup(){
 	ofSetFrameRate(60);
 	ofBackground(22, 22, 22, 255);
 
+	chrono = ofxTimeMeasurements::instance();
 
 }
 
 //--------------------------------------------------------------
 void testApp::update(){
 
-	chrono.startMeasuring("update");	
+	chrono->startMeasuring("update");	
 	ofSleepMillis(1);	
-	chrono.stopMeasuring("update");
+	chrono->stopMeasuring("update");
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
 
 	
-	chrono.startMeasuring("draw");
+	chrono->startMeasuring("draw");
 	ofSleepMillis(3);	
-	chrono.stopMeasuring("draw");
+	chrono->stopMeasuring("draw");
 	
-	chrono.draw(10, 10);
+	chrono->draw(10, 10);
 }
 
 //--------------------------------------------------------------

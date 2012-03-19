@@ -10,9 +10,13 @@
 #include "ofxTimeMeasurements.h"
 #include <float.h>
 
-ofxTimeMeasurements::ofxTimeMeasurements(){
+ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL; 
 
-	
+
+ofxTimeMeasurements* ofxTimeMeasurements::instance(){	
+   if (!singleton)   // Only allow one instance of class to be generated.
+      singleton = new ofxTimeMeasurements;
+   return singleton;
 }
 
 

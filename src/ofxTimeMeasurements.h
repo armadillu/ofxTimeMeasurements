@@ -23,11 +23,13 @@ typedef struct TimeMeasurement{
 	bool error;
 };
 
+
 class ofxTimeMeasurements {
 
 	public :
 
-		ofxTimeMeasurements();
+		
+		static ofxTimeMeasurements* instance();
 		void startMeasuring(string ID);
 		void stopMeasuring(string ID);
 
@@ -35,6 +37,10 @@ class ofxTimeMeasurements {
 		unsigned long durationForID( string ID);
 	
 	private:
-	
+
+		ofxTimeMeasurements(){};  // Private so that it can  not be called
+		static ofxTimeMeasurements* singleton;
+
 		map<string, TimeMeasurement> times;
 };
+

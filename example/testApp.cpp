@@ -40,7 +40,7 @@ void testApp::draw(){
 
 	chrono->stopMeasuring("draw"); /////////////////////////////////////////////////  STOP MEASURING  ///
 
-	chrono->draw(10, 10); 	//finally draw our time measurements
+	chrono->draw( ofGetWidth() - chrono->getWidth() - 10, 10); 	//finally draw our time measurements
 }
 
 //--------------------------------------------------------------

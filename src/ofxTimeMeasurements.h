@@ -34,7 +34,8 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 		void startMeasuring(string ID);
 		void stopMeasuring(string ID);
-	
+		void setEnabled( bool enable );
+		bool getEnabled();
 		unsigned long durationForID( string ID);
 	
 		void draw(float x, float y);
@@ -46,6 +47,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 
 		static ofxTimeMeasurements* singleton;
 		float desiredFrameRate;
+		bool enabled;
 		map<string, TimeMeasurement> times;
 
 };

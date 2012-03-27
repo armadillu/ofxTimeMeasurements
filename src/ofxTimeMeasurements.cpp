@@ -13,7 +13,8 @@
 ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL; 
 
 ofxTimeMeasurements::ofxTimeMeasurements(){
-	desiredFrameRate = 60.0f;	
+	desiredFrameRate = 60.0f;
+	enabled = true;
 }
 
 ofxTimeMeasurements* ofxTimeMeasurements::instance(){	
@@ -23,13 +24,10 @@ ofxTimeMeasurements* ofxTimeMeasurements::instance(){
 	return singleton;
 }
 
-
-void ofxTimeMeasurements::setDesiredFrameRate(float fr){
-	desiredFrameRate = fr;
-}
-
 void ofxTimeMeasurements::startMeasuring(string ID){
 
+	if (!enabled) return;
+	
 	TimeMeasurement t;
 	t.measuring = true;
 	t.microsecondsStart = ofGetElapsedTimeMicros();
@@ -41,6 +39,8 @@ void ofxTimeMeasurements::startMeasuring(string ID){
 
 
 void ofxTimeMeasurements::stopMeasuring(string ID){
+
+	if (!enabled) return;
 	
 	map<string,TimeMeasurement>::iterator it;
 	
@@ -72,6 +72,8 @@ void ofxTimeMeasurements::stopMeasuring(string ID){
 
 void ofxTimeMeasurements::draw(float x, float y){
 
+	if (!enabled) return;
+	
 	int c = 1;
 	float timePerFrame =  1000.0f/desiredFrameRate;
 	ofDrawBitmapString( SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
@@ -138,3 +140,14 @@ unsigned long ofxTimeMeasurements::durationForID( string ID){
 	}
 }
 
+void ofxTimeMeasurements::setDesiredFrameRate(float fr){
+	desiredFrameRate = fr;
+}
+
+void ofxTimeMeasurements::setEnabled(bool ena){
+	enabled = ena;
+}
+
+bool ofxTimeMeasurements::getEnabled(){
+	return enabled;
+}

@@ -12,13 +12,21 @@
 
 ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL; 
 
-
-ofxTimeMeasurements* ofxTimeMeasurements::instance(){	
-   if (!singleton)   // Only allow one instance of class to be generated.
-      singleton = new ofxTimeMeasurements;
-   return singleton;
+ofxTimeMeasurements::ofxTimeMeasurements(){
+	desiredFrameRate = 60.0f;	
 }
 
+ofxTimeMeasurements* ofxTimeMeasurements::instance(){	
+	if (!singleton){   // Only allow one instance of class to be generated.
+		singleton = new ofxTimeMeasurements;
+	}
+	return singleton;
+}
+
+
+void ofxTimeMeasurements::setDesiredFrameRate(float fr){
+	desiredFrameRate = fr;
+}
 
 void ofxTimeMeasurements::startMeasuring(string ID){
 
@@ -62,13 +70,12 @@ void ofxTimeMeasurements::stopMeasuring(string ID){
 }
 
 
-void ofxTimeMeasurements::draw(int x, int y){
+void ofxTimeMeasurements::draw(float x, float y){
 
 	int c = 1;
-
-	float timePerFrame =  1000.0f/ofGetFrameRate();
+	float timePerFrame =  1000.0f/desiredFrameRate;
 	ofDrawBitmapString( SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-	
+	float percentTotal = 0.0f;
 	for( map<string,TimeMeasurement>::iterator ii = times.begin(); ii != times.end(); ++ii ){
 
 		c++;
@@ -76,16 +83,41 @@ void ofxTimeMeasurements::draw(int x, int y){
 		TimeMeasurement t = (*ii).second;
 		float ms = t.duration / 1000.0f;
 		float percent = 100.0f * ms / timePerFrame;
-		if ( t.error == false ){
-			ofDrawBitmapString( " " + key + " = " + ofToString( t.duration / 1000.0f, 2)  + "ms (" + ofToString(percent, 1) + "\%)" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+		char msChar[50];
+		char percentChar[50];
+		
+		if ( t.error == false ){			
+			sprintf(msChar, "%*.1f", 4, ms );			
+			sprintf(percentChar, "%*.1f", 4, percent );
+			ofDrawBitmapString( " " + key + " = " + msChar  + "ms (" + percentChar+ "\%)" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}else{
 			ofDrawBitmapString( " " + key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}
+		percentTotal += percent;
 	}
+	
+	float freeTimePercent = 100.0f - percentTotal;
+	if ( freeTimePercent < 0.0f) freeTimePercent = 0;
+	
+	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 0.5 );
+	
 	c++;
 	ofDrawBitmapString( SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+		
+	if ( missingFrames ) {
+		ofPushStyle();
+		ofSetColor(255, 0, 0);
+	}
+
+	char msg[100];
+	sprintf(msg, " App fps %*.1f (%*.1f%% idle)", 4, (float)ofGetFrameRate(), 3, freeTimePercent );
 	c++;
-	ofDrawBitmapString( " App fps " + ofToString( ofGetFrameRate(), 1) + " (" + ofToString( timePerFrame, 1) + "ms per frame)" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	ofDrawBitmapString( msg, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	
+	if ( missingFrames ) {
+		ofPopStyle();
+	}
+	
 	c++;
 	ofDrawBitmapString( SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 }

@@ -1,5 +1,6 @@
 #include "testApp.h"
 
+
 //--------------------------------------------------------------
 void testApp::setup(){
 
@@ -10,26 +11,36 @@ void testApp::setup(){
 	ofBackground(22, 22, 22, 255);
 
 	chrono = ofxTimeMeasurements::instance();
+	chrono->setDesiredFrameRate(60.0);
 
 }
 
 //--------------------------------------------------------------
 void testApp::update(){
 
-	chrono->startMeasuring("update");	
-	ofSleepMillis(1);	
-	chrono->stopMeasuring("update");
+	chrono->startMeasuring("update"); //////////////////////////////////////////////  START MEASURING ///
+	
+	//Put your update code here
+	
+	chrono->stopMeasuring("update"); ///////////////////////////////////////////////  STOP MEASURING  ///
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
 
+	chrono->startMeasuring("draw"); ////////////////////////////////////////////////  START MEASURING ///
 	
-	chrono->startMeasuring("draw");
-	ofSleepMillis(3);	
-	chrono->stopMeasuring("draw");
-	
-	chrono->draw(10, 10);
+	//let's draw lots of stuff
+	for(int i = 0; i < ofGetMouseX() * 40; i++){
+		ofSetColor( ofRandom(96) );
+		ofRect( ofRandom( ofGetWidth()), ofRandom( ofGetHeight()), 4, 4);		
+	}
+	ofSetColor(255);
+	ofDrawBitmapString("move mouse to the right to incrase draw complexity, see draw time increase",  100, ofGetHeight() - 20);
+
+	chrono->stopMeasuring("draw"); /////////////////////////////////////////////////  STOP MEASURING  ///
+
+	chrono->draw(10, 10); 	//finally draw our time measurements
 }
 
 //--------------------------------------------------------------

@@ -13,7 +13,7 @@
 #include <map>
 
 #define TIME_MEASUREMENTS_LINE_HEIGHT 14
-#define SEPARATOR "---------------------------------"
+#define SEPARATOR "---------------------------"
 
 typedef struct TimeMeasurement{
 	unsigned long microsecondsStart;
@@ -24,23 +24,29 @@ typedef struct TimeMeasurement{
 };
 
 
-class ofxTimeMeasurements {
+class ofxTimeMeasurements: public ofBaseDraws {
 
 	public :
 
-		
+		ofxTimeMeasurements();
 		static ofxTimeMeasurements* instance();
+	
+		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 		void startMeasuring(string ID);
 		void stopMeasuring(string ID);
-
-		void draw(int x, int y);
+	
 		unsigned long durationForID( string ID);
+	
+		void draw(float x, float y);
+		void draw(float x, float y, float w , float h ){ draw(x,y); } //w and h ignored! just here to comply with ofBaseDraws
+		virtual float getWidth(){ return ((string)(SEPARATOR)).length() * 8; }
+		virtual float getHeight(){ return ( 4 + times.size() ) * TIME_MEASUREMENTS_LINE_HEIGHT; };
 	
 	private:
 
-		ofxTimeMeasurements(){};  // Private so that it can  not be called
 		static ofxTimeMeasurements* singleton;
-
+		float desiredFrameRate;
 		map<string, TimeMeasurement> times;
+
 };
 

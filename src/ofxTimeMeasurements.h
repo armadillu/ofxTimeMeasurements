@@ -15,15 +15,6 @@
 #define TIME_MEASUREMENTS_LINE_HEIGHT 14
 #define SEPARATOR "---------------------------"
 
-typedef struct TimeMeasurement{
-	unsigned long microsecondsStart;
-	unsigned long microsecondsStop;
-	unsigned long duration;
-	bool measuring;
-	bool error;
-};
-
-
 class ofxTimeMeasurements: public ofBaseDraws {
 
 	public :
@@ -44,6 +35,14 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		virtual float getHeight(){ return ( 4 + times.size() ) * TIME_MEASUREMENTS_LINE_HEIGHT; };
 	
 	private:
+	
+		typedef struct TimeMeasurement{
+			unsigned long microsecondsStart;
+			unsigned long microsecondsStop;
+			unsigned long duration;
+			bool measuring;
+			bool error;
+		};
 
 		static ofxTimeMeasurements* singleton;
 		float desiredFrameRate;

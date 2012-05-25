@@ -15,6 +15,7 @@ ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
 ofxTimeMeasurements::ofxTimeMeasurements(){
 	desiredFrameRate = 60.0f;
 	enabled = true;
+	timeAveragePercent = 0.05;
 }
 
 ofxTimeMeasurements* ofxTimeMeasurements::instance(){	
@@ -33,6 +34,7 @@ void ofxTimeMeasurements::startMeasuring(string ID){
 	t.microsecondsStart = ofGetElapsedTimeMicros();
 	t.microsecondsStop = 0;
 	t.duration = 0;
+	t.avgDuration = times[ID].avgDuration;
 	t.error = true;
 	times[ID] = t;
 }
@@ -60,6 +62,7 @@ void ofxTimeMeasurements::stopMeasuring(string ID){
 			t.microsecondsStop = ofGetElapsedTimeMicros();
 			t.microsecondsStart = times[ID].microsecondsStart;
 			t.duration = t.microsecondsStop - t.microsecondsStart;
+			t.avgDuration = (1.0f - timeAveragePercent) * times[ID].avgDuration + t.duration * timeAveragePercent;
 			times[ID] = t;
 
 		}else{	//wrong use, start first, then stop
@@ -83,13 +86,14 @@ void ofxTimeMeasurements::draw(float x, float y){
 		c++;
 		string key = (*ii).first;
 		TimeMeasurement t = (*ii).second;
-		float ms = t.duration / 1000.0f;
+		//float ms = t.duration / 1000.0f;
+		float ms = t.avgDuration / 1000.0f;		
 		float percent = 100.0f * ms / timePerFrame;
-		char msChar[50];
+		static char msChar[50];
 		char percentChar[50];
 		
 		if ( t.error == false ){			
-			sprintf(msChar, "%*.1f", 4, ms );			
+			sprintf(msChar, "%*.2f", 4, ms );			
 			sprintf(percentChar, "%*.1f", 4, percent );
 			ofDrawBitmapString( " " + key + " = " + msChar  + "ms (" + percentChar+ "\%)" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}else{
@@ -111,7 +115,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 		ofSetColor(255, 0, 0);
 	}
 
-	char msg[100];
+	static char msg[100];
 	sprintf(msg, " App fps %*.1f (%*.1f%% idle)", 4, (float)ofGetFrameRate(), 3, freeTimePercent );
 	c++;
 	ofDrawBitmapString( msg, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
@@ -137,6 +141,10 @@ unsigned long ofxTimeMeasurements::durationForID( string ID){
 		}
 	}
 	return 0;
+}
+
+void ofxTimeMeasurements::setTimeAveragePercent(float p){
+	timeAveragePercent = ofClamp(p, 0, 1);
 }
 
 void ofxTimeMeasurements::setDesiredFrameRate(float fr){

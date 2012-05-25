@@ -31,6 +31,8 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void stopMeasuring(string ID);
 		void setEnabled( bool enable );
 		bool getEnabled();
+		void setTimeAveragePercent(float p); //[0..1] >> if set to 1.0, 100% of every new sample contributes to the average.
+											 // if 0.1, a new sample contributes 10% to the average
 		unsigned long durationForID( string ID);
 	
 		void draw(float x, float y);
@@ -44,6 +46,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 			unsigned long microsecondsStart;
 			unsigned long microsecondsStop;
 			unsigned long duration;
+			float avgDuration;
 			bool measuring;
 			bool error;
 		};
@@ -52,6 +55,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		float desiredFrameRate;
 		bool enabled;
 		map<string, TimeMeasurement> times;
+		float timeAveragePercent;
 
 };
 

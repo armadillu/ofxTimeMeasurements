@@ -134,10 +134,9 @@ unsigned long ofxTimeMeasurements::durationForID( string ID){
 		
 		if ( times[ID].error ){
 			return times[ID].duration;
-		}else{
-			return 0;
 		}
 	}
+	return 0;
 }
 
 void ofxTimeMeasurements::setDesiredFrameRate(float fr){

@@ -27,12 +27,13 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		static ofxTimeMeasurements* instance();
 	
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
+											//affects the % busy indicator
 		void startMeasuring(string ID);
 		void stopMeasuring(string ID);
 		void setEnabled( bool enable );
 		bool getEnabled();
 		void setTimeAveragePercent(float p); //[0..1] >> if set to 1.0, 100% of every new sample contributes to the average.
-											 // if 0.1, a new sample contributes 10% to the average
+											 //if set to 0.1, a new sample contributes 10% to the average
 		unsigned long durationForID( string ID);
 	
 		void draw(float x, float y);

@@ -15,7 +15,7 @@ ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
 ofxTimeMeasurements::ofxTimeMeasurements(){
 	desiredFrameRate = 60.0f;
 	enabled = true;
-	timeAveragePercent = 0.01666666f; /*converge after 1 sec (60fps)*/
+	timeAveragePercent = 0.1; 
 }
 
 ofxTimeMeasurements* ofxTimeMeasurements::instance(){	

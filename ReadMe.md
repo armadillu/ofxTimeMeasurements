@@ -1,20 +1,22 @@
 Simple of addon to easily mesure execution times on any parts of your code
 
-	ofxTimeMeasurements * chrono = ofxTimeMeasurements::instance();
-	chrono->setDesiredFrameRate( 60.0f ); 
-	
+
+	void testApp::setup(){
+		TIME_SAMPLE_SET_FRAMERATE( 60.0f ); 
+	}	
+
 	void testApp::update(){
-		chrono->startMeasuring("update");
+		TIME_SAMPLE_START("update");
 		//YOUR UPDATE CODE HERE
-		chrono->stopMeasuring("update"); 
+		TIME_SAMPLE_STOP("update"); 
 	}
 	
 	void testApp::draw(){
-		chrono->startMeasuring("draw");
+		TIME_SAMPLE_START("draw");
 		//YOUR DRAW CODE HERE
-		chrono->stopMeasuring("draw");
+		TIME_SAMPLE_STOP("draw");
 	
-		chrono->draw(10, 10);
+		TIME_SAMPLE_DRAW(10, 10);
 	}
 
 

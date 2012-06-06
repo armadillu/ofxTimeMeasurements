@@ -15,9 +15,10 @@
 #define TIME_MEASUREMENTS_LINE_HEIGHT 14
 #define SEPARATOR "---------------------------"
 
-#define TIME_SAMPLE_START(x) (ofxTimeMeasurements::instance()->startMeasuring(x))
-#define TIME_SAMPLE_STOP(x) (ofxTimeMeasurements::instance()->stopMeasuring(x))
-#define TIME_SAMPLE_DRAW(x,y) (ofxTimeMeasurements::instance()->draw(x,y))
+#define TIME_SAMPLE_SET_FRAMERATE(x)	(ofxTimeMeasurements::instance()->setDesiredFrameRate(x))
+#define TIME_SAMPLE_START(x)			(ofxTimeMeasurements::instance()->startMeasuring(x))
+#define TIME_SAMPLE_STOP(x)				(ofxTimeMeasurements::instance()->stopMeasuring(x))
+#define TIME_SAMPLE_DRAW(x,y)			(ofxTimeMeasurements::instance()->draw(x,y))
 
 class ofxTimeMeasurements: public ofBaseDraws {
 

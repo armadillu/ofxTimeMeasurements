@@ -19,6 +19,9 @@
 #define TIME_SAMPLE_START(x)			(ofxTimeMeasurements::instance()->startMeasuring(x))
 #define TIME_SAMPLE_STOP(x)				(ofxTimeMeasurements::instance()->stopMeasuring(x))
 #define TIME_SAMPLE_DRAW(x,y)			(ofxTimeMeasurements::instance()->draw(x,y))
+#define TIME_SAMPLE_ENABLE				(ofxTimeMeasurements::instance()->setEnabled(true))
+#define TIME_SAMPLE_DISABLE				(ofxTimeMeasurements::instance()->setEnabled(false))
+#define TIME_SAMPLE_SET_AVERAGE_RATE(x)	(ofxTimeMeasurements::instance()->setTimeAveragePercent(x))
 
 class ofxTimeMeasurements: public ofBaseDraws {
 

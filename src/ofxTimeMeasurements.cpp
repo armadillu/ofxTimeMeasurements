@@ -20,7 +20,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 ofxTimeMeasurements* ofxTimeMeasurements::instance(){	
 	if (!singleton){   // Only allow one instance of class to be generated.
-		singleton = new ofxTimeMeasurements;
+		singleton = new ofxTimeMeasurements();
 	}
 	return singleton;
 }

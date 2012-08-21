@@ -29,6 +29,13 @@ void ofxTimeMeasurements::startMeasuring(string ID){
 
 	if (!enabled) return;
 	
+	//see if we already had it, if we didnt, set its add order #
+	map<string,TimeMeasurement>::iterator it;
+	it = times.find(ID);
+	if ( it == times.end() ){	//not found!
+		keyOrder[ keyOrder.size() ] = ID;
+	}
+	
 	TimeMeasurement t;
 	t.measuring = true;
 	t.microsecondsStart = ofGetElapsedTimeMicros();
@@ -45,7 +52,6 @@ void ofxTimeMeasurements::stopMeasuring(string ID){
 	if (!enabled) return;
 	
 	map<string,TimeMeasurement>::iterator it;
-	
 	it = times.find(ID);
 	
 	if ( it == times.end() ){	//not found!
@@ -85,12 +91,13 @@ void ofxTimeMeasurements::draw(float x, float y){
 	
 	ofDrawBitmapString( SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 	float percentTotal = 0.0f;
-	for( map<string,TimeMeasurement>::iterator ii = times.begin(); ii != times.end(); ++ii ){
+	
+	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
 
 		c++;
-		string key = (*ii).first;
-		TimeMeasurement t = (*ii).second;
-		float ms = t.avgDuration / 1000.0f;	
+		string key = (*ii).second;
+		TimeMeasurement t = times[key];
+		float ms = t.avgDuration / 1000.0f;
 		float percent = 100.0f * ms / timePerFrame;
 		
 		if ( t.error == false ){

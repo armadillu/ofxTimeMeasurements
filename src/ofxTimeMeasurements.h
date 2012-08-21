@@ -60,6 +60,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		float desiredFrameRate;
 		bool enabled;
 		map<string, TimeMeasurement> times;
+		map<int, string> keyOrder;
 		float timeAveragePercent;
 
 };

@@ -18,7 +18,7 @@
 		<!-- 	=====================================================================	-->
 	
 		<src>
-			<folder name="addons/ofxThreadedImageLoader/src">
+			<folder name="addons/ofxTimeMeasurements/src">
 				<file>../../../addons/ofxTimeMeasurements/src/ofxTimeMeasurements.cpp</file>
 				<file>../../../addons/ofxTimeMeasurements/src/ofxTimeMeasurements.h</file>
 			</folder>

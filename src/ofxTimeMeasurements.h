@@ -31,7 +31,6 @@ class ofxTimeMeasurements: public ofBaseDraws {
 
 	public :
 
-		ofxTimeMeasurements();
 		static ofxTimeMeasurements* instance();
 	
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
@@ -50,7 +49,9 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		virtual float getHeight(){ return ( 4 + times.size() ) * TIME_MEASUREMENTS_LINE_HEIGHT; };
 	
 	private:
-	
+
+		ofxTimeMeasurements(); // use ofxTimeMeasurements::instance() instead!
+
 		typedef struct TimeMeasurement{
 			unsigned long microsecondsStart;
 			unsigned long microsecondsStop;

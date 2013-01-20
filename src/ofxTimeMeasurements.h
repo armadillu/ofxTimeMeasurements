@@ -23,8 +23,8 @@
 #define TIME_SAMPLE_DRAW_TOP_RIGHT()	(ofxTimeMeasurements::instance()->draw( ofGetWidth() - ofxTimeMeasurements::instance()->getWidth(),0))
 #define TIME_SAMPLE_DRAW_BOTTOM_LEFT()	(ofxTimeMeasurements::instance()->draw(0,ofGetHeight() - ofxTimeMeasurements::instance()->getHeight()))
 #define TIME_SAMPLE_DRAW_BOTTOM_RIGHT()	(ofxTimeMeasurements::instance()->draw( ofGetWidth() - ofxTimeMeasurements::instance()->getWidth(),ofGetHeight() - ofxTimeMeasurements::instance()->getHeight()))
-#define TIME_SAMPLE_ENABLE				(ofxTimeMeasurements::instance()->setEnabled(true))
-#define TIME_SAMPLE_DISABLE				(ofxTimeMeasurements::instance()->setEnabled(false))
+#define TIME_SAMPLE_ENABLE()			(ofxTimeMeasurements::instance()->setEnabled(true))
+#define TIME_SAMPLE_DISABLE()			(ofxTimeMeasurements::instance()->setEnabled(false))
 #define TIME_SAMPLE_SET_AVERAGE_RATE(x)	(ofxTimeMeasurements::instance()->setTimeAveragePercent(x))
 
 class ofxTimeMeasurements: public ofBaseDraws {

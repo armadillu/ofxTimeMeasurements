@@ -13,7 +13,7 @@
 #include <map>
 
 #define TIME_MEASUREMENTS_LINE_HEIGHT 14
-#define SEPARATOR "---------------------------"
+#define TIME_SAMPLE_SEPARATOR "---------------------------"
 
 #define TIME_SAMPLE_SET_FRAMERATE(x)	(ofxTimeMeasurements::instance()->setDesiredFrameRate(x))
 #define TIME_SAMPLE_START(x)			(ofxTimeMeasurements::instance()->startMeasuring(x))
@@ -44,21 +44,22 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		unsigned long durationForID( string ID);
 	
 		void draw(float x, float y);
-		void draw(float x, float y, float w , float h ){ draw(x,y); } //w and h ignored! just here to comply with ofBaseDraws
-		virtual float getWidth(){ return ((string)(SEPARATOR)).length() * 8; }
+		void draw(float x, float y, float w , float h){ draw(x,y); } //w and h ignored! just here to comply with ofBaseDraws
+		virtual float getWidth(){ return ((string)(TIME_SAMPLE_SEPARATOR)).length() * 8; }
 		virtual float getHeight(){ return ( 4 + times.size() ) * TIME_MEASUREMENTS_LINE_HEIGHT; };
 	
 	private:
 
 		ofxTimeMeasurements(); // use ofxTimeMeasurements::instance() instead!
 
-		typedef struct TimeMeasurement{
+		struct TimeMeasurement{
 			unsigned long microsecondsStart;
 			unsigned long microsecondsStop;
 			unsigned long duration;
 			float avgDuration;
 			bool measuring;
 			bool error;
+			bool updatedLastFrame;
 		};
 
 		static ofxTimeMeasurements* singleton;

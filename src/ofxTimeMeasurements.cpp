@@ -43,6 +43,7 @@ void ofxTimeMeasurements::startMeasuring(string ID){
 	t.duration = 0;
 	t.avgDuration = times[ID].avgDuration;
 	t.error = true;
+	t.updatedLastFrame = true;
 	times[ID] = t;
 }
 
@@ -89,7 +90,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 	int c = 1;
 	float timePerFrame = 1000.0f / desiredFrameRate;
 	
-	ofDrawBitmapString( SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	ofDrawBitmapString( TIME_SAMPLE_SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 	float percentTotal = 0.0f;
 	
 	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
@@ -99,7 +100,13 @@ void ofxTimeMeasurements::draw(float x, float y){
 		TimeMeasurement t = times[key];
 		float ms = t.avgDuration / 1000.0f;
 		float percent = 100.0f * ms / timePerFrame;
-		
+		if (!t.updatedLastFrame){ // if we didnt update that time, make it tend to zero slowly
+			t.avgDuration = (1.0f - timeAveragePercent) * t.avgDuration;
+		}
+
+		t.updatedLastFrame = false;
+		times[key] = t;
+
 		if ( t.error == false ){
 			sprintf(msChar, "%*.2f", 4, ms );			
 			sprintf(percentChar, "%*.1f", 2, percent );
@@ -113,7 +120,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 1.0 ); // tolerance of 1 fps
 	
 	c++;
-	ofDrawBitmapString( SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	ofDrawBitmapString( TIME_SAMPLE_SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		
 	if ( missingFrames ) {
 		ofPushStyle();
@@ -129,7 +136,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 	}
 	
 	c++;
-	ofDrawBitmapString( SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	ofDrawBitmapString( TIME_SAMPLE_SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 }
 
 
@@ -139,7 +146,6 @@ unsigned long ofxTimeMeasurements::durationForID( string ID){
 	it = times.find(ID);
 	
 	if ( it == times.end() ){	//not found!
-		
 		if ( times[ID].error ){
 			return times[ID].duration;
 		}

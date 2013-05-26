@@ -15,7 +15,7 @@ ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
 ofxTimeMeasurements::ofxTimeMeasurements(){
 	desiredFrameRate = 60.0f;
 	enabled = true;
-	timeAveragePercent = 0.1; 
+	timeAveragePercent = 0.1;
 }
 
 ofxTimeMeasurements* ofxTimeMeasurements::instance(){	
@@ -100,7 +100,8 @@ void ofxTimeMeasurements::draw(float x, float y){
 		TimeMeasurement t = times[key];
 		float ms = t.avgDuration / 1000.0f;
 		float percent = 100.0f * ms / timePerFrame;
-		if (!t.updatedLastFrame){ // if we didnt update that time, make it tend to zero slowly
+		//average here, only if enabled
+		if (!t.updatedLastFrame && timeAveragePercent < 1.0f){ // if we didnt update that time, make it tend to zero slowly
 			t.avgDuration = (1.0f - timeAveragePercent) * t.avgDuration;
 		}
 

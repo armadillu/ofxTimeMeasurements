@@ -17,13 +17,23 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	enabled = true;
 	timeAveragePercent = 1;
 	msPrecision = 2;
+	updateSeparator();
 }
+
 
 ofxTimeMeasurements* ofxTimeMeasurements::instance(){	
 	if (!singleton){   // Only allow one instance of class to be generated.
 		singleton = new ofxTimeMeasurements();
 	}
 	return singleton;
+}
+
+void ofxTimeMeasurements::updateSeparator(){
+
+	TIME_SAMPLE_SEPARATOR = "";
+	for (int i = 0; i < 27 + msPrecision; i++){
+		TIME_SAMPLE_SEPARATOR += "-";
+	}
 }
 
 void ofxTimeMeasurements::startMeasuring(string ID){
@@ -174,4 +184,5 @@ bool ofxTimeMeasurements::getEnabled(){
 
 void ofxTimeMeasurements::setMsPrecision(int digits){
 	msPrecision = digits;
+	updateSeparator();
 }

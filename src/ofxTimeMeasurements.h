@@ -12,17 +12,18 @@
 #include "ofMain.h"
 #include <map>
 
-#define TIME_MEASUREMENTS_LINE_HEIGHT 14
-#define TIME_SAMPLE_SEPARATOR "---------------------------"
+#define TIME_MEASUREMENTS_LINE_HEIGHT	14
+#define TIME_MEASUREMENTS_EDGE_GAP_H		10
+#define TIME_MEASUREMENTS_EDGE_GAP_V		5
 
 #define TIME_SAMPLE_SET_FRAMERATE(x)	(ofxTimeMeasurements::instance()->setDesiredFrameRate(x))
 #define TIME_SAMPLE_START(x)			(ofxTimeMeasurements::instance()->startMeasuring(x))
 #define TIME_SAMPLE_STOP(x)				(ofxTimeMeasurements::instance()->stopMeasuring(x))
 #define TIME_SAMPLE_DRAW(x,y)			(ofxTimeMeasurements::instance()->draw(x,y))
-#define TIME_SAMPLE_DRAW_TOP_LEFT()		(ofxTimeMeasurements::instance()->draw(0,0))
-#define TIME_SAMPLE_DRAW_TOP_RIGHT()	(ofxTimeMeasurements::instance()->draw( ofGetWidth() - ofxTimeMeasurements::instance()->getWidth(),0))
-#define TIME_SAMPLE_DRAW_BOTTOM_LEFT()	(ofxTimeMeasurements::instance()->draw(0,ofGetHeight() - ofxTimeMeasurements::instance()->getHeight()))
-#define TIME_SAMPLE_DRAW_BOTTOM_RIGHT()	(ofxTimeMeasurements::instance()->draw( ofGetWidth() - ofxTimeMeasurements::instance()->getWidth(),ofGetHeight() - ofxTimeMeasurements::instance()->getHeight()))
+#define TIME_SAMPLE_DRAW_TOP_LEFT()		(ofxTimeMeasurements::instance()->draw(TIME_MEASUREMENTS_EDGE_GAP_H,TIME_MEASUREMENTS_EDGE_GAP_V))
+#define TIME_SAMPLE_DRAW_TOP_RIGHT()	(ofxTimeMeasurements::instance()->draw( ofGetWidth() - ofxTimeMeasurements::instance()->getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,TIME_MEASUREMENTS_EDGE_GAP_V))
+#define TIME_SAMPLE_DRAW_BOTTOM_LEFT()	(ofxTimeMeasurements::instance()->draw(TIME_MEASUREMENTS_EDGE_GAP_H,ofGetHeight() - ofxTimeMeasurements::instance()->getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V))
+#define TIME_SAMPLE_DRAW_BOTTOM_RIGHT()	(ofxTimeMeasurements::instance()->draw( ofGetWidth() - ofxTimeMeasurements::instance()->getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,ofGetHeight() - ofxTimeMeasurements::instance()->getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V))
 #define TIME_SAMPLE_ENABLE()			(ofxTimeMeasurements::instance()->setEnabled(true))
 #define TIME_SAMPLE_DISABLE()			(ofxTimeMeasurements::instance()->setEnabled(false))
 #define TIME_SAMPLE_SET_AVERAGE_RATE(x)	(ofxTimeMeasurements::instance()->setTimeAveragePercent(x))
@@ -65,6 +66,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 			bool updatedLastFrame;
 		};
 
+		void updateSeparator();
 		static ofxTimeMeasurements* singleton;
 		float desiredFrameRate;
 		bool enabled;
@@ -72,6 +74,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		map<int, string> keyOrder;
 		float timeAveragePercent;
 		int msPrecision;
+		string TIME_SAMPLE_SEPARATOR;
 
 };
 

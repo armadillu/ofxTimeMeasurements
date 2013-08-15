@@ -27,6 +27,7 @@
 #define TIME_SAMPLE_DISABLE()			(ofxTimeMeasurements::instance()->setEnabled(false))
 #define TIME_SAMPLE_SET_AVERAGE_RATE(x)	(ofxTimeMeasurements::instance()->setTimeAveragePercent(x))
 #define TIME_SAMPLE_DISABLE_AVERAGE()	(ofxTimeMeasurements::instance()->setTimeAveragePercent(1))
+#define TIME_SAMPLE_SET_PRECISION(x)	(ofxTimeMeasurements::instance()->setMsPrecision(x))
 
 class ofxTimeMeasurements: public ofBaseDraws {
 
@@ -40,6 +41,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void stopMeasuring(string ID);
 		void setEnabled( bool enable );
 		bool getEnabled();
+		void setMsPrecision(int digits);		//how many decimals for the ms units
 		void setTimeAveragePercent(float p); //[0..1] >> if set to 1.0, 100% of every new sample contributes to the average.
 											 //if set to 0.1, a new sample contributes 10% to the average
 		unsigned long durationForID( string ID);
@@ -48,7 +50,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void draw(float x, float y, float w , float h){ draw(x,y); } //w and h ignored! just here to comply with ofBaseDraws
 		virtual float getWidth(){ return ((string)(TIME_SAMPLE_SEPARATOR)).length() * 8; }
 		virtual float getHeight(){ return ( 4 + times.size() ) * TIME_MEASUREMENTS_LINE_HEIGHT; };
-	
+
 	private:
 
 		ofxTimeMeasurements(); // use ofxTimeMeasurements::instance() instead!
@@ -69,6 +71,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		map<string, TimeMeasurement> times;
 		map<int, string> keyOrder;
 		float timeAveragePercent;
+		int msPrecision;
 
 };
 

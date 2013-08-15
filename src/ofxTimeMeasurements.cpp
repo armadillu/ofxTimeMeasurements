@@ -15,7 +15,8 @@ ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
 ofxTimeMeasurements::ofxTimeMeasurements(){
 	desiredFrameRate = 60.0f;
 	enabled = true;
-	timeAveragePercent = 0.1;
+	timeAveragePercent = 1;
+	msPrecision = 2;
 }
 
 ofxTimeMeasurements* ofxTimeMeasurements::instance(){	
@@ -109,7 +110,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 		times[key] = t;
 
 		if ( t.error == false ){
-			sprintf(msChar, "%*.2f", 4, ms );			
+			sprintf(msChar, "%*.*f", 4, msPrecision, ms );
 			sprintf(percentChar, "%*.1f", 2, percent );
 			ofDrawBitmapString( " " + key + " = " + msChar + "ms (" + percentChar+ "\%)" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}else{
@@ -168,4 +169,9 @@ void ofxTimeMeasurements::setEnabled(bool ena){
 
 bool ofxTimeMeasurements::getEnabled(){
 	return enabled;
+}
+
+
+void ofxTimeMeasurements::setMsPrecision(int digits){
+	msPrecision = digits;
 }

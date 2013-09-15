@@ -24,11 +24,13 @@
 #define TIME_SAMPLE_DRAW_TOP_RIGHT()	(ofxTimeMeasurements::instance()->draw( ofGetWidth() - ofxTimeMeasurements::instance()->getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,TIME_MEASUREMENTS_EDGE_GAP_V))
 #define TIME_SAMPLE_DRAW_BOTTOM_LEFT()	(ofxTimeMeasurements::instance()->draw(TIME_MEASUREMENTS_EDGE_GAP_H,ofGetHeight() - ofxTimeMeasurements::instance()->getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V))
 #define TIME_SAMPLE_DRAW_BOTTOM_RIGHT()	(ofxTimeMeasurements::instance()->draw( ofGetWidth() - ofxTimeMeasurements::instance()->getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,ofGetHeight() - ofxTimeMeasurements::instance()->getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V))
+#define TIME_SAMPLE_GET_ENABLED()		(ofxTimeMeasurements::instance()->getEnabled())
+#define TIME_SAMPLE_SET_ENABLED(e)		(ofxTimeMeasurements::instance()->setEnabled(e))
 #define TIME_SAMPLE_ENABLE()			(ofxTimeMeasurements::instance()->setEnabled(true))
 #define TIME_SAMPLE_DISABLE()			(ofxTimeMeasurements::instance()->setEnabled(false))
-#define TIME_SAMPLE_SET_AVERAGE_RATE(x)	(ofxTimeMeasurements::instance()->setTimeAveragePercent(x))
+#define TIME_SAMPLE_SET_AVERAGE_RATE(x)	(ofxTimeMeasurements::instance()->setTimeAveragePercent(x)) /* 1.0 means no averaging, 0.01 means each new sample only effects 1% on previous sample */
 #define TIME_SAMPLE_DISABLE_AVERAGE()	(ofxTimeMeasurements::instance()->setTimeAveragePercent(1))
-#define TIME_SAMPLE_SET_PRECISION(x)	(ofxTimeMeasurements::instance()->setMsPrecision(x))
+#define TIME_SAMPLE_SET_PRECISION(x)	(ofxTimeMeasurements::instance()->setMsPrecision(x)) /* how many precion digits to show on time measurements */
 
 class ofxTimeMeasurements: public ofBaseDraws {
 

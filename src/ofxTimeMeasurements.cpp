@@ -166,7 +166,7 @@ unsigned long ofxTimeMeasurements::durationForID( string ID){
 }
 
 void ofxTimeMeasurements::setTimeAveragePercent(float p){
-	timeAveragePercent = ofClamp(p, 0, 1);
+	timeAveragePercent = ofClamp(p, 0.0f, 1.0f);
 }
 
 void ofxTimeMeasurements::setDesiredFrameRate(float fr){

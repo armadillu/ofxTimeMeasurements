@@ -18,6 +18,17 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	timeAveragePercent = 1;
 	msPrecision = 2;
 	updateSeparator();
+	drawLocation = TIME_MEASUREMENTS_BOTTOM_RIGHT;
+
+	ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP);
+	ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP);
+	ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP);
+	ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP);
+
+	keyOrder[ 0 ] = TIME_MEASUREMENTS_UPDATE_KEY;
+	keyOrder[ 1 ] = TIME_MEASUREMENTS_DRAW_KEY;
+	times[TIME_MEASUREMENTS_UPDATE_KEY] = TimeMeasurement();
+	times[TIME_MEASUREMENTS_DRAW_KEY] = TimeMeasurement();
 }
 
 
@@ -90,6 +101,32 @@ void ofxTimeMeasurements::stopMeasuring(string ID){
 	}
 }
 
+void ofxTimeMeasurements::setDrawLocation(ofxTMDrawLocation l, ofVec2f p){
+	drawLocation = l;
+	loc = p;
+}
+
+void ofxTimeMeasurements::autoDraw(){
+
+	switch(drawLocation){
+
+		case TIME_MEASUREMENTS_TOP_LEFT:
+			draw(TIME_MEASUREMENTS_EDGE_GAP_H,TIME_MEASUREMENTS_EDGE_GAP_V);
+			break;
+		case TIME_MEASUREMENTS_TOP_RIGHT:
+			draw( ofGetWidth() - getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,TIME_MEASUREMENTS_EDGE_GAP_V);
+			break;
+		case TIME_MEASUREMENTS_BOTTOM_LEFT:
+			draw(TIME_MEASUREMENTS_EDGE_GAP_H,ofGetHeight() - getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V);
+			break;
+		case TIME_MEASUREMENTS_BOTTOM_RIGHT:
+			draw( ofGetWidth() - getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,ofGetHeight() - getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V);
+			break;
+		case TIME_MEASUREMENTS_CUSTOM_LOCATION:
+			draw(loc.x, loc.y);
+			break;
+	}
+}
 
 void ofxTimeMeasurements::draw(float x, float y){
 
@@ -100,7 +137,9 @@ void ofxTimeMeasurements::draw(float x, float y){
 	
 	int c = 1;
 	float timePerFrame = 1000.0f / desiredFrameRate;
-	
+
+	ofSetupScreen(); //mmmm----
+
 	ofDrawBitmapString( TIME_SAMPLE_SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 	float percentTotal = 0.0f;
 	
@@ -126,7 +165,9 @@ void ofxTimeMeasurements::draw(float x, float y){
 		}else{
 			ofDrawBitmapString( " " + key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}
-		percentTotal += percent;
+		if(key==TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
+			percentTotal += percent;
+		}
 	}
 		
 	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 1.0 ); // tolerance of 1 fps

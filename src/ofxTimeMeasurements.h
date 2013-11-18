@@ -12,18 +12,17 @@
 #include "ofMain.h"
 #include <map>
 
-#define TIME_MEASUREMENTS_LINE_HEIGHT	14
+#define TIME_MEASUREMENTS_LINE_HEIGHT		14
 #define TIME_MEASUREMENTS_EDGE_GAP_H		10
 #define TIME_MEASUREMENTS_EDGE_GAP_V		5
+
+#define TIME_MEASUREMENTS_UPDATE_KEY		"update()"
+#define TIME_MEASUREMENTS_DRAW_KEY			"draw()"
 
 #define TIME_SAMPLE_SET_FRAMERATE(x)	(ofxTimeMeasurements::instance()->setDesiredFrameRate(x))
 #define TIME_SAMPLE_START(x)			(ofxTimeMeasurements::instance()->startMeasuring(x))
 #define TIME_SAMPLE_STOP(x)				(ofxTimeMeasurements::instance()->stopMeasuring(x))
-#define TIME_SAMPLE_DRAW(x,y)			(ofxTimeMeasurements::instance()->draw(x,y))
-#define TIME_SAMPLE_DRAW_TOP_LEFT()		(ofxTimeMeasurements::instance()->draw(TIME_MEASUREMENTS_EDGE_GAP_H,TIME_MEASUREMENTS_EDGE_GAP_V))
-#define TIME_SAMPLE_DRAW_TOP_RIGHT()	(ofxTimeMeasurements::instance()->draw( ofGetWidth() - ofxTimeMeasurements::instance()->getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,TIME_MEASUREMENTS_EDGE_GAP_V))
-#define TIME_SAMPLE_DRAW_BOTTOM_LEFT()	(ofxTimeMeasurements::instance()->draw(TIME_MEASUREMENTS_EDGE_GAP_H,ofGetHeight() - ofxTimeMeasurements::instance()->getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V))
-#define TIME_SAMPLE_DRAW_BOTTOM_RIGHT()	(ofxTimeMeasurements::instance()->draw( ofGetWidth() - ofxTimeMeasurements::instance()->getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,ofGetHeight() - ofxTimeMeasurements::instance()->getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V))
+#define TIME_SAMPLE_SET_DRAW_LOCATION(x,...)(ofxTimeMeasurements::instance()->setDrawLocation(x,##__VA_ARGS__))
 #define TIME_SAMPLE_GET_ENABLED()		(ofxTimeMeasurements::instance()->getEnabled())
 #define TIME_SAMPLE_SET_ENABLED(e)		(ofxTimeMeasurements::instance()->setEnabled(e))
 #define TIME_SAMPLE_ENABLE()			(ofxTimeMeasurements::instance()->setEnabled(true))
@@ -31,6 +30,13 @@
 #define TIME_SAMPLE_SET_AVERAGE_RATE(x)	(ofxTimeMeasurements::instance()->setTimeAveragePercent(x)) /* 1.0 means no averaging, 0.01 means each new sample only effects 1% on previous sample */
 #define TIME_SAMPLE_DISABLE_AVERAGE()	(ofxTimeMeasurements::instance()->setTimeAveragePercent(1))
 #define TIME_SAMPLE_SET_PRECISION(x)	(ofxTimeMeasurements::instance()->setMsPrecision(x)) /* how many precion digits to show on time measurements */
+
+enum ofxTMDrawLocation{	TIME_MEASUREMENTS_TOP_LEFT,
+	TIME_MEASUREMENTS_TOP_RIGHT,
+	TIME_MEASUREMENTS_BOTTOM_LEFT,
+	TIME_MEASUREMENTS_BOTTOM_RIGHT,
+	TIME_MEASUREMENTS_CUSTOM_LOCATION
+};
 
 class ofxTimeMeasurements: public ofBaseDraws {
 
@@ -44,13 +50,12 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void stopMeasuring(string ID);
 		void setEnabled( bool enable );
 		bool getEnabled();
+		void setDrawLocation(ofxTMDrawLocation loc, ofVec2f p = ofVec2f()); //p only relevant if using TIME_MEASUREMENTS_CUSTOM_LOCATION
 		void setMsPrecision(int digits);		//how many decimals for the ms units
-		void setTimeAveragePercent(float p); //[0..1] >> if set to 1.0, 100% of every new sample contributes to the average.
-											 //if set to 0.1, a new sample contributes 10% to the average
+		void setTimeAveragePercent(float p);	//[0..1] >> if set to 1.0, 100% of every new sample contributes to the average.
+												//if set to 0.1, a new sample contributes 10% to the average
 		unsigned long durationForID( string ID);
 	
-		void draw(float x, float y);
-		void draw(float x, float y, float w , float h){ draw(x,y); } //w and h ignored! just here to comply with ofBaseDraws
 		virtual float getWidth(){ return ((string)(TIME_SAMPLE_SEPARATOR)).length() * 8; }
 		virtual float getHeight(){ return ( 4 + times.size() ) * TIME_MEASUREMENTS_LINE_HEIGHT; };
 
@@ -68,7 +73,16 @@ class ofxTimeMeasurements: public ofBaseDraws {
 			bool updatedLastFrame;
 		};
 
+		void _beforeUpdate(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};
+		void _afterUpdate(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};
+		void _beforeDraw(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_DRAW_KEY);};
+		void _afterDraw(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_DRAW_KEY); autoDraw(); };
+		void draw(float x, float y);
+		void draw(float x, float y, float w , float h){ cout << "ofxTimeMeasurements: ignoring draw() call" << endl; } //w and h ignored! just here to comply with ofBaseDraws
+
+		void autoDraw();
 		void updateSeparator();
+
 		static ofxTimeMeasurements* singleton;
 		float desiredFrameRate;
 		bool enabled;
@@ -77,6 +91,9 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		float timeAveragePercent;
 		int msPrecision;
 		string TIME_SAMPLE_SEPARATOR;
+
+		ofxTMDrawLocation drawLocation;
+		ofVec2f loc;
 
 };
 

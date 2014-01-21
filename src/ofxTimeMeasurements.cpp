@@ -139,7 +139,7 @@ void ofxTimeMeasurements::autoDraw(){
 void ofxTimeMeasurements::draw(float x, float y){
 
 	if (!enabled) return;
-	static char msChar[50];
+	static char msChar[128];
 	static char percentChar[50];
 	static char msg[100];
 	
@@ -165,13 +165,14 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 		t.updatedLastFrame = false;
 		times[key] = t;
+		string special = string ((c <= 3) ? "*" : "");
 
 		if ( t.error == false ){
 			sprintf(msChar, "%*.*f", 4, msPrecision, ms );
 			sprintf(percentChar, "%*.1f", 2, percent );
-			ofDrawBitmapString( " " + key + " = " + msChar + "ms (" + percentChar+ "\%)" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+			ofDrawBitmapString( " " + key + special + " = " + msChar + "ms (" + percentChar+ "\%)" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}else{
-			ofDrawBitmapString( " " + key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+			ofDrawBitmapString( " " + key + special + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}
 		if(key==TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
 			percentTotal += percent;

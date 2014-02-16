@@ -25,6 +25,8 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP);
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP);
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP);
+		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed);
+
 #else
 	ofAddListener(ofEvents.update, this, &ofxTimeMeasurements::_afterUpdate);
 	ofAddListener(ofEvents.update, this, &ofxTimeMeasurements::_beforeUpdate);

@@ -20,7 +20,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	updateSeparator();
 	drawLocation = TIME_MEASUREMENTS_BOTTOM_RIGHT;
 
-#if OF_VERSION_MINOR >= 8 
+#if (OF_VERSION_MINOR >= 8)
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP);
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP);
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP);
@@ -28,11 +28,17 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed);
 
 #else
-	ofAddListener(ofEvents.update, this, &ofxTimeMeasurements::_afterUpdate);
-	ofAddListener(ofEvents.update, this, &ofxTimeMeasurements::_beforeUpdate);
-	ofAddListener(ofEvents.draw, this, &ofxTimeMeasurements::_afterDraw);
-	ofAddListener(ofEvents.draw, this, &ofxTimeMeasurements::_beforeDraw);
-
+	#if (OF_VERSION == 7 && OF_VERSION_MINOR >= 2 )
+		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate);
+		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate);
+		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw);
+		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw);
+	#else
+		ofAddListener(ofEvents.update, this, &ofxTimeMeasurements::_afterUpdate);
+		ofAddListener(ofEvents.update, this, &ofxTimeMeasurements::_beforeUpdate);
+		ofAddListener(ofEvents.draw, this, &ofxTimeMeasurements::_afterDraw);
+		ofAddListener(ofEvents.draw, this, &ofxTimeMeasurements::_beforeDraw);
+	#endif
 #endif
 
 	keyOrder[ 0 ] = TIME_MEASUREMENTS_UPDATE_KEY;

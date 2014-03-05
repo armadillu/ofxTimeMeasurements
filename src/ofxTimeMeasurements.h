@@ -78,7 +78,9 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void _beforeDraw(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_DRAW_KEY);};
 		void _afterDraw(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_DRAW_KEY); autoDraw(); };
 
-	void _keyPressed(ofKeyEventArgs &e){ if (e.key == OF_KEY_RIGHT_SHIFT){TIME_SAMPLE_SET_ENABLED(!TIME_SAMPLE_GET_ENABLED());} };
+		void _keyPressed(ofKeyEventArgs &e){
+			if (e.key == (0x2 | OF_KEY_SHIFT)){TIME_SAMPLE_SET_ENABLED(!TIME_SAMPLE_GET_ENABLED());}
+		};
 
 		void draw(float x, float y);
 		void draw(float x, float y, float w , float h){ cout << "ofxTimeMeasurements: ignoring draw() call" << endl; } //w and h ignored! just here to comply with ofBaseDraws

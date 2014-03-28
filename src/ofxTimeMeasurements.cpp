@@ -63,6 +63,32 @@ void ofxTimeMeasurements::updateSeparator(){
 	}
 }
 
+
+float ofxTimeMeasurements::getLastDurationFor(string ID){
+
+	float r = 0.0f;
+	map<string,TimeMeasurement>::iterator it;
+	it = times.find(ID);
+	if ( it != times.end() ){	//not found!
+		r = times[ID].duration / 1000.0f;
+	}
+	return r;
+}
+
+
+float ofxTimeMeasurements::getAvgDurationFor(string ID){
+
+	float r = 0.0f;
+	map<string,TimeMeasurement>::iterator it;
+	it = times.find(ID);
+	if ( it != times.end() ){	//not found!
+		r = times[ID].avgDuration / 1000.0f;
+	}
+	return r;
+
+}
+
+
 void ofxTimeMeasurements::startMeasuring(string ID){
 
 	if (!enabled) return;
@@ -78,7 +104,7 @@ void ofxTimeMeasurements::startMeasuring(string ID){
 	t.measuring = true;
 	t.microsecondsStart = ofGetElapsedTimeMicros();
 	t.microsecondsStop = 0;
-	t.duration = 0;
+	t.duration = times[ID].duration; //store the old one so we can still query it
 	t.avgDuration = times[ID].avgDuration;
 	t.error = true;
 	t.updatedLastFrame = true;

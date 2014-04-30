@@ -50,7 +50,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 											//affects the % busy indicator
 		void startMeasuring(string ID);
-		void stopMeasuring(string ID);
+		float stopMeasuring(string ID);
 		void setEnabled( bool enable );
 		bool getEnabled();
 		void setDrawLocation(ofxTMDrawLocation loc, ofVec2f p = ofVec2f()); //p only relevant if using TIME_MEASUREMENTS_CUSTOM_LOCATION

@@ -112,9 +112,10 @@ void ofxTimeMeasurements::startMeasuring(string ID){
 }
 
 
-void ofxTimeMeasurements::stopMeasuring(string ID){
+float ofxTimeMeasurements::stopMeasuring(string ID){
 
-	if (!enabled) return;
+	float ret = 0.0;
+	if (!enabled) return ret;
 	
 	map<string,TimeMeasurement>::iterator it;
 	it = times.find(ID);
@@ -132,7 +133,7 @@ void ofxTimeMeasurements::stopMeasuring(string ID){
 			t.error = false;
 			t.microsecondsStop = ofGetElapsedTimeMicros();
 			t.microsecondsStart = times[ID].microsecondsStart;
-			t.duration = t.microsecondsStop - t.microsecondsStart;
+			ret = t.duration = t.microsecondsStop - t.microsecondsStart;
 			t.avgDuration = (1.0f - timeAveragePercent) * times[ID].avgDuration + t.duration * timeAveragePercent;
 			times[ID] = t;
 
@@ -141,6 +142,7 @@ void ofxTimeMeasurements::stopMeasuring(string ID){
 			ofLog( OF_LOG_WARNING, "Can't stopMeasuring(%s). Make sure you called startMeasuring with that ID first.", ID.c_str());				
 		}		
 	}
+	return ret;
 }
 
 void ofxTimeMeasurements::setDrawLocation(ofxTMDrawLocation l, ofVec2f p){

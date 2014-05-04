@@ -94,17 +94,17 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void autoDraw();
 		void updateSeparator();
 
-		static ofxTimeMeasurements* singleton;
-		float desiredFrameRate;
-		bool enabled;
-		map<string, TimeMeasurement> times;
-		map<int, string> keyOrder;
-		float timeAveragePercent;
-		int msPrecision;
-		string TIME_SAMPLE_SEPARATOR;
+		static ofxTimeMeasurements*		singleton;
+		float							desiredFrameRate;
+		bool							enabled;
+		map<string, TimeMeasurement>	times;
+		map<int, string>				keyOrder;
+		float							timeAveragePercent;
+		int								msPrecision;
+		string							TIME_SAMPLE_SEPARATOR;
 
-		ofxTMDrawLocation drawLocation;
-		ofVec2f loc;
+		ofxTMDrawLocation				drawLocation;
+		ofVec2f							loc;
 
 };
 

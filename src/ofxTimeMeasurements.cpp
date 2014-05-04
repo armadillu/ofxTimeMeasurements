@@ -29,8 +29,8 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 #else
 	#if (OF_VERSION == 7 && OF_VERSION_MINOR >= 2 )
-		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate);
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate);
+		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate);
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw);
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw);
 	#else
@@ -210,12 +210,12 @@ void ofxTimeMeasurements::draw(float x, float y){
 		}else{
 			ofDrawBitmapString( " " + key + special + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}
-		if(key==TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
+		if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
 			percentTotal += percent;
 		}
 	}
 		
-	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 1.0 ); // tolerance of 1 fps
+	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 1.0 ); // tolerance of 1 fps TODO!
 	
 	c++;
 	ofDrawBitmapString( TIME_SAMPLE_SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );

@@ -89,7 +89,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		};
 
 		void draw(float x, float y);
-		void draw(float x, float y, float w , float h){ cout << "ofxTimeMeasurements: ignoring draw() call" << endl; } //w and h ignored! just here to comply with ofBaseDraws
+		void draw(float x, float y, float w , float h){ ofLogError() << "ofxTimeMeasurements: ignoring draw() call"; } //w and h ignored! just here to comply with ofBaseDraws
 
 		void autoDraw();
 		void updateSeparator();

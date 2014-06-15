@@ -239,7 +239,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 				padding += " ";
 			}
 
-			string fullLine = label + padding + " = " + msChar + "ms (" + percentChar+ "\%)";
+			string fullLine = label + padding + " " + msChar + "ms (" + percentChar+ "\%)";
 			if(fullLine.length() > maxW){
 				maxW = fullLine.length();
 				updateSeparator();

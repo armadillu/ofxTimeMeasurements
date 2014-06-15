@@ -39,12 +39,12 @@ void testApp::draw(){
 
 	ofSleepMillis(1);
 
-		TIME_SAMPLE_START("Nest Test");
+		TIME_SAMPLE_START("Nested Test");
 		ofSleepMillis(2);
-			TIME_SAMPLE_START("Nest Test Deep 2");
+			TIME_SAMPLE_START("Nested Test Deep");
 			ofSleepMillis(2);
-			TIME_SAMPLE_STOP("Nest Test Deep 2");
-		TIME_SAMPLE_STOP("Nest Test");
+			TIME_SAMPLE_STOP("Nested Test Deep");
+		TIME_SAMPLE_STOP("Nested Test");
 
 	TIME_SAMPLE_STOP("test");	///////////////////////////////  STOP MEASURING  ///
 

@@ -17,7 +17,12 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	enabled = true;
 	timeAveragePercent = 1;
 	msPrecision = 2;
-	updateSeparator();
+	stackLevel = 0;
+	maxW = 27;
+	bgColor = ofColor(0, 200);
+	hiColor = ofColor(128);
+	textColor = ofColor::white;
+	longestLabel = 0;
 	drawLocation = TIME_MEASUREMENTS_BOTTOM_RIGHT;
 
 #if OF_VERSION_MINOR >= 8 
@@ -30,13 +35,12 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	ofAddListener(ofEvents.update, this, &ofxTimeMeasurements::_beforeUpdate);
 	ofAddListener(ofEvents.draw, this, &ofxTimeMeasurements::_afterDraw);
 	ofAddListener(ofEvents.draw, this, &ofxTimeMeasurements::_beforeDraw);
-
 #endif
 
-	keyOrder[ 0 ] = TIME_MEASUREMENTS_UPDATE_KEY;
-	keyOrder[ 1 ] = TIME_MEASUREMENTS_DRAW_KEY;
-	times[TIME_MEASUREMENTS_UPDATE_KEY] = TimeMeasurement();
-	times[TIME_MEASUREMENTS_DRAW_KEY] = TimeMeasurement();
+//	keyOrder[ 0 ] = TIME_MEASUREMENTS_UPDATE_KEY;
+//	keyOrder[ 1 ] = TIME_MEASUREMENTS_DRAW_KEY;
+//	times[TIME_MEASUREMENTS_UPDATE_KEY] = TimeMeasurement();
+//	times[TIME_MEASUREMENTS_DRAW_KEY] = TimeMeasurement();
 }
 
 
@@ -50,15 +54,17 @@ ofxTimeMeasurements* ofxTimeMeasurements::instance(){
 void ofxTimeMeasurements::updateSeparator(){
 
 	TIME_SAMPLE_SEPARATOR = "";
-	for (int i = 0; i < 27 + msPrecision; i++){
+	for (int i = 0; i < maxW; i++){
 		TIME_SAMPLE_SEPARATOR += "-";
 	}
 }
 
+
 void ofxTimeMeasurements::startMeasuring(string ID){
 
 	if (!enabled) return;
-	
+	lastKey = ID;
+
 	//see if we already had it, if we didnt, set its add order #
 	map<string,TimeMeasurement>::iterator it;
 	it = times.find(ID);
@@ -74,7 +80,9 @@ void ofxTimeMeasurements::startMeasuring(string ID){
 	t.avgDuration = times[ID].avgDuration;
 	t.error = true;
 	t.updatedLastFrame = true;
+	t.level = stackLevel;
 	times[ID] = t;
+	stackLevel ++;
 }
 
 
@@ -98,6 +106,7 @@ void ofxTimeMeasurements::stopMeasuring(string ID){
 			t.error = false;
 			t.microsecondsStop = ofGetElapsedTimeMicros();
 			t.microsecondsStart = times[ID].microsecondsStart;
+			t.level = times[ID].level;
 			t.duration = t.microsecondsStop - t.microsecondsStart;
 			t.avgDuration = (1.0f - timeAveragePercent) * times[ID].avgDuration + t.duration * timeAveragePercent;
 			times[ID] = t;
@@ -105,7 +114,8 @@ void ofxTimeMeasurements::stopMeasuring(string ID){
 		}else{	//wrong use, start first, then stop
 			
 			ofLog( OF_LOG_WARNING, "Can't stopMeasuring(%s). Make sure you called startMeasuring with that ID first.", ID.c_str());				
-		}		
+		}
+		stackLevel--;
 	}
 }
 
@@ -139,18 +149,27 @@ void ofxTimeMeasurements::autoDraw(){
 void ofxTimeMeasurements::draw(float x, float y){
 
 	if (!enabled) return;
-	static char msChar[128];
-	static char percentChar[50];
-	static char msg[100];
-	
-	int c = 1;
+	static char msChar[64];
+	static char percentChar[64];
+	static char msg[128];
+
+	float c = TIME_MEASUREMENTS_LINE_H_MULT;
 	float timePerFrame = 1000.0f / desiredFrameRate;
 
 	ofSetupScreen(); //mmmm----
 
-	ofDrawBitmapString( TIME_SAMPLE_SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	ofPushStyle();
+	ofSetColor(bgColor);
+	int barH = 1;
+	ofRect(x, y, getWidth(), getHeight());
+	ofSetColor(hiColor);
+	ofRect(x, y + TIME_MEASUREMENTS_LINE_H_MULT * 0.5, getWidth(), barH);
+	ofRect(x, y + getHeight(), getWidth(), -barH);
+	ofRect(x, y + getHeight() - TIME_MEASUREMENTS_LINE_HEIGHT - TIME_MEASUREMENTS_LINE_H_MULT * TIME_MEASUREMENTS_LINE_HEIGHT * 2.5 , getWidth(), barH);
+
+	//ofDrawBitmapString( TIME_SAMPLE_SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 	float percentTotal = 0.0f;
-	
+
 	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
 
 		c++;
@@ -165,14 +184,38 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 		t.updatedLastFrame = false;
 		times[key] = t;
-		string special = string ((c <= 3) ? "*" : "");
+		bool isRoot = (key == TIME_MEASUREMENTS_UPDATE_KEY || key == TIME_MEASUREMENTS_DRAW_KEY);
+		string nesting = "";
+		for(int i = 0; i < t.level; i++){
+			nesting += " ";
+		}
 
 		if ( t.error == false ){
+
 			sprintf(msChar, "%*.*f", 4, msPrecision, ms );
 			sprintf(percentChar, "%*.1f", 2, percent );
-			ofDrawBitmapString( " " + key + special + " = " + msChar + "ms (" + percentChar+ "\%)" , x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+			string label = " " + string(isRoot?"+":" ") + nesting + key;
+			int len = label.length();
+			if (len > longestLabel){
+				longestLabel = len;
+			}
+
+			string padding = "";
+			for(int i = label.length(); i < longestLabel; i++){
+				padding += " ";
+			}
+
+			string fullLine = label + padding + " = " + msChar + "ms (" + percentChar+ "\%)";
+			if(fullLine.length() > maxW){
+				maxW = fullLine.length();
+				updateSeparator();
+			}
+
+			if(isRoot) ofSetColor(textColor);
+			else ofSetColor(textColor, 128);
+			ofDrawBitmapString( fullLine, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}else{
-			ofDrawBitmapString( " " + key + special + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+			ofDrawBitmapString( " " + key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}
 		if(key==TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
 			percentTotal += percent;
@@ -181,24 +224,19 @@ void ofxTimeMeasurements::draw(float x, float y){
 		
 	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 1.0 ); // tolerance of 1 fps
 	
-	c++;
-	ofDrawBitmapString( TIME_SAMPLE_SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-		
-	if ( missingFrames ) {
-		ofPushStyle();
-		ofSetColor(255, 0, 0);
-	}
+	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
 
 	sprintf(msg, " App fps %*.1f (%*.1f%% busy)", 4, ofGetFrameRate(), 3, percentTotal );
 	c++;
-	ofDrawBitmapString( msg, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-	
-	if ( missingFrames ) {
-		ofPopStyle();
+	if(missingFrames){
+		ofSetColor(255, 0, 0);
+	}else{
+		ofSetColor(255);
 	}
-	
-	c++;
-	ofDrawBitmapString( TIME_SAMPLE_SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	ofDrawBitmapString( msg, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+
+	ofPopStyle();
+	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
 }
 
 

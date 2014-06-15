@@ -15,6 +15,7 @@
 #define TIME_MEASUREMENTS_LINE_HEIGHT		14
 #define TIME_MEASUREMENTS_EDGE_GAP_H		10
 #define TIME_MEASUREMENTS_EDGE_GAP_V		5
+#define TIME_MEASUREMENTS_LINE_H_MULT		0.25
 
 #define TIME_MEASUREMENTS_UPDATE_KEY		"update()"
 #define TIME_MEASUREMENTS_DRAW_KEY			"draw()"
@@ -55,9 +56,12 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void setTimeAveragePercent(float p);	//[0..1] >> if set to 1.0, 100% of every new sample contributes to the average.
 												//if set to 0.1, a new sample contributes 10% to the average
 		unsigned long durationForID( string ID);
+		void setBgColor(ofColor c){bgColor = c;}
+		void setHighlightColor(ofColor c){hiColor = c;}
+		void setTextColor(ofColor c){textColor = c;}
 	
-		virtual float getWidth(){ return ((string)(TIME_SAMPLE_SEPARATOR)).length() * 8; }
-		virtual float getHeight(){ return ( 4 + times.size() ) * TIME_MEASUREMENTS_LINE_HEIGHT; };
+		virtual float getWidth(){ return maxW * 8; }
+		virtual float getHeight(){ return ( TIME_MEASUREMENTS_LINE_H_MULT * 5 + times.size() + 1 ) * TIME_MEASUREMENTS_LINE_HEIGHT; };
 
 	private:
 
@@ -71,29 +75,45 @@ class ofxTimeMeasurements: public ofBaseDraws {
 			bool measuring;
 			bool error;
 			bool updatedLastFrame;
+			int level; //for nested measurements
+			TimeMeasurement(){
+				level = 0;
+			}
 		};
 
 		void _beforeUpdate(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};
 		void _afterUpdate(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};
 		void _beforeDraw(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_DRAW_KEY);};
 		void _afterDraw(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_DRAW_KEY); autoDraw(); };
+
 		void draw(float x, float y);
 		void draw(float x, float y, float w , float h){ cout << "ofxTimeMeasurements: ignoring draw() call" << endl; } //w and h ignored! just here to comply with ofBaseDraws
 
 		void autoDraw();
 		void updateSeparator();
 
-		static ofxTimeMeasurements* singleton;
-		float desiredFrameRate;
-		bool enabled;
-		map<string, TimeMeasurement> times;
-		map<int, string> keyOrder;
-		float timeAveragePercent;
-		int msPrecision;
-		string TIME_SAMPLE_SEPARATOR;
+		static ofxTimeMeasurements*		singleton;
+		float							desiredFrameRate;
+		bool							enabled;
 
-		ofxTMDrawLocation drawLocation;
-		ofVec2f loc;
+		map<string, TimeMeasurement>	times;
+		map<int, string>				keyOrder;
 
+		int								stackLevel; //for Nested measurements
+
+		float							timeAveragePercent;
+		int								msPrecision;
+		string							TIME_SAMPLE_SEPARATOR;
+
+		ofxTMDrawLocation				drawLocation;
+		ofVec2f							loc;
+		int								maxW; //for a text line
+		int								longestLabel; //
+
+		ofColor							bgColor;
+		ofColor							hiColor;
+		ofColor							textColor;
+
+		string							lastKey;
 };
 

@@ -25,16 +25,24 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	longestLabel = 0;
 	drawLocation = TIME_MEASUREMENTS_BOTTOM_RIGHT;
 
-#if OF_VERSION_MINOR >= 8 
+#if (OF_VERSION_MINOR >= 8)
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP);
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP);
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP);
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP);
+		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed);
 #else
-	ofAddListener(ofEvents.update, this, &ofxTimeMeasurements::_afterUpdate);
-	ofAddListener(ofEvents.update, this, &ofxTimeMeasurements::_beforeUpdate);
-	ofAddListener(ofEvents.draw, this, &ofxTimeMeasurements::_afterDraw);
-	ofAddListener(ofEvents.draw, this, &ofxTimeMeasurements::_beforeDraw);
+	#if (OF_VERSION == 7 && OF_VERSION_MINOR >= 2 )
+		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate);
+		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate);
+		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw);
+		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw);
+	#else
+		ofAddListener(ofEvents.update, this, &ofxTimeMeasurements::_afterUpdate);
+		ofAddListener(ofEvents.update, this, &ofxTimeMeasurements::_beforeUpdate);
+		ofAddListener(ofEvents.draw, this, &ofxTimeMeasurements::_afterDraw);
+		ofAddListener(ofEvents.draw, this, &ofxTimeMeasurements::_beforeDraw);
+	#endif
 #endif
 
 //	keyOrder[ 0 ] = TIME_MEASUREMENTS_UPDATE_KEY;
@@ -60,10 +68,34 @@ void ofxTimeMeasurements::updateSeparator(){
 }
 
 
+float ofxTimeMeasurements::getLastDurationFor(string ID){
+
+	float r = 0.0f;
+	map<string,TimeMeasurement>::iterator it;
+	it = times.find(ID);
+	if ( it != times.end() ){	//not found!
+		r = times[ID].duration / 1000.0f;
+	}
+	return r;
+}
+
+
+float ofxTimeMeasurements::getAvgDurationFor(string ID){
+
+	float r = 0.0f;
+	map<string,TimeMeasurement>::iterator it;
+	it = times.find(ID);
+	if ( it != times.end() ){	//not found!
+		r = times[ID].avgDuration / 1000.0f;
+	}
+	return r;
+
+}
+
+
 void ofxTimeMeasurements::startMeasuring(string ID){
 
 	if (!enabled) return;
-	lastKey = ID;
 
 	//see if we already had it, if we didnt, set its add order #
 	map<string,TimeMeasurement>::iterator it;
@@ -76,7 +108,7 @@ void ofxTimeMeasurements::startMeasuring(string ID){
 	t.measuring = true;
 	t.microsecondsStart = ofGetElapsedTimeMicros();
 	t.microsecondsStop = 0;
-	t.duration = 0;
+	t.duration = times[ID].duration; //store the old one so we can still query it
 	t.avgDuration = times[ID].avgDuration;
 	t.error = true;
 	t.updatedLastFrame = true;
@@ -86,9 +118,10 @@ void ofxTimeMeasurements::startMeasuring(string ID){
 }
 
 
-void ofxTimeMeasurements::stopMeasuring(string ID){
+float ofxTimeMeasurements::stopMeasuring(string ID){
 
-	if (!enabled) return;
+	float ret = 0.0;
+	if (!enabled) return ret;
 	
 	map<string,TimeMeasurement>::iterator it;
 	it = times.find(ID);
@@ -107,7 +140,7 @@ void ofxTimeMeasurements::stopMeasuring(string ID){
 			t.microsecondsStop = ofGetElapsedTimeMicros();
 			t.microsecondsStart = times[ID].microsecondsStart;
 			t.level = times[ID].level;
-			t.duration = t.microsecondsStop - t.microsecondsStart;
+			ret = t.duration = t.microsecondsStop - t.microsecondsStart;
 			t.avgDuration = (1.0f - timeAveragePercent) * times[ID].avgDuration + t.duration * timeAveragePercent;
 			times[ID] = t;
 
@@ -117,6 +150,7 @@ void ofxTimeMeasurements::stopMeasuring(string ID){
 		}
 		stackLevel--;
 	}
+	return ret;
 }
 
 void ofxTimeMeasurements::setDrawLocation(ofxTMDrawLocation l, ofVec2f p){
@@ -211,18 +245,17 @@ void ofxTimeMeasurements::draw(float x, float y){
 				updateSeparator();
 			}
 
-			if(isRoot) ofSetColor(textColor);
-			else ofSetColor(textColor, 128);
+			ofSetColor(textColor * ofMap(t.level, 0.0f, 4.0f, 1.0f, 0.2f, true));
 			ofDrawBitmapString( fullLine, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}else{
 			ofDrawBitmapString( " " + key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 		}
-		if(key==TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
+		if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
 			percentTotal += percent;
 		}
 	}
 		
-	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 1.0 ); // tolerance of 1 fps
+	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 1.0 ); // tolerance of 1 fps TODO!
 	
 	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
 

@@ -28,7 +28,7 @@ void testApp::draw(){
 
 	//let's draw lots of stuff
 	TIME_SAMPLE_START("draw dots");	///////////////////////////////  START MEASURING ///
-	for(int i = 0; i < ofGetMouseX() * 100; i++){
+	for(int i = 0; i < ofGetMouseX() * 20; i++){
 		ofSetColor( ofRandom(96) );
 		ofRect( ofRandom( ofGetWidth()), ofRandom( ofGetHeight()), 4, 4);
 	}
@@ -37,10 +37,13 @@ void testApp::draw(){
 	//measure time of a particular bit of code
 	TIME_SAMPLE_START("test");	///////////////////////////////  START MEASURING ///
 
-	ofSleepMillis(0);
+	ofSleepMillis(1);
 
 		TIME_SAMPLE_START("Nest Test");
-		ofSleepMillis(0);
+		ofSleepMillis(2);
+			TIME_SAMPLE_START("Nest Test Deep 2");
+			ofSleepMillis(2);
+			TIME_SAMPLE_STOP("Nest Test Deep 2");
 		TIME_SAMPLE_STOP("Nest Test");
 
 	TIME_SAMPLE_STOP("test");	///////////////////////////////  STOP MEASURING  ///

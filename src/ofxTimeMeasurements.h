@@ -13,7 +13,7 @@
 #include <map>
 
 #define TIME_MEASUREMENTS_LINE_HEIGHT		14
-#define TIME_MEASUREMENTS_EDGE_GAP_H		10
+#define TIME_MEASUREMENTS_EDGE_GAP_H		5
 #define TIME_MEASUREMENTS_EDGE_GAP_V		5
 #define TIME_MEASUREMENTS_LINE_H_MULT		0.25
 
@@ -31,6 +31,9 @@
 #define TIME_SAMPLE_SET_AVERAGE_RATE(x)	(ofxTimeMeasurements::instance()->setTimeAveragePercent(x)) /* 1.0 means no averaging, 0.01 means each new sample only effects 1% on previous sample */
 #define TIME_SAMPLE_DISABLE_AVERAGE()	(ofxTimeMeasurements::instance()->setTimeAveragePercent(1))
 #define TIME_SAMPLE_SET_PRECISION(x)	(ofxTimeMeasurements::instance()->setMsPrecision(x)) /* how many precion digits to show on time measurements */
+#define TIME_SAMPLE_GET_LAST_DURATION(x)(ofxTimeMeasurements::instance()->getLastDurationFor(x)) /* ms it took for last frame*/
+#define TIME_SAMPLE_GET_AVG_DURATION(x)	(ofxTimeMeasurements::instance()->getAvgDurationFor(x)) /* ms it took for last frame avgd*/
+
 
 enum ofxTMDrawLocation{	TIME_MEASUREMENTS_TOP_LEFT,
 	TIME_MEASUREMENTS_TOP_RIGHT,
@@ -48,7 +51,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 											//affects the % busy indicator
 		void startMeasuring(string ID);
-		void stopMeasuring(string ID);
+		float stopMeasuring(string ID);
 		void setEnabled( bool enable );
 		bool getEnabled();
 		void setDrawLocation(ofxTMDrawLocation loc, ofVec2f p = ofVec2f()); //p only relevant if using TIME_MEASUREMENTS_CUSTOM_LOCATION
@@ -62,6 +65,9 @@ class ofxTimeMeasurements: public ofBaseDraws {
 	
 		virtual float getWidth(){ return maxW * 8; }
 		virtual float getHeight(){ return ( TIME_MEASUREMENTS_LINE_H_MULT * 5 + times.size() + 1 ) * TIME_MEASUREMENTS_LINE_HEIGHT; };
+
+		float getLastDurationFor(string ID); //ms
+		float getAvgDurationFor(string ID); //ms
 
 	private:
 
@@ -85,9 +91,12 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void _afterUpdate(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};
 		void _beforeDraw(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_DRAW_KEY);};
 		void _afterDraw(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_DRAW_KEY); autoDraw(); };
+		void _keyPressed(ofKeyEventArgs &e){
+			if (e.key == (0x2 | OF_KEY_SHIFT)){TIME_SAMPLE_SET_ENABLED(!TIME_SAMPLE_GET_ENABLED());}
+		};
 
 		void draw(float x, float y);
-		void draw(float x, float y, float w , float h){ cout << "ofxTimeMeasurements: ignoring draw() call" << endl; } //w and h ignored! just here to comply with ofBaseDraws
+		void draw(float x, float y, float w , float h){ ofLogError() << "ofxTimeMeasurements: ignoring draw() call"; } //w and h ignored! just here to comply with ofBaseDraws
 
 		void autoDraw();
 		void updateSeparator();
@@ -113,7 +122,5 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		ofColor							bgColor;
 		ofColor							hiColor;
 		ofColor							textColor;
-
-		string							lastKey;
 };
 

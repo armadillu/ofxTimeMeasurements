@@ -20,6 +20,7 @@
 #define TIME_MEASUREMENTS_UPDATE_KEY		"update()"
 #define TIME_MEASUREMENTS_DRAW_KEY			"draw()"
 
+#define TIME_MEASUREMENTS_INTERACT_KEY		'T'
 #define TIME_MEASUREMENTS_SETTINGS_FILENAME	"ofxTimeMeasurements.settings"
 
 
@@ -65,7 +66,10 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void setBgColor(ofColor c){bgColor = c;}
 		void setHighlightColor(ofColor c){hiColor = c;}
 		void setTextColor(ofColor c){textColor = c;}
+
 		void setUIActivationKey(char k){activateKey = k;}
+		void setEnableDisableKey(char k){activateKey = k;}
+
 	
 		virtual float getWidth(){ return (maxW + 1) * 8; }
 		virtual float getHeight(){ return ( 1.2 + numVisible + 1 ) * TIME_MEASUREMENTS_LINE_HEIGHT; };
@@ -137,7 +141,10 @@ class ofxTimeMeasurements: public ofBaseDraws {
 
 		int								selection;
 		int								numVisible;
-		char							activateKey;
+
+		unsigned int					enableKey;
+		unsigned int					activateKey;
+		bool							menuActive;
 
 		//float							internalTimeSample; //to measure time spent drawing ofxTimeSample
 };

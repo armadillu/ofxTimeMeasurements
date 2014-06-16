@@ -20,14 +20,17 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	stackLevel = 0;
 	maxW = 27;
 	bgColor = ofColor(0, 200);
-	hiColor = ofColor::white;
-	textColor = ofColor::white;
+	hiColor = ofColor(64);
+	textColor = ofColor(128);
 	selectionColor = ofColor::darkorange;
 	longestLabel = 0;
 	selection = 0;
 	drawLocation = TIME_MEASUREMENTS_BOTTOM_RIGHT;
 	lastKey = "";
 	numVisible = 0;
+	activateKey = TIME_MEASUREMENTS_INTERACT_KEY;
+	enableKey = (0x2 | OF_KEY_SHIFT); //right shift
+	menuActive = false;
 	loadSettings();
 
 #if (OF_VERSION_MINOR >= 8)
@@ -236,14 +239,10 @@ void ofxTimeMeasurements::draw(float x, float y){
 	int barH = 1;
 	ofRect(x, y, getWidth(), getHeight());
 
-	ofColor hiC = hiColor;
-	if(ofGetFrameNum()%5 < 4){
-		hiC = selectionColor;
-	}
 
-	ofSetColor(hiC);
+	ofSetColor(hiColor);
 	ofRect(x, y, getWidth(), barH);
-	ofRect(x, y + getHeight() - TIME_MEASUREMENTS_LINE_HEIGHT - TIME_MEASUREMENTS_LINE_H_MULT * TIME_MEASUREMENTS_LINE_HEIGHT * 2.5 , getWidth(), barH);
+	ofRect(x, y + getHeight() - TIME_MEASUREMENTS_LINE_HEIGHT - TIME_MEASUREMENTS_LINE_H_MULT * TIME_MEASUREMENTS_LINE_HEIGHT * 2.0 , getWidth(), barH);
 	ofRect(x, y + getHeight(), getWidth() - barH, barH);
 
 	float percentTotal = 0.0f;
@@ -277,7 +276,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 			if ( t.error == false ){
 
 				sprintf(msChar, "%*.*f", 4, msPrecision, ms );
-				sprintf(percentChar, "% 6.1f",  percent );
+				sprintf(percentChar, "(% 5.1f)",  percent );
 				bool hasChild = false;
 				if (t.nextKey.length()){
 					if (times[t.nextKey].level != t.level){
@@ -292,14 +291,14 @@ void ofxTimeMeasurements::draw(float x, float y){
 					padding += " ";
 				}
 
-				string fullLine = label + padding + " " + msChar + "ms" + percentChar + "\%";
+				string fullLine = label + padding + " " + msChar + "ms " + percentChar + "\%";
 
 				if(fullLine.length() > tempMaxW){
 					tempMaxW = fullLine.length();
 				}
 
 				ofSetColor(textColor /** ofMap(t.level, 0.0f, 4.0f, 1.0f, 0.2f, true)*/);
-				if(lineC == selection){
+				if(lineC == selection && menuActive){
 					if(ofGetFrameNum()%5 < 4){
 						ofSetColor(selectionColor);
 					}
@@ -322,7 +321,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 	//internalTimeSample = ofGetElapsedTimef() - internalTimeSample;
 
-	sprintf(msg, "FPS %*.1f (%*.1f%%)", 4, ofGetFrameRate(), 3, percentTotal );
+	sprintf(msg, "%2.1ffps % 5.1f%%", ofGetFrameRate(), percentTotal );
 	c++;
 	if(missingFrames){
 		ofSetColor(255, 0, 0);
@@ -341,59 +340,67 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
-	if (e.key == (0x2 | OF_KEY_SHIFT)){
+	if (e.key == enableKey){
 		TIME_SAMPLE_SET_ENABLED(!TIME_SAMPLE_GET_ENABLED());
 	}
 
-	map<int,string>::iterator lastItem = keyOrder.end();
-	map<int,string>::iterator firstItem = keyOrder.begin();
+	if (TIME_SAMPLE_GET_ENABLED()){
+		if (e.key == activateKey){
+			menuActive = !menuActive;
+		}
 
-	switch (e.key) {
+		if(menuActive){
+			map<int,string>::iterator lastItem = keyOrder.end();
+			map<int,string>::iterator firstItem = keyOrder.begin();
 
-		case OF_KEY_DOWN:{
-			map<int,string>::iterator it = keyOrder.find(selection);
-			it++;
-			if (it == lastItem){
-				it = firstItem;
-			}else{
-				while (!times[it->second].visible) {
+			switch (e.key) {
+
+				case OF_KEY_DOWN:{
+					map<int,string>::iterator it = keyOrder.find(selection);
 					it++;
-					if(it == lastItem){
+					if (it == lastItem){
 						it = firstItem;
-						break;
+					}else{
+						while (!times[it->second].visible) {
+							it++;
+							if(it == lastItem){
+								it = firstItem;
+								break;
+							}
+						}
 					}
-				}
-			}
-			selection = it->first;
-		}break;
+					selection = it->first;
+				}break;
 
-		case OF_KEY_UP:{
-			map<int,string>::iterator it = keyOrder.find(selection);
-			if (it == firstItem){
-				it = lastItem;
-				it--;
-			}else{
-				it--;
-			}
-			while (!times[it->second].visible) {
-				it--;
-				if(it == firstItem){
-					it = lastItem;
+				case OF_KEY_UP:{
+					map<int,string>::iterator it = keyOrder.find(selection);
+					if (it == firstItem){
+						it = lastItem;
+						it--;
+					}else{
+						it--;
+					}
+					while (!times[it->second].visible) {
+						it--;
+						if(it == firstItem){
+							it = lastItem;
+							break;
+						}
+					}
+					selection = it->first;
+				}break;
+
+				case OF_KEY_RIGHT:
+					collapseExpand(selection, false /*expand*/);
+					updateNumVisible();
+				break;
+
+				case OF_KEY_LEFT:
+					collapseExpand(selection, true /*collapse*/);
+					updateNumVisible();
 					break;
-				}
 			}
-			selection = it->first;
-		}break;
-
-		case OF_KEY_RIGHT:
-			collapseExpand(selection, false /*expand*/);
-			updateNumVisible();
-		break;
-
-		case OF_KEY_LEFT:
-			collapseExpand(selection, true /*collapse*/);
-			updateNumVisible();
-			break;
+		}
 	}
 }
 

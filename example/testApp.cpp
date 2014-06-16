@@ -49,7 +49,8 @@ void testApp::draw(){
 	ofSetColor(255);
 	ofDrawBitmapString("Move mouse to the right to incrase draw complexity.\n"
 					   "Press 'Right Shift' key to toggle samping\n"
-					   "Press arrows keys to select/collapse",
+					   "Press 'T' key to toggle menu interaction\n"
+					   "When active, press arrows keys to select/collapse",
 					   10, ofGetHeight() - 40);
 }
 

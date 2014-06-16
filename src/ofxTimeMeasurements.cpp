@@ -215,8 +215,10 @@ void ofxTimeMeasurements::updateLongestLabel(){
 
 void ofxTimeMeasurements::draw(float x, float y){
 
+	//internalTimeSample = ofGetElapsedTimef();
+
 	if (!enabled) return;
-	if (ofGetFrameNum()%900 == 1){ //todo ghetto!
+	if (ofGetFrameNum()%180 == 2){ //todo ghetto!
 		updateLongestLabel();
 	}
 
@@ -275,7 +277,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 			if ( t.error == false ){
 
 				sprintf(msChar, "%*.*f", 4, msPrecision, ms );
-				sprintf(percentChar, "%*.1f", 2, percent );
+				sprintf(percentChar, "% 6.1f",  percent );
 				bool hasChild = false;
 				if (t.nextKey.length()){
 					if (times[t.nextKey].level != t.level){
@@ -290,7 +292,8 @@ void ofxTimeMeasurements::draw(float x, float y){
 					padding += " ";
 				}
 
-				string fullLine = label + padding + "  " + msChar + "ms (" + percentChar+ "\%)";
+				string fullLine = label + padding + " " + msChar + "ms" + percentChar + "\%";
+
 				if(fullLine.length() > tempMaxW){
 					tempMaxW = fullLine.length();
 				}
@@ -317,7 +320,9 @@ void ofxTimeMeasurements::draw(float x, float y){
 	
 	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
 
-	sprintf(msg, "fps %*.1f (%*.1f%%)", 4, ofGetFrameRate(), 3, percentTotal );
+	//internalTimeSample = ofGetElapsedTimef() - internalTimeSample;
+
+	sprintf(msg, "FPS %*.1f (%*.1f%%)", 4, ofGetFrameRate(), 3, percentTotal );
 	c++;
 	if(missingFrames){
 		ofSetColor(255, 0, 0);

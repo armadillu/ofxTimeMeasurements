@@ -15,6 +15,9 @@ void testApp::setup(){
 	//draw on a pre-specified corner, or supply a custom onscreen location:
 	TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_TOP_RIGHT ); //specify a drawing location (OPTIONAL)
 	//TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_CUSTOM_LOCATION, ofVec2f(40,40) ); //custom location allowed
+
+	TIME_SAMPLE_SET_AVERAGE_RATE(0.07); //averaging samples, [0..1], 1 gets you no averaging at all
+										//use lower values to get steadier readings
 }
 
 
@@ -35,13 +38,13 @@ void testApp::draw(){
 
 
 	//testing nested samples
-	TIME_SAMPLE_START("test");	///////////////////////////////  START MEASURING ///
-		TIME_SAMPLE_START("Nested Test");
-			TIME_SAMPLE_START("Nested Test Deep");
-			ofSleepMillis(1);
-			TIME_SAMPLE_STOP("Nested Test Deep");
-		TIME_SAMPLE_STOP("Nested Test");
-	TIME_SAMPLE_STOP("test");	///////////////////////////////  STOP MEASURING  ///
+	TIME_SAMPLE_START("Nested Test");	///////////////////////////////  START MEASURING ///
+		TIME_SAMPLE_START("Nested Test 2");
+			TIME_SAMPLE_START("Nested Test 3");
+				ofSleepMillis(1);
+			TIME_SAMPLE_STOP("Nested Test 3");
+		TIME_SAMPLE_STOP("Nested Test 2");
+	TIME_SAMPLE_STOP("Nested Test");	///////////////////////////////  STOP MEASURING  ///
 
 	ofSetColor(255);
 	ofDrawBitmapString("Move mouse to the right to incrase draw complexity.\n"

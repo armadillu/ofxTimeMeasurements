@@ -138,5 +138,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		int								selection;
 		int								numVisible;
 		char							activateKey;
+
+		//float							internalTimeSample; //to measure time spent drawing ofxTimeSample
 };
 

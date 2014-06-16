@@ -37,6 +37,7 @@
 #define TIME_SAMPLE_SET_PRECISION(x)	(ofxTimeMeasurements::instance()->setMsPrecision(x)) /* how many precion digits to show on time measurements */
 #define TIME_SAMPLE_GET_LAST_DURATION(x)(ofxTimeMeasurements::instance()->getLastDurationFor(x)) /* ms it took for last frame*/
 #define TIME_SAMPLE_GET_AVG_DURATION(x)	(ofxTimeMeasurements::instance()->getAvgDurationFor(x)) /* ms it took for last frame avgd*/
+#define TIME_SAMPLE_GET_INSTANCE		(ofxTimeMeasurements::instance())
 
 
 enum ofxTMDrawLocation{	TIME_MEASUREMENTS_TOP_LEFT,

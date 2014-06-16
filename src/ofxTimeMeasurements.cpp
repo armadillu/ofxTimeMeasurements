@@ -53,11 +53,6 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 		ofAddListener(ofEvents.draw, this, &ofxTimeMeasurements::_beforeDraw);
 	#endif
 #endif
-
-//	keyOrder[ 0 ] = TIME_MEASUREMENTS_UPDATE_KEY;
-//	keyOrder[ 1 ] = TIME_MEASUREMENTS_DRAW_KEY;
-//	times[TIME_MEASUREMENTS_UPDATE_KEY] = TimeMeasurement();
-//	times[TIME_MEASUREMENTS_DRAW_KEY] = TimeMeasurement();
 }
 
 
@@ -160,10 +155,12 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 	return ret;
 }
 
+
 void ofxTimeMeasurements::setDrawLocation(ofxTMDrawLocation l, ofVec2f p){
 	drawLocation = l;
 	loc = p;
 }
+
 
 void ofxTimeMeasurements::autoDraw(){
 
@@ -238,7 +235,6 @@ void ofxTimeMeasurements::draw(float x, float y){
 	ofSetColor(bgColor);
 	int barH = 1;
 	ofRect(x, y, getWidth(), getHeight());
-
 
 	ofSetColor(hiColor);
 	ofRect(x, y, getWidth(), barH);
@@ -321,12 +317,12 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 	//internalTimeSample = ofGetElapsedTimef() - internalTimeSample;
 
-	sprintf(msg, "%2.1ffps % 5.1f%%", ofGetFrameRate(), percentTotal );
+	sprintf(msg, "%2.1f fps % 5.1f%%", ofGetFrameRate(), percentTotal );
 	c++;
 	if(missingFrames){
 		ofSetColor(255, 0, 0);
 	}else{
-		ofSetColor(255);
+		ofSetColor(textColor);
 	}
 	int len = strlen(msg);
 	string pad;
@@ -337,6 +333,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 	ofPopStyle();
 	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
 }
+
 
 void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
@@ -422,6 +419,7 @@ void ofxTimeMeasurements::loadSettings(){
 	}
 }
 
+
 void ofxTimeMeasurements::_appExited(ofEventArgs &e){
 
 	ofstream myfile;
@@ -439,6 +437,7 @@ void ofxTimeMeasurements::updateNumVisible(){
 		if(times[ii->second].visible) numVisible++;
 	}
 }
+
 
 void ofxTimeMeasurements::collapseExpand(int sel, bool collapse){
 
@@ -473,17 +472,21 @@ unsigned long ofxTimeMeasurements::durationForID( string ID){
 	return 0;
 }
 
+
 void ofxTimeMeasurements::setTimeAveragePercent(float p){
 	timeAveragePercent = ofClamp(p, 0.0f, 1.0f);
 }
+
 
 void ofxTimeMeasurements::setDesiredFrameRate(float fr){
 	desiredFrameRate = fr;
 }
 
+
 void ofxTimeMeasurements::setEnabled(bool ena){
 	enabled = ena;
 }
+
 
 bool ofxTimeMeasurements::getEnabled(){
 	return enabled;
@@ -493,3 +496,4 @@ bool ofxTimeMeasurements::getEnabled(){
 void ofxTimeMeasurements::setMsPrecision(int digits){
 	msPrecision = digits;
 }
+

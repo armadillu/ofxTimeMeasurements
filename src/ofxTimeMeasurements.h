@@ -20,6 +20,9 @@
 #define TIME_MEASUREMENTS_UPDATE_KEY		"update()"
 #define TIME_MEASUREMENTS_DRAW_KEY			"draw()"
 
+#define TIME_MEASUREMENTS_SETTINGS_FILENAME	"ofxTimeMeasurements.settings"
+
+
 #define TIME_SAMPLE_SET_FRAMERATE(x)	(ofxTimeMeasurements::instance()->setDesiredFrameRate(x))
 #define TIME_SAMPLE_START(x)			(ofxTimeMeasurements::instance()->startMeasuring(x))
 #define TIME_SAMPLE_STOP(x)				(ofxTimeMeasurements::instance()->stopMeasuring(x))
@@ -62,9 +65,10 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void setBgColor(ofColor c){bgColor = c;}
 		void setHighlightColor(ofColor c){hiColor = c;}
 		void setTextColor(ofColor c){textColor = c;}
+		void setUIActivationKey(char k){activateKey = k;}
 	
-		virtual float getWidth(){ return maxW * 8; }
-		virtual float getHeight(){ return ( TIME_MEASUREMENTS_LINE_H_MULT * 5 + times.size() + 1 ) * TIME_MEASUREMENTS_LINE_HEIGHT; };
+		virtual float getWidth(){ return (maxW + 1) * 8; }
+		virtual float getHeight(){ return ( 1.2 + numVisible + 1 ) * TIME_MEASUREMENTS_LINE_HEIGHT; };
 
 		float getLastDurationFor(string ID); //ms
 		float getAvgDurationFor(string ID); //ms
@@ -82,8 +86,11 @@ class ofxTimeMeasurements: public ofBaseDraws {
 			bool error;
 			bool updatedLastFrame;
 			int level; //for nested measurements
+			string nextKey;
+			bool visible;
 			TimeMeasurement(){
 				level = 0;
+				visible = true;
 			}
 		};
 
@@ -91,15 +98,18 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void _afterUpdate(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};
 		void _beforeDraw(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_DRAW_KEY);};
 		void _afterDraw(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_DRAW_KEY); autoDraw(); };
-		void _keyPressed(ofKeyEventArgs &e){
-			if (e.key == (0x2 | OF_KEY_SHIFT)){TIME_SAMPLE_SET_ENABLED(!TIME_SAMPLE_GET_ENABLED());}
-		};
+
+		void _appExited(ofEventArgs &e);
+		void _keyPressed(ofKeyEventArgs &e);
 
 		void draw(float x, float y);
 		void draw(float x, float y, float w , float h){ ofLogError() << "ofxTimeMeasurements: ignoring draw() call"; } //w and h ignored! just here to comply with ofBaseDraws
 
 		void autoDraw();
-		void updateSeparator();
+		void collapseExpand(int sel, bool colapse);
+		void updateNumVisible();
+		void updateLongestLabel();
+		void loadSettings();
 
 		static ofxTimeMeasurements*		singleton;
 		float							desiredFrameRate;
@@ -107,12 +117,13 @@ class ofxTimeMeasurements: public ofBaseDraws {
 
 		map<string, TimeMeasurement>	times;
 		map<int, string>				keyOrder;
+		map<string, bool>				settings; //visible/not at startup
 
 		int								stackLevel; //for Nested measurements
+		string							lastKey;
 
 		float							timeAveragePercent;
 		int								msPrecision;
-		string							TIME_SAMPLE_SEPARATOR;
 
 		ofxTMDrawLocation				drawLocation;
 		ofVec2f							loc;
@@ -122,5 +133,10 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		ofColor							bgColor;
 		ofColor							hiColor;
 		ofColor							textColor;
+		ofColor							selectionColor;
+
+		int								selection;
+		int								numVisible;
+		char							activateKey;
 };
 

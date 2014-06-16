@@ -16,14 +16,19 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	desiredFrameRate = 60.0f;
 	enabled = true;
 	timeAveragePercent = 1;
-	msPrecision = 2;
+	msPrecision = 1;
 	stackLevel = 0;
 	maxW = 27;
 	bgColor = ofColor(0, 200);
-	hiColor = ofColor(128);
+	hiColor = ofColor::white;
 	textColor = ofColor::white;
+	selectionColor = ofColor::darkorange;
 	longestLabel = 0;
+	selection = 0;
 	drawLocation = TIME_MEASUREMENTS_BOTTOM_RIGHT;
+	lastKey = "";
+	numVisible = 0;
+	loadSettings();
 
 #if (OF_VERSION_MINOR >= 8)
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP);
@@ -31,6 +36,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP);
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP);
 		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed);
+		ofAddListener(ofEvents().exit, this, &ofxTimeMeasurements::_appExited); //to save to xml
 #else
 	#if (OF_VERSION == 7 && OF_VERSION_MINOR >= 2 )
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate);
@@ -59,14 +65,6 @@ ofxTimeMeasurements* ofxTimeMeasurements::instance(){
 	return singleton;
 }
 
-void ofxTimeMeasurements::updateSeparator(){
-
-	TIME_SAMPLE_SEPARATOR = "";
-	for (int i = 0; i < maxW; i++){
-		TIME_SAMPLE_SEPARATOR += "-";
-	}
-}
-
 
 float ofxTimeMeasurements::getLastDurationFor(string ID){
 
@@ -89,7 +87,6 @@ float ofxTimeMeasurements::getAvgDurationFor(string ID){
 		r = times[ID].avgDuration / 1000.0f;
 	}
 	return r;
-
 }
 
 
@@ -102,19 +99,27 @@ void ofxTimeMeasurements::startMeasuring(string ID){
 	it = times.find(ID);
 	if ( it == times.end() ){	//not found!
 		keyOrder[ keyOrder.size() ] = ID;
+		map<string, bool>::iterator it2 = settings.find(ID);
+		if (it2 != settings.end()){
+			times[ID].visible = it2->second;
+		}
+		updateNumVisible();
+		updateLongestLabel();
 	}
 	
-	TimeMeasurement t;
+	TimeMeasurement t = times[ID];
 	t.measuring = true;
 	t.microsecondsStart = ofGetElapsedTimeMicros();
 	t.microsecondsStop = 0;
-	t.duration = times[ID].duration; //store the old one so we can still query it
-	t.avgDuration = times[ID].avgDuration;
 	t.error = true;
 	t.updatedLastFrame = true;
 	t.level = stackLevel;
 	times[ID] = t;
 	stackLevel ++;
+	if(lastKey.length()){
+		times[lastKey].nextKey = ID;
+	}
+	lastKey = ID;
 }
 
 
@@ -134,12 +139,11 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 		
 		if ( times[ID].measuring ){
 
-			TimeMeasurement t;
+			TimeMeasurement t = times[ID];
 			t.measuring = false;
 			t.error = false;
 			t.microsecondsStop = ofGetElapsedTimeMicros();
 			t.microsecondsStart = times[ID].microsecondsStart;
-			t.level = times[ID].level;
 			ret = t.duration = t.microsecondsStop - t.microsecondsStart;
 			t.avgDuration = (1.0f - timeAveragePercent) * times[ID].avgDuration + t.duration * timeAveragePercent;
 			times[ID] = t;
@@ -180,9 +184,42 @@ void ofxTimeMeasurements::autoDraw(){
 	}
 }
 
+
+void ofxTimeMeasurements::updateLongestLabel(){
+
+	longestLabel = 0;
+	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
+
+		string key = (*ii).second;
+		TimeMeasurement t = times[key];
+
+		if (t.visible){
+
+			string nesting = "";
+			for(int i = 0; i < t.level; i++){
+				nesting += " ";
+			}
+
+			if ( t.error == false ){
+				bool isLast = (ii->first == keyOrder.size() -1);
+				string label = " " + nesting + " " + key;
+				int len = label.length();
+				if (len > longestLabel){
+					longestLabel = len;
+				}
+			}
+		}
+	}
+}
+
+
 void ofxTimeMeasurements::draw(float x, float y){
 
 	if (!enabled) return;
+	if (ofGetFrameNum()%900 == 1){ //todo ghetto!
+		updateLongestLabel();
+	}
+
 	static char msChar[64];
 	static char percentChar[64];
 	static char msg[128];
@@ -196,80 +233,218 @@ void ofxTimeMeasurements::draw(float x, float y){
 	ofSetColor(bgColor);
 	int barH = 1;
 	ofRect(x, y, getWidth(), getHeight());
-	ofSetColor(hiColor);
-	ofRect(x, y + TIME_MEASUREMENTS_LINE_H_MULT * 0.5, getWidth(), barH);
-	ofRect(x, y + getHeight(), getWidth(), -barH);
-	ofRect(x, y + getHeight() - TIME_MEASUREMENTS_LINE_HEIGHT - TIME_MEASUREMENTS_LINE_H_MULT * TIME_MEASUREMENTS_LINE_HEIGHT * 2.5 , getWidth(), barH);
 
-	//ofDrawBitmapString( TIME_SAMPLE_SEPARATOR, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	ofColor hiC = hiColor;
+	if(ofGetFrameNum()%5 < 4){
+		hiC = selectionColor;
+	}
+
+	ofSetColor(hiC);
+	ofRect(x, y, getWidth(), barH);
+	ofRect(x, y + getHeight() - TIME_MEASUREMENTS_LINE_HEIGHT - TIME_MEASUREMENTS_LINE_H_MULT * TIME_MEASUREMENTS_LINE_HEIGHT * 2.5 , getWidth(), barH);
+	ofRect(x, y + getHeight(), getWidth() - barH, barH);
+
 	float percentTotal = 0.0f;
+
+	int lineC = 0;
+	int tempMaxW = 0;
 
 	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
 
-		c++;
 		string key = (*ii).second;
 		TimeMeasurement t = times[key];
-		float ms = t.avgDuration / 1000.0f;
-		float percent = 100.0f * ms / timePerFrame;
-		//average here, only if enabled
-		if (!t.updatedLastFrame && timeAveragePercent < 1.0f){ // if we didnt update that time, make it tend to zero slowly
-			t.avgDuration = (1.0f - timeAveragePercent) * t.avgDuration;
-		}
 
-		t.updatedLastFrame = false;
-		times[key] = t;
-		bool isRoot = (key == TIME_MEASUREMENTS_UPDATE_KEY || key == TIME_MEASUREMENTS_DRAW_KEY);
-		string nesting = "";
-		for(int i = 0; i < t.level; i++){
-			nesting += " ";
-		}
+		if (t.visible){
+			c++;
 
-		if ( t.error == false ){
-
-			sprintf(msChar, "%*.*f", 4, msPrecision, ms );
-			sprintf(percentChar, "%*.1f", 2, percent );
-			string label = " " + string(isRoot?"+":" ") + nesting + key;
-			int len = label.length();
-			if (len > longestLabel){
-				longestLabel = len;
+			float ms = t.avgDuration / 1000.0f;
+			float percent = 100.0f * ms / timePerFrame;
+			//average here, only if enabled
+			if (!t.updatedLastFrame && timeAveragePercent < 1.0f){ // if we didnt update that time, make it tend to zero slowly
+				t.avgDuration = (1.0f - timeAveragePercent) * t.avgDuration;
 			}
 
-			string padding = "";
-			for(int i = label.length(); i < longestLabel; i++){
-				padding += " ";
+			t.updatedLastFrame = false;
+			times[key] = t;
+			bool isRoot = (key == TIME_MEASUREMENTS_UPDATE_KEY || key == TIME_MEASUREMENTS_DRAW_KEY);
+			string nesting = "";
+			for(int i = 0; i < t.level; i++){
+				nesting += " ";
 			}
 
-			string fullLine = label + padding + " " + msChar + "ms (" + percentChar+ "\%)";
-			if(fullLine.length() > maxW){
-				maxW = fullLine.length();
-				updateSeparator();
-			}
+			if ( t.error == false ){
 
-			ofSetColor(textColor * ofMap(t.level, 0.0f, 4.0f, 1.0f, 0.2f, true));
-			ofDrawBitmapString( fullLine, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-		}else{
-			ofDrawBitmapString( " " + key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-		}
-		if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
-			percentTotal += percent;
+				sprintf(msChar, "%*.*f", 4, msPrecision, ms );
+				sprintf(percentChar, "%*.1f", 2, percent );
+				bool hasChild = false;
+				if (t.nextKey.length()){
+					if (times[t.nextKey].level != t.level){
+						hasChild = true;
+					}
+				}
+				bool isLast = (ii->first == keyOrder.size() -1);
+				string label = " " + nesting + string(hasChild && !isLast ? "+" : "-") + key;
+
+				string padding = "";
+				for(int i = label.length(); i < longestLabel; i++){
+					padding += " ";
+				}
+
+				string fullLine = label + padding + "  " + msChar + "ms (" + percentChar+ "\%)";
+				if(fullLine.length() > tempMaxW){
+					tempMaxW = fullLine.length();
+				}
+
+				ofSetColor(textColor /** ofMap(t.level, 0.0f, 4.0f, 1.0f, 0.2f, true)*/);
+				if(lineC == selection){
+					if(ofGetFrameNum()%5 < 4){
+						ofSetColor(selectionColor);
+					}
+				}
+				ofDrawBitmapString( fullLine, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+			}else{
+				ofDrawBitmapString( " " + key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+			}
+			lineC++;
+			if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
+				percentTotal += percent;
+			}
 		}
 	}
-		
+
+	maxW = tempMaxW;
 	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 1.0 ); // tolerance of 1 fps TODO!
 	
 	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
 
-	sprintf(msg, " App fps %*.1f (%*.1f%% busy)", 4, ofGetFrameRate(), 3, percentTotal );
+	sprintf(msg, "fps %*.1f (%*.1f%%)", 4, ofGetFrameRate(), 3, percentTotal );
 	c++;
 	if(missingFrames){
 		ofSetColor(255, 0, 0);
 	}else{
 		ofSetColor(255);
 	}
-	ofDrawBitmapString( msg, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	int len = strlen(msg);
+	string pad;
+	int diff = (maxW - len) / 2;
+	for(int i = maxW; i > len + diff; i--) pad += " ";
+	ofDrawBitmapString( pad + msg, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 
 	ofPopStyle();
 	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
+}
+
+void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
+
+	if (e.key == (0x2 | OF_KEY_SHIFT)){
+		TIME_SAMPLE_SET_ENABLED(!TIME_SAMPLE_GET_ENABLED());
+	}
+
+	map<int,string>::iterator lastItem = keyOrder.end();
+	map<int,string>::iterator firstItem = keyOrder.begin();
+
+	switch (e.key) {
+
+		case OF_KEY_DOWN:{
+			map<int,string>::iterator it = keyOrder.find(selection);
+			it++;
+			if (it == lastItem){
+				it = firstItem;
+			}else{
+				while (!times[it->second].visible) {
+					it++;
+					if(it == lastItem){
+						it = firstItem;
+						break;
+					}
+				}
+			}
+			selection = it->first;
+		}break;
+
+		case OF_KEY_UP:{
+			map<int,string>::iterator it = keyOrder.find(selection);
+			if (it == firstItem){
+				it = lastItem;
+				it--;
+			}else{
+				it--;
+			}
+			while (!times[it->second].visible) {
+				it--;
+				if(it == firstItem){
+					it = lastItem;
+					break;
+				}
+			}
+			selection = it->first;
+		}break;
+
+		case OF_KEY_RIGHT:
+			collapseExpand(selection, false /*expand*/);
+			updateNumVisible();
+		break;
+
+		case OF_KEY_LEFT:
+			collapseExpand(selection, true /*collapse*/);
+			updateNumVisible();
+			break;
+	}
+}
+
+
+void ofxTimeMeasurements::loadSettings(){
+
+	ifstream myfile(ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME,true).c_str());
+	string name, value;
+
+	if (myfile.is_open()){
+		while( !myfile.eof() ){
+			getline( myfile, name, '=' );
+			getline( myfile, value, '\n' );
+			settings[name] = bool(value == "1" ? true : false);
+		}
+		myfile.close();
+	}else{
+		ofLogWarning() << "Unable to load Settings file " << TIME_MEASUREMENTS_SETTINGS_FILENAME;
+	}
+}
+
+void ofxTimeMeasurements::_appExited(ofEventArgs &e){
+
+	ofstream myfile;
+	myfile.open(ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME,true).c_str());
+	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
+		myfile << ii->second << "=" << string(times[ii->second].visible ? "1" : "0") << endl;
+	}
+	myfile.close();
+}
+
+
+void ofxTimeMeasurements::updateNumVisible(){
+	numVisible = 0;
+	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
+		if(times[ii->second].visible) numVisible++;
+	}
+}
+
+void ofxTimeMeasurements::collapseExpand(int sel, bool collapse){
+
+	map<int,string>::iterator it = keyOrder.find(sel);
+	map<int,string>::iterator lastItem = keyOrder.end();
+
+	int baseLevel = times[it->second].level;
+	it++;
+	if(it != lastItem){
+		while (times[it->second].level > baseLevel ) {
+			times[it->second].visible = !collapse;
+			it++;
+			if(it == lastItem){
+				break;
+			}
+		}
+	}
+	updateLongestLabel();
 }
 
 
@@ -305,5 +480,4 @@ bool ofxTimeMeasurements::getEnabled(){
 
 void ofxTimeMeasurements::setMsPrecision(int digits){
 	msPrecision = digits;
-	updateSeparator();
 }

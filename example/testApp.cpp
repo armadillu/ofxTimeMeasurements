@@ -19,10 +19,15 @@ void testApp::setup(){
 
 //--------------------------------------------------------------
 void testApp::update(){
+
+	if(TIME_SAMPLE_START("some common method")){
+		ofSleepMillis(1);
+	}TIME_SAMPLE_STOP("some common method");
+
 	if (ofGetFrameNum()%60 == 1){
-		TIME_SAMPLE_START("some uncommon method");
-		ofSleepMillis(ofRandom(3));
-		TIME_SAMPLE_STOP("some uncommon method");
+		if (TIME_SAMPLE_START("some uncommon method")){
+			ofSleepMillis(ofRandom(3));
+		}TIME_SAMPLE_STOP("some uncommon method");
 	}
 }
 
@@ -61,6 +66,6 @@ void testApp::draw(){
 					   "When active, press arrows keys to select/collapse\n"
 					   "Press 'RETURN' key to toggle the execution of the selected section\n",
 					   10,
-					   ofGetHeight() - 74);
+					   ofGetHeight() - 78);
 }
 

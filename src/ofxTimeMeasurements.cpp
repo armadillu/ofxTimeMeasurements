@@ -122,7 +122,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 	t.level = stackLevel;
 	times[ID] = t;
 	stackLevel ++;
-	if(lastKey.length()){
+	if(lastKey.length() && ID != TIME_MEASUREMENTS_DRAW_KEY && ID != TIME_MEASUREMENTS_UPDATE_KEY){
 		times[lastKey].nextKey = ID;
 	}
 	lastKey = ID;
@@ -409,8 +409,11 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
 				case OF_KEY_RETURN:{
 					map<int,string>::iterator it = keyOrder.find(selection);
-					if (it != keyOrder.end() && selection >= 2){ //cant disable update() & draw()
-						times[it->second].enabled = !times[it->second].enabled;
+					if (it != keyOrder.end() ){
+						//cant disable update() & draw()
+						if (it->second != TIME_MEASUREMENTS_UPDATE_KEY && it->second != TIME_MEASUREMENTS_DRAW_KEY ){
+							times[it->second].enabled = !times[it->second].enabled;
+						}
 					}
 					}break;
 

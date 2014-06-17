@@ -295,7 +295,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 				ofSetColor(textColor /** ofMap(t.level, 0.0f, 4.0f, 1.0f, 0.2f, true)*/);
 				if(lineC == selection && menuActive){
-					if(ofGetFrameNum()%5 < 4){
+					if(ofGetFrameNum()%5 < 3){
 						ofSetColor(selectionColor);
 					}
 				}

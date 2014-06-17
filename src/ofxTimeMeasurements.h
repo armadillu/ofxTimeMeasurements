@@ -20,7 +20,10 @@
 #define TIME_MEASUREMENTS_UPDATE_KEY		"update()"
 #define TIME_MEASUREMENTS_DRAW_KEY			"draw()"
 
+#define TIME_MEASUREMENTS_GLOBAL_TOGGLE_KEY	(0x2 | OF_KEY_SHIFT) /*right shift*/
 #define TIME_MEASUREMENTS_INTERACT_KEY		'T'
+#define TIME_MEASUREMENTS_TOGGLE_SAMPLE_KEY OF_KEY_RETURN
+
 #define TIME_MEASUREMENTS_SETTINGS_FILENAME	"ofxTimeMeasurements.settings"
 
 
@@ -55,7 +58,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 	
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 											//affects the % busy indicator
-		void startMeasuring(string ID);
+		bool startMeasuring(string ID);
 		float stopMeasuring(string ID);
 		void setEnabled( bool enable );
 		bool getEnabled();
@@ -65,13 +68,13 @@ class ofxTimeMeasurements: public ofBaseDraws {
 												//if set to 0.1, a new sample contributes 10% to the average
 		unsigned long durationForID( string ID);
 		void setBgColor(ofColor c){bgColor = c;}
-		void setHighlightColor(ofColor c){hiColor = c;}
+		void setHighlightColor(ofColor c){hilightColor = c;}
 		void setTextColor(ofColor c){textColor = c;}
 
-		void setUIActivationKey(char k){activateKey = k;}
-		void setEnableDisableKey(char k){activateKey = k;}
+		void setUIActivationKey(unsigned int k){activateKey = k;}
+		void setGlobalEnableDisableKey(unsigned int k){enableKey = k;}
+		void setEnableDisableSectionKey(unsigned int k){toggleSampleKey = k;}
 
-	
 		virtual float getWidth(){ return (maxW + 1) * 8; }
 		virtual float getHeight(){ return ( 1.2 + numVisible + 1 ) * TIME_MEASUREMENTS_LINE_HEIGHT; };
 
@@ -82,6 +85,10 @@ class ofxTimeMeasurements: public ofBaseDraws {
 
 		ofxTimeMeasurements(); // use ofxTimeMeasurements::instance() instead!
 
+	struct TimeMeasurementSettings{
+		bool visible;
+		bool enabled;
+	};
 		struct TimeMeasurement{
 			unsigned long microsecondsStart;
 			unsigned long microsecondsStop;
@@ -93,9 +100,11 @@ class ofxTimeMeasurements: public ofBaseDraws {
 			int level; //for nested measurements
 			string nextKey;
 			bool visible;
+			bool enabled; //
 			TimeMeasurement(){
 				level = 0;
 				visible = true;
+				enabled = true;
 			}
 		};
 
@@ -120,9 +129,9 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		float							desiredFrameRate;
 		bool							enabled;
 
-		map<string, TimeMeasurement>	times;
-		map<int, string>				keyOrder;
-		map<string, bool>				settings; //visible/not at startup
+		map<string, TimeMeasurement>			times;
+		map<int, string>						keyOrder;
+		map<string, TimeMeasurementSettings>	settings; //visible/not at startup
 
 		int								stackLevel; //for Nested measurements
 		string							lastKey;
@@ -136,15 +145,19 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		int								longestLabel; //
 
 		ofColor							bgColor;
-		ofColor							hiColor;
+		ofColor							hilightColor;
 		ofColor							textColor;
 		ofColor							selectionColor;
+		ofColor							disabledTextColor;
+
 
 		int								selection;
 		int								numVisible;
 
-		unsigned int					enableKey;
+		unsigned int					enableKey; //the whole addon
 		unsigned int					activateKey;
+		unsigned int					toggleSampleKey;  //selected time sample
+
 		bool							menuActive;
 
 		//float							internalTimeSample; //to measure time spent drawing ofxTimeSample

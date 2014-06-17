@@ -19,17 +19,23 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	msPrecision = 1;
 	stackLevel = 0;
 	maxW = 27;
-	bgColor = ofColor(0, 200);
-	hiColor = ofColor(64);
-	textColor = ofColor(128);
-	selectionColor = ofColor::darkorange;
+
+	bgColor = ofColor(22);
+	selectionColor = ofColor::dodgerBlue;
+	hilightColor = selectionColor * 0.7;
+	textColor = ofColor(99);
+	disabledTextColor = ofColor::purple;
+
 	longestLabel = 0;
 	selection = 0;
 	drawLocation = TIME_MEASUREMENTS_BOTTOM_RIGHT;
 	lastKey = "";
 	numVisible = 0;
+
 	activateKey = TIME_MEASUREMENTS_INTERACT_KEY;
-	enableKey = (0x2 | OF_KEY_SHIFT); //right shift
+	toggleSampleKey = TIME_MEASUREMENTS_TOGGLE_SAMPLE_KEY;
+	enableKey = TIME_MEASUREMENTS_GLOBAL_TOGGLE_KEY;
+
 	menuActive = false;
 	loadSettings();
 
@@ -88,18 +94,19 @@ float ofxTimeMeasurements::getAvgDurationFor(string ID){
 }
 
 
-void ofxTimeMeasurements::startMeasuring(string ID){
+bool ofxTimeMeasurements::startMeasuring(string ID){
 
-	if (!enabled) return;
+	if (!enabled) return true;
 
 	//see if we already had it, if we didnt, set its add order #
 	map<string,TimeMeasurement>::iterator it;
 	it = times.find(ID);
 	if ( it == times.end() ){	//not found!
 		keyOrder[ keyOrder.size() ] = ID;
-		map<string, bool>::iterator it2 = settings.find(ID);
+		map<string, TimeMeasurementSettings>::iterator it2 = settings.find(ID);
 		if (it2 != settings.end()){
-			times[ID].visible = it2->second;
+			times[ID].visible = it2->second.visible;
+			times[ID].enabled = it2->second.enabled;
 		}
 		updateNumVisible();
 		updateLongestLabel();
@@ -118,6 +125,7 @@ void ofxTimeMeasurements::startMeasuring(string ID){
 		times[lastKey].nextKey = ID;
 	}
 	lastKey = ID;
+	return t.enabled;
 }
 
 
@@ -202,7 +210,7 @@ void ofxTimeMeasurements::updateLongestLabel(){
 
 			if ( t.error == false ){
 				bool isLast = (ii->first == keyOrder.size() -1);
-				string label = " " + nesting + " " + key;
+				string label = " " + nesting + " " + key + "  "; //TODO this has to be same lenght as line #285
 				int len = label.length();
 				if (len > longestLabel){
 					longestLabel = len;
@@ -236,7 +244,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 	int barH = 1;
 	ofRect(x, y, getWidth(), getHeight());
 
-	ofSetColor(hiColor);
+	ofSetColor(hilightColor);
 	ofRect(x, y, getWidth(), barH);
 	ofRect(x, y + getHeight() - TIME_MEASUREMENTS_LINE_HEIGHT - TIME_MEASUREMENTS_LINE_H_MULT * TIME_MEASUREMENTS_LINE_HEIGHT * 2.0 , getWidth(), barH);
 	ofRect(x, y + getHeight(), getWidth() - barH, barH);
@@ -280,7 +288,12 @@ void ofxTimeMeasurements::draw(float x, float y){
 					}
 				}
 				bool isLast = (ii->first == keyOrder.size() -1);
-				string label = " " + nesting + string(hasChild && !isLast ? "+" : "-") + key;
+				bool isEnabled = times[ii->second].enabled;
+				string label =	" " +
+								nesting +
+								string(hasChild && !isLast ? "+" : "-") +
+								key + " " +
+								string(isEnabled ? " " : "!");
 
 				string padding = "";
 				for(int i = label.length(); i < longestLabel; i++){
@@ -293,12 +306,14 @@ void ofxTimeMeasurements::draw(float x, float y){
 					tempMaxW = fullLine.length();
 				}
 
-				ofSetColor(textColor /** ofMap(t.level, 0.0f, 4.0f, 1.0f, 0.2f, true)*/);
+				ofColor lineColor = textColor;
+				if (!isEnabled) lineColor = disabledTextColor;
 				if(lineC == selection && menuActive){
 					if(ofGetFrameNum()%5 < 3){
-						ofSetColor(selectionColor);
+						lineColor = selectionColor;
 					}
 				}
+				ofSetColor(lineColor);
 				ofDrawBitmapString( fullLine, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 			}else{
 				ofDrawBitmapString( " " + key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
@@ -320,16 +335,17 @@ void ofxTimeMeasurements::draw(float x, float y){
 	sprintf(msg, "%2.1f fps % 5.1f%%", ofGetFrameRate(), percentTotal );
 	c++;
 	if(missingFrames){
-		ofSetColor(255, 0, 0);
+		ofSetColor(170,33,33);
 	}else{
-		ofSetColor(textColor);
+		ofSetColor(hilightColor);
 	}
 	int len = strlen(msg);
-	string pad;
-	int diff = (maxW - len) / 2;
-	for(int i = maxW; i > len + diff; i--) pad += " ";
+	string pad = " ";
+	int diff = (maxW - len) - 1;
+	for(int i = 0; i < diff; i++) pad += " ";
 	ofDrawBitmapString( pad + msg, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-
+	ofSetColor(hilightColor);
+	ofDrawBitmapString( " '" + ofToString(char(activateKey)) + "'", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 	ofPopStyle();
 	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
 }
@@ -387,6 +403,13 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 					selection = it->first;
 				}break;
 
+				case OF_KEY_RETURN:{
+					map<int,string>::iterator it = keyOrder.find(selection);
+					if (it != keyOrder.end() && selection >= 2){ //cant disable update() & draw()
+						times[it->second].enabled = !times[it->second].enabled;
+					}
+					}break;
+
 				case OF_KEY_RIGHT:
 					collapseExpand(selection, false /*expand*/);
 					updateNumVisible();
@@ -405,13 +428,15 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 void ofxTimeMeasurements::loadSettings(){
 
 	ifstream myfile(ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME,true).c_str());
-	string name, value;
+	string name, visible, enabled;
 
 	if (myfile.is_open()){
 		while( !myfile.eof() ){
-			getline( myfile, name, '=' );
-			getline( myfile, value, '\n' );
-			settings[name] = bool(value == "1" ? true : false);
+			getline( myfile, name, '=' );//name
+			getline( myfile, visible, '|' ); //visible
+			getline( myfile, enabled, '\n' ); //enabled
+			settings[name].visible = bool(visible == "1" ? true : false);
+			settings[name].enabled = bool(enabled == "1" ? true : false);
 		}
 		myfile.close();
 	}else{
@@ -425,7 +450,8 @@ void ofxTimeMeasurements::_appExited(ofEventArgs &e){
 	ofstream myfile;
 	myfile.open(ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME,true).c_str());
 	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
-		myfile << ii->second << "=" << string(times[ii->second].visible ? "1" : "0") << endl;
+		myfile << ii->second << "=" << string(times[ii->second].visible ? "1" : "0") << "|" <<
+		string(times[ii->second].enabled ? "1" : "0") << endl;
 	}
 	myfile.close();
 }

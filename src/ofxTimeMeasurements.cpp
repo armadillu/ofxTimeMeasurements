@@ -359,6 +359,14 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
 	if (e.key == enableKey){
 		TIME_SAMPLE_SET_ENABLED(!TIME_SAMPLE_GET_ENABLED());
+		if (!TIME_SAMPLE_GET_ENABLED()){
+			for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
+				settings[ii->second].visible = times[ii->second].visible;
+				settings[ii->second].enabled = times[ii->second].enabled;
+			}
+			keyOrder.clear();
+			times.clear();
+		}
 	}
 
 	if (TIME_SAMPLE_GET_ENABLED()){

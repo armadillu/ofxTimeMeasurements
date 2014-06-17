@@ -122,10 +122,12 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void draw(float x, float y, float w , float h){ ofLogError() << "ofxTimeMeasurements: ignoring draw() call"; } //w and h ignored! just here to comply with ofBaseDraws
 
 		void autoDraw();
-		void collapseExpand(int sel, bool colapse);
+		void collapseExpand(string sel, bool colapse);
 		void updateNumVisible();
 		void updateLongestLabel();
 		void loadSettings();
+
+		map<int, string>::iterator getIndexForOrderedKey(string key);
 
 		static ofxTimeMeasurements*		singleton;
 		float							desiredFrameRate;
@@ -153,7 +155,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		ofColor							disabledTextColor;
 
 
-		int								selection;
+		string							selection;
 		int								numVisible;
 
 		unsigned int					enableKey; //the whole addon

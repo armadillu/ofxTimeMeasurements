@@ -27,7 +27,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	disabledTextColor = ofColor::purple;
 
 	longestLabel = 0;
-	selection = 0;
+	selection = TIME_MEASUREMENTS_UPDATE_KEY;
 	drawLocation = TIME_MEASUREMENTS_BOTTOM_RIGHT;
 	lastKey = "";
 	numVisible = 0;
@@ -252,7 +252,6 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 	float percentTotal = 0.0f;
 
-	int lineC = 0;
 	int tempMaxW = 0;
 
 	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
@@ -294,7 +293,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 				string label =	" " +
 								nesting +
 								string(hasChild && !isLast ? "+" : "-") +
-								key + " " +
+								key + 
 								string(isEnabled ? " " : "!");
 
 				string padding = "";
@@ -310,7 +309,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 				ofColor lineColor = textColor * (0.33 + 0.66 * t.intensity);
 				if (!isEnabled) lineColor = disabledTextColor;
-				if(lineC == selection && menuActive){
+				if(key == selection && menuActive){
 					if(ofGetFrameNum()%5 < 3){
 						lineColor = selectionColor;
 					}
@@ -320,7 +319,6 @@ void ofxTimeMeasurements::draw(float x, float y){
 			}else{
 				ofDrawBitmapString( " " + key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 			}
-			lineC++;
 			if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
 				percentTotal += percent;
 			}
@@ -376,32 +374,33 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
 		if(menuActive){
 			map<int,string>::iterator lastItem = keyOrder.end();
+			lastItem--; //get last item back
+			map<int,string>::iterator beyonLast = keyOrder.end();
 			map<int,string>::iterator firstItem = keyOrder.begin();
 
 			switch (e.key) {
 
 				case OF_KEY_DOWN:{
-					map<int,string>::iterator it = keyOrder.find(selection);
+					map<int,string>::iterator it = getIndexForOrderedKey(selection);
 					it++;
-					if (it == lastItem){
+					if (it == beyonLast){
 						it = firstItem;
 					}else{
 						while (!times[it->second].visible) {
 							it++;
-							if(it == lastItem){
+							if(it == beyonLast){
 								it = firstItem;
 								break;
 							}
 						}
 					}
-					selection = it->first;
+					selection = it->second;
 				}break;
 
 				case OF_KEY_UP:{
-					map<int,string>::iterator it = keyOrder.find(selection);
+					map<int,string>::iterator it = getIndexForOrderedKey(selection);
 					if (it == firstItem){
 						it = lastItem;
-						it--;
 					}else{
 						it--;
 					}
@@ -412,11 +411,11 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 							break;
 						}
 					}
-					selection = it->first;
+					selection = it->second;
 				}break;
 
 				case OF_KEY_RETURN:{
-					map<int,string>::iterator it = keyOrder.find(selection);
+					map<int,string>::iterator it = getIndexForOrderedKey(selection);
 					if (it != keyOrder.end() ){
 						//cant disable update() & draw()
 						if (it->second != TIME_MEASUREMENTS_UPDATE_KEY && it->second != TIME_MEASUREMENTS_DRAW_KEY ){
@@ -437,6 +436,37 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 			}
 		}
 	}
+}
+
+
+void ofxTimeMeasurements::collapseExpand(string sel, bool collapse){
+
+	map<int,string>::iterator it = getIndexForOrderedKey(selection);
+	map<int,string>::iterator lastItem = keyOrder.end();
+
+	int baseLevel = times[it->second].level;
+	it++;
+	if(it != lastItem){
+		while (times[it->second].level > baseLevel ) {
+			times[it->second].visible = !collapse;
+			it++;
+			if(it == lastItem){
+				break;
+			}
+		}
+	}
+	updateLongestLabel();
+}
+
+
+map<int, string>::iterator ofxTimeMeasurements::getIndexForOrderedKey(string key){
+	map<int, string>::iterator it = keyOrder.begin();
+	for (map<int, string>::iterator it = keyOrder.begin(); it != keyOrder.end(); ++it){
+		if (it->second == key){
+			return it;
+		}
+	}
+	return it; //not found
 }
 
 
@@ -477,26 +507,6 @@ void ofxTimeMeasurements::updateNumVisible(){
 	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
 		if(times[ii->second].visible) numVisible++;
 	}
-}
-
-
-void ofxTimeMeasurements::collapseExpand(int sel, bool collapse){
-
-	map<int,string>::iterator it = keyOrder.find(sel);
-	map<int,string>::iterator lastItem = keyOrder.end();
-
-	int baseLevel = times[it->second].level;
-	it++;
-	if(it != lastItem){
-		while (times[it->second].level > baseLevel ) {
-			times[it->second].visible = !collapse;
-			it++;
-			if(it == lastItem){
-				break;
-			}
-		}
-	}
-	updateLongestLabel();
 }
 
 

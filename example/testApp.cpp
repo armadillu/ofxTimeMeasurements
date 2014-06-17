@@ -12,13 +12,18 @@ void testApp::setup(){
 	TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_TOP_RIGHT ); //specify a drawing location (OPTIONAL)
 	//TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_CUSTOM_LOCATION, ofVec2f(40,40) ); //custom location allowed
 
-	TIME_SAMPLE_SET_AVERAGE_RATE(0.07); //averaging samples, [0..1], 1 gets you no averaging at all
+	TIME_SAMPLE_SET_AVERAGE_RATE(0.1); //averaging samples, (0..1], 1 gets you no averaging at all
 										//use lower values to get steadier readings
 }
 
 
 //--------------------------------------------------------------
 void testApp::update(){
+	if (ofGetFrameNum()%60 == 1){
+		TIME_SAMPLE_START("some uncommon method");
+		ofSleepMillis(ofRandom(3));
+		TIME_SAMPLE_STOP("some uncommon method");
+	}
 }
 
 
@@ -49,12 +54,13 @@ void testApp::draw(){
 	}TIME_SAMPLE_STOP("Nested Test");	///////////////////////////////  STOP MEASURING  ///
 
 	ofSetColor(255);
-	ofDrawBitmapString("Move mouse to the right to incrase draw complexity.\n"
+	ofDrawBitmapString("Move mouse to the right to incrase draw complexity\n"
+					   "Notice how drawing more cubes takes longer\n"
 					   "Press 'Right Shift' key to toggle time sampling\n"
 					   "Press 'T' key to toggle menu interaction\n"
 					   "When active, press arrows keys to select/collapse\n"
-					   "Press 'RETURN' key to toggle the execution of that code section\n",
+					   "Press 'RETURN' key to toggle the execution of the selected section\n",
 					   10,
-					   ofGetHeight() - 64);
+					   ofGetHeight() - 74);
 }
 

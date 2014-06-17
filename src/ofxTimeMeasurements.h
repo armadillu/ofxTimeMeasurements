@@ -105,7 +105,9 @@ class ofxTimeMeasurements: public ofBaseDraws {
 				level = 0;
 				visible = true;
 				enabled = true;
+				intensity = 0;
 			}
+			float intensity;
 		};
 
 		void _beforeUpdate(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};

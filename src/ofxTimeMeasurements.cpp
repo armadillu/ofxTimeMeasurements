@@ -20,10 +20,10 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	stackLevel = 0;
 	maxW = 27;
 
-	bgColor = ofColor(22);
+	bgColor = ofColor(15);
 	selectionColor = ofColor::dodgerBlue;
 	hilightColor = selectionColor * 0.7;
-	textColor = ofColor(99);
+	textColor = ofColor(128);
 	disabledTextColor = ofColor::purple;
 
 	longestLabel = 0;
@@ -113,6 +113,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 	}
 	
 	TimeMeasurement t = times[ID];
+	t.intensity = 1.0;
 	t.measuring = true;
 	t.microsecondsStart = ofGetElapsedTimeMicros();
 	t.microsecondsStop = 0;
@@ -226,7 +227,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 	//internalTimeSample = ofGetElapsedTimef();
 
 	if (!enabled) return;
-	if (ofGetFrameNum()%180 == 2){ //todo ghetto!
+	if (ofGetFrameNum()%60 == 2){ //todo ghetto!
 		updateLongestLabel();
 	}
 
@@ -259,6 +260,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 		string key = (*ii).second;
 		TimeMeasurement t = times[key];
 
+
 		if (t.visible){
 			c++;
 
@@ -280,7 +282,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 			if ( t.error == false ){
 
 				sprintf(msChar, "%*.*f", 4, msPrecision, ms );
-				sprintf(percentChar, "(% 5.1f)",  percent );
+				sprintf(percentChar, "% 6.1f",  percent );
 				bool hasChild = false;
 				if (t.nextKey.length()){
 					if (times[t.nextKey].level != t.level){
@@ -300,13 +302,13 @@ void ofxTimeMeasurements::draw(float x, float y){
 					padding += " ";
 				}
 
-				string fullLine = label + padding + " " + msChar + "ms " + percentChar + "\%";
+				string fullLine = label + padding + " " + msChar + "ms " + percentChar + "%";
 
 				if(fullLine.length() > tempMaxW){
 					tempMaxW = fullLine.length();
 				}
 
-				ofColor lineColor = textColor;
+				ofColor lineColor = textColor * (0.33 + 0.66 * t.intensity);
 				if (!isEnabled) lineColor = disabledTextColor;
 				if(lineC == selection && menuActive){
 					if(ofGetFrameNum()%5 < 3){
@@ -323,6 +325,8 @@ void ofxTimeMeasurements::draw(float x, float y){
 				percentTotal += percent;
 			}
 		}
+		t.intensity *= 0.75; //reduce intensity
+		times[key] = t;
 	}
 
 	maxW = tempMaxW;

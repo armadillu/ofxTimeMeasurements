@@ -373,66 +373,68 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 		}
 
 		if(menuActive){
-			map<int,string>::iterator lastItem = keyOrder.end();
-			lastItem--; //get last item back
-			map<int,string>::iterator beyonLast = keyOrder.end();
-			map<int,string>::iterator firstItem = keyOrder.begin();
+			if (keyOrder.size()){
+				map<int,string>::iterator lastItem = keyOrder.end();
+				lastItem--; //get last item back
+				map<int,string>::iterator beyonLast = keyOrder.end();
+				map<int,string>::iterator firstItem = keyOrder.begin();
 
-			switch (e.key) {
+				switch (e.key) {
 
-				case OF_KEY_DOWN:{
-					map<int,string>::iterator it = getIndexForOrderedKey(selection);
-					it++;
-					if (it == beyonLast){
-						it = firstItem;
-					}else{
+					case OF_KEY_DOWN:{
+						map<int,string>::iterator it = getIndexForOrderedKey(selection);
+						it++;
+						if (it == beyonLast){
+							it = firstItem;
+						}else{
+							while (!times[it->second].visible) {
+								it++;
+								if(it == beyonLast){
+									it = firstItem;
+									break;
+								}
+							}
+						}
+						selection = it->second;
+					}break;
+
+					case OF_KEY_UP:{
+						map<int,string>::iterator it = getIndexForOrderedKey(selection);
+						if (it == firstItem){
+							it = lastItem;
+						}else{
+							it--;
+						}
 						while (!times[it->second].visible) {
-							it++;
-							if(it == beyonLast){
-								it = firstItem;
+							it--;
+							if(it == firstItem){
+								it = lastItem;
 								break;
 							}
 						}
-					}
-					selection = it->second;
-				}break;
-
-				case OF_KEY_UP:{
-					map<int,string>::iterator it = getIndexForOrderedKey(selection);
-					if (it == firstItem){
-						it = lastItem;
-					}else{
-						it--;
-					}
-					while (!times[it->second].visible) {
-						it--;
-						if(it == firstItem){
-							it = lastItem;
-							break;
-						}
-					}
-					selection = it->second;
-				}break;
-
-				case OF_KEY_RETURN:{
-					map<int,string>::iterator it = getIndexForOrderedKey(selection);
-					if (it != keyOrder.end() ){
-						//cant disable update() & draw()
-						if (it->second != TIME_MEASUREMENTS_UPDATE_KEY && it->second != TIME_MEASUREMENTS_DRAW_KEY ){
-							times[it->second].enabled = !times[it->second].enabled;
-						}
-					}
+						selection = it->second;
 					}break;
 
-				case OF_KEY_RIGHT:
-					collapseExpand(selection, false /*expand*/);
-					updateNumVisible();
-				break;
+					case OF_KEY_RETURN:{
+						map<int,string>::iterator it = getIndexForOrderedKey(selection);
+						if (it != keyOrder.end() ){
+							//cant disable update() & draw()
+							if (it->second != TIME_MEASUREMENTS_UPDATE_KEY && it->second != TIME_MEASUREMENTS_DRAW_KEY ){
+								times[it->second].enabled = !times[it->second].enabled;
+							}
+						}
+						}break;
 
-				case OF_KEY_LEFT:
-					collapseExpand(selection, true /*collapse*/);
-					updateNumVisible();
+					case OF_KEY_RIGHT:
+						collapseExpand(selection, false /*expand*/);
+						updateNumVisible();
 					break;
+
+					case OF_KEY_LEFT:
+						collapseExpand(selection, true /*collapse*/);
+						updateNumVisible();
+						break;
+				}
 			}
 		}
 	}
@@ -495,8 +497,15 @@ void ofxTimeMeasurements::_appExited(ofEventArgs &e){
 	ofstream myfile;
 	myfile.open(ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME,true).c_str());
 	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
-		myfile << ii->second << "=" << string(times[ii->second].visible ? "1" : "0") << "|" <<
-		string(times[ii->second].enabled ? "1" : "0") << endl;
+		bool visible = times[ii->second].visible;
+		bool enabled = times[ii->second].enabled;
+
+		if (ii->second == TIME_MEASUREMENTS_UPDATE_KEY || ii->second == TIME_MEASUREMENTS_DRAW_KEY){
+			visible = enabled = true;
+		}
+		
+		myfile << ii->second << "=" << string(visible ? "1" : "0") << "|" <<
+		string(enabled ? "1" : "0") << endl;
 	}
 	myfile.close();
 }

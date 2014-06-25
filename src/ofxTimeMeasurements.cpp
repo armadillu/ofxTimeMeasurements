@@ -27,7 +27,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	disabledTextColor = ofColor::purple;
 
 	longestLabel = 0;
-	selection = TIME_MEASUREMENTS_UPDATE_KEY;
+	selection = TIME_MEASUREMENTS_SETUP_KEY;
 	drawLocation = TIME_MEASUREMENTS_BOTTOM_RIGHT;
 	lastKey = "";
 	numVisible = 0;
@@ -41,6 +41,8 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	loadSettings();
 
 #if (OF_VERSION_MINOR >= 8)
+		ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP);
+		ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP);
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP);
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP);
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP);
@@ -123,7 +125,10 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 	t.level = stackLevel;
 	times[ID] = t;
 	stackLevel ++;
-	if(lastKey.length() && ID != TIME_MEASUREMENTS_DRAW_KEY && ID != TIME_MEASUREMENTS_UPDATE_KEY){
+	if(lastKey.length() &&
+	   ID != TIME_MEASUREMENTS_DRAW_KEY &&
+	   ID != TIME_MEASUREMENTS_UPDATE_KEY &&
+	   ID != TIME_MEASUREMENTS_SETUP_KEY){
 		times[lastKey].nextKey = ID;
 	}
 	lastKey = ID;
@@ -273,7 +278,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 			t.updatedLastFrame = false;
 			times[key] = t;
-			bool isRoot = (key == TIME_MEASUREMENTS_UPDATE_KEY || key == TIME_MEASUREMENTS_DRAW_KEY);
+			bool isRoot = (key == TIME_MEASUREMENTS_UPDATE_KEY || key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_SETUP_KEY);
 			string nesting = "";
 			for(int i = 0; i < t.level; i++){
 				nesting += " ";
@@ -320,7 +325,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 			}else{
 				ofDrawBitmapString( " " + key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 			}
-			if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
+			if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY || key == TIME_MEASUREMENTS_SETUP_KEY){
 				percentTotal += percent;
 			}
 		}
@@ -420,7 +425,9 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 						map<int,string>::iterator it = getIndexForOrderedKey(selection);
 						if (it != keyOrder.end() ){
 							//cant disable update() & draw()
-							if (it->second != TIME_MEASUREMENTS_UPDATE_KEY && it->second != TIME_MEASUREMENTS_DRAW_KEY ){
+							if (it->second != TIME_MEASUREMENTS_SETUP_KEY &&
+								it->second != TIME_MEASUREMENTS_UPDATE_KEY &&
+								it->second != TIME_MEASUREMENTS_DRAW_KEY ){
 								times[it->second].enabled = !times[it->second].enabled;
 							}
 						}
@@ -475,7 +482,9 @@ map<int, string>::iterator ofxTimeMeasurements::getIndexForOrderedKey(string key
 
 void ofxTimeMeasurements::loadSettings(){
 
-	ifstream myfile(ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME,true).c_str());
+	//todo this might get called before OF is setup, os ofToDataPath gives us weird results sometimes?
+	string f = ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME, true);
+	ifstream myfile(f.c_str());
 	string name, visible, enabled;
 
 	if (myfile.is_open()){
@@ -484,12 +493,16 @@ void ofxTimeMeasurements::loadSettings(){
 			getline( myfile, visible, '|' ); //visible
 			getline( myfile, enabled, '\n' ); //enabled
 
-			if (name == TIME_MEASUREMENTS_UPDATE_KEY || name == TIME_MEASUREMENTS_DRAW_KEY){
+			if (name == TIME_MEASUREMENTS_SETUP_KEY ||
+				name == TIME_MEASUREMENTS_UPDATE_KEY ||
+				name == TIME_MEASUREMENTS_DRAW_KEY ){
 				visible = enabled = "1";
 			}
-
-			settings[name].visible = bool(visible == "1" ? true : false);
-			settings[name].enabled = bool(enabled == "1" ? true : false);
+			if(name.length()){
+				settings[name].visible = bool(visible == "1" ? true : false);
+				settings[name].enabled = bool(enabled == "1" ? true : false);
+				cout << name << " " << visible << " " << enabled << endl;
+			}
 		}
 		myfile.close();
 	}else{
@@ -498,22 +511,28 @@ void ofxTimeMeasurements::loadSettings(){
 }
 
 
-void ofxTimeMeasurements::_appExited(ofEventArgs &e){
-
+void ofxTimeMeasurements::saveSettings(){
 	ofstream myfile;
 	myfile.open(ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME,true).c_str());
 	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
 		bool visible = times[ii->second].visible;
 		bool enabled = times[ii->second].enabled;
 
-		if (ii->second == TIME_MEASUREMENTS_UPDATE_KEY || ii->second == TIME_MEASUREMENTS_DRAW_KEY){
+		if (ii->second == TIME_MEASUREMENTS_SETUP_KEY ||
+			ii->second == TIME_MEASUREMENTS_UPDATE_KEY ||
+			ii->second == TIME_MEASUREMENTS_DRAW_KEY){
 			visible = enabled = true;
 		}
-		
+
 		myfile << ii->second << "=" << string(visible ? "1" : "0") << "|" <<
 		string(enabled ? "1" : "0") << endl;
 	}
 	myfile.close();
+}
+
+
+void ofxTimeMeasurements::_appExited(ofEventArgs &e){
+	saveSettings();
 }
 
 

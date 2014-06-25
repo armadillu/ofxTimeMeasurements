@@ -12,7 +12,7 @@ void testApp::setup(){
 	TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_TOP_RIGHT ); //specify a drawing location (OPTIONAL)
 	//TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_CUSTOM_LOCATION, ofVec2f(40,40) ); //custom location allowed
 
-	TIME_SAMPLE_SET_AVERAGE_RATE(0.1); //averaging samples, (0..1], 1 gets you no averaging at all
+	TIME_SAMPLE_SET_AVERAGE_RATE(0.1);	//averaging samples, (0..1], 1 gets you no averaging at all
 										//use lower values to get steadier readings
 }
 

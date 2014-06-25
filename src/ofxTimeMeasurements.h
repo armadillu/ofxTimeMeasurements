@@ -17,15 +17,15 @@
 #define TIME_MEASUREMENTS_EDGE_GAP_V		5
 #define TIME_MEASUREMENTS_LINE_H_MULT		0.25
 
+#define TIME_MEASUREMENTS_SETUP_KEY			"setup()"
 #define TIME_MEASUREMENTS_UPDATE_KEY		"update()"
 #define TIME_MEASUREMENTS_DRAW_KEY			"draw()"
 
-#define TIME_MEASUREMENTS_GLOBAL_TOGGLE_KEY	( OF_KEY_PAGE_DOWN ) 
-#define TIME_MEASUREMENTS_INTERACT_KEY		'T'
-#define TIME_MEASUREMENTS_TOGGLE_SAMPLE_KEY OF_KEY_RETURN
+#define TIME_MEASUREMENTS_GLOBAL_TOGGLE_KEY		(OF_KEY_PAGE_DOWN)
+#define TIME_MEASUREMENTS_INTERACT_KEY			'T'
+#define TIME_MEASUREMENTS_TOGGLE_SAMPLE_KEY		OF_KEY_RETURN
 
 #define TIME_MEASUREMENTS_SETTINGS_FILENAME	"ofxTimeMeasurements.settings"
-
 
 #define TIME_SAMPLE_SET_FRAMERATE(x)	(ofxTimeMeasurements::instance()->setDesiredFrameRate(x))
 #define TIME_SAMPLE_START(x)			(ofxTimeMeasurements::instance()->startMeasuring(x))
@@ -110,6 +110,8 @@ class ofxTimeMeasurements: public ofBaseDraws {
 			float intensity;
 		};
 
+		void _beforeSetup(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_SETUP_KEY);};
+		void _afterSetup(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_SETUP_KEY);};
 		void _beforeUpdate(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};
 		void _afterUpdate(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};
 		void _beforeDraw(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_DRAW_KEY);};
@@ -126,6 +128,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void updateNumVisible();
 		void updateLongestLabel();
 		void loadSettings();
+		void saveSettings();
 
 		map<int, string>::iterator getIndexForOrderedKey(string key);
 

@@ -105,7 +105,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 				level = 0;
 				visible = true;
 				enabled = true;
-				intensity = 0;
+				intensity = 0.0f;
 			}
 			float intensity;
 		};

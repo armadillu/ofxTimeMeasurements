@@ -37,6 +37,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	enableKey = TIME_MEASUREMENTS_GLOBAL_TOGGLE_KEY;
 
 	menuActive = false;
+
 	loadSettings();
 
 #if (OF_VERSION_MINOR >= 8)
@@ -482,6 +483,11 @@ void ofxTimeMeasurements::loadSettings(){
 			getline( myfile, name, '=' );//name
 			getline( myfile, visible, '|' ); //visible
 			getline( myfile, enabled, '\n' ); //enabled
+
+			if (name == TIME_MEASUREMENTS_UPDATE_KEY || name == TIME_MEASUREMENTS_DRAW_KEY){
+				visible = enabled = "1";
+			}
+
 			settings[name].visible = bool(visible == "1" ? true : false);
 			settings[name].enabled = bool(enabled == "1" ? true : false);
 		}

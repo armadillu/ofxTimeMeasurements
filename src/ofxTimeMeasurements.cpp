@@ -501,7 +501,7 @@ void ofxTimeMeasurements::loadSettings(){
 			if(name.length()){
 				settings[name].visible = bool(visible == "1" ? true : false);
 				settings[name].enabled = bool(enabled == "1" ? true : false);
-				cout << name << " " << visible << " " << enabled << endl;
+				//cout << name << " " << visible << " " << enabled << endl;
 			}
 		}
 		myfile.close();

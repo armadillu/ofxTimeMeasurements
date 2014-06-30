@@ -313,7 +313,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 					tempMaxW = fullLine.length();
 				}
 
-				ofColor lineColor = textColor * (0.33 + 0.66 * t.intensity);
+				ofColor lineColor = textColor * (0.5 + 0.5 * t.intensity);
 				if (!isEnabled) lineColor = disabledTextColor;
 				if(key == selection && menuActive){
 					if(ofGetFrameNum()%5 < 3){

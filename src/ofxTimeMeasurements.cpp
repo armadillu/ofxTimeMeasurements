@@ -21,10 +21,10 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	maxW = 27;
 
 	bgColor = ofColor(15);
-	selectionColor = ofColor::dodgerBlue;
+	selectionColor = ofColor(77,100,255);
 	hilightColor = selectionColor * 0.7;
 	textColor = ofColor(128);
-	disabledTextColor = ofColor::purple;
+	disabledTextColor = ofColor(255,0,255);
 
 	longestLabel = 0;
 	selection = TIME_MEASUREMENTS_SETUP_KEY;
@@ -325,7 +325,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 			}else{
 				ofDrawBitmapString( " " + key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 			}
-			if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY || key == TIME_MEASUREMENTS_SETUP_KEY){
+			if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY ){
 				percentTotal += percent;
 			}
 		}

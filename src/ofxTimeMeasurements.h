@@ -14,7 +14,7 @@
 
 /*
 if you want better resolution on windows, the use of ofxMsaTimer is recommended.
-Just include it in your project, and set define USE_MSA_TIMER in your project preprocessor macros.
+Just include it in your project, and define USE_MSA_TIMER in your project preprocessor macros.
 */
 
 #ifdef USE_MSA_TIMER 

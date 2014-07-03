@@ -14,10 +14,10 @@
 
 /*
 if you want better resolution on windows, the use of ofxMsaTimer is recommended.
-Just include it in your project, and set USE_MSA_TIMER to TRUE.
+Just include it in your project, and set define USE_MSA_TIMER in your project preprocessor macros.
 */
-#define USE_MSA_TIMER FALSE
-#if USE_MSA_TIMER 
+
+#ifdef USE_MSA_TIMER 
 	#include "ofxMSATimer.h"
 	#define TM_GET_MICROS() timer.getElapsedMicros()
 #else
@@ -184,7 +184,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 
 		bool							menuActive;
 		//float							internalTimeSample; //to measure time spent drawing ofxTimeSample
-		#if USE_MSA_TIMER
+		#ifdef USE_MSA_TIMER
 		ofxMSATimer						timer;
 		#endif
 };

@@ -79,7 +79,7 @@ float ofxTimeMeasurements::getLastDurationFor(string ID){
 	map<string,TimeMeasurement>::iterator it;
 	it = times.find(ID);
 	if ( it != times.end() ){	//not found!
-		r = times[ID].duration / 1000.0f;
+		r = times[ID].duration / 1000.0f; //to ms
 	}
 	return r;
 }
@@ -91,7 +91,7 @@ float ofxTimeMeasurements::getAvgDurationFor(string ID){
 	map<string,TimeMeasurement>::iterator it;
 	it = times.find(ID);
 	if ( it != times.end() ){	//not found!
-		r = times[ID].avgDuration / 1000.0f;
+		r = times[ID].avgDuration / 1000.0f; //to ms
 	}
 	return r;
 }
@@ -118,7 +118,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 	TimeMeasurement t = times[ID];
 	t.intensity = 1.0;
 	t.measuring = true;
-	t.microsecondsStart = ofGetElapsedTimeMicros();
+	t.microsecondsStart = TM_GET_MICROS();
 	t.microsecondsStop = 0;
 	t.error = true;
 	t.updatedLastFrame = true;
@@ -155,7 +155,7 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 			TimeMeasurement t = times[ID];
 			t.measuring = false;
 			t.error = false;
-			t.microsecondsStop = ofGetElapsedTimeMicros();
+			t.microsecondsStop = TM_GET_MICROS();
 			t.microsecondsStart = times[ID].microsecondsStart;
 			ret = t.duration = t.microsecondsStop - t.microsecondsStart;
 			t.avgDuration = (1.0f - timeAveragePercent) * times[ID].avgDuration + t.duration * timeAveragePercent;
@@ -167,7 +167,7 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 		}
 		stackLevel--;
 	}
-	return ret;
+	return ret / 1000.; //convert to ms
 }
 
 
@@ -544,14 +544,14 @@ void ofxTimeMeasurements::updateNumVisible(){
 }
 
 
-unsigned long ofxTimeMeasurements::durationForID( string ID){
+float ofxTimeMeasurements::durationForID( string ID){
 
 	map<string,TimeMeasurement>::iterator it;
 	it = times.find(ID);
 	
 	if ( it == times.end() ){	//not found!
 		if ( times[ID].error ){
-			return times[ID].duration;
+			return times[ID].duration / 1000.0; //to ms
 		}
 	}
 	return 0;

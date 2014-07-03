@@ -12,6 +12,21 @@
 #include "ofMain.h"
 #include <map>
 
+/*
+if you want better resolution on windows, the use of ofxMsaTimer is recommended.
+Just include it in your project, and set USE_MSA_TIMER to TRUE.
+*/
+#define USE_MSA_TIMER TRUE
+#if USE_MSA_TIMER 
+	#include "ofxMSATimer.h"
+	#define TM_GET_MICROS() timer.getElapsedMicros()
+#else
+	#define TM_GET_MICROS() ofGetElapsedTimeMicros()
+#endif
+
+
+
+
 #define TIME_MEASUREMENTS_LINE_HEIGHT		14
 #define TIME_MEASUREMENTS_EDGE_GAP_H		5
 #define TIME_MEASUREMENTS_EDGE_GAP_V		5
@@ -66,7 +81,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void setMsPrecision(int digits);		//how many decimals for the ms units
 		void setTimeAveragePercent(float p);	//[0..1] >> if set to 1.0, 100% of every new sample contributes to the average.
 												//if set to 0.1, a new sample contributes 10% to the average
-		unsigned long durationForID( string ID);
+		float durationForID( string ID);
 		void setBgColor(ofColor c){bgColor = c;}
 		void setHighlightColor(ofColor c){hilightColor = c;}
 		void setTextColor(ofColor c){textColor = c;}
@@ -90,10 +105,10 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		bool enabled;
 	};
 		struct TimeMeasurement{
-			unsigned long microsecondsStart;
-			unsigned long microsecondsStop;
-			unsigned long duration;
-			float avgDuration;
+			uint64_t microsecondsStart;
+			uint64_t microsecondsStop;
+			uint64_t duration;
+			double avgDuration;
 			bool measuring;
 			bool error;
 			bool updatedLastFrame;
@@ -106,6 +121,8 @@ class ofxTimeMeasurements: public ofBaseDraws {
 				visible = true;
 				enabled = true;
 				intensity = 0.0f;
+				duration = 0;
+				avgDuration = 0.0;
 			}
 			float intensity;
 		};
@@ -166,7 +183,9 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		unsigned int					toggleSampleKey;  //selected time sample
 
 		bool							menuActive;
-
 		//float							internalTimeSample; //to measure time spent drawing ofxTimeSample
+		#if USE_MSA_TIMER
+		ofxMSATimer						timer;
+		#endif
 };
 

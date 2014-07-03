@@ -16,7 +16,7 @@
 if you want better resolution on windows, the use of ofxMsaTimer is recommended.
 Just include it in your project, and set USE_MSA_TIMER to TRUE.
 */
-#define USE_MSA_TIMER TRUE
+#define USE_MSA_TIMER FALSE
 #if USE_MSA_TIMER 
 	#include "ofxMSATimer.h"
 	#define TM_GET_MICROS() timer.getElapsedMicros()

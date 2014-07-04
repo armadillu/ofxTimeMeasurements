@@ -27,7 +27,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	disabledTextColor = ofColor(255,0,255);
 
 	longestLabel = 0;
-	selection = TIME_MEASUREMENTS_SETUP_KEY;
+	selection = TIME_MEASUREMENTS_UPDATE_KEY;
 	drawLocation = TIME_MEASUREMENTS_BOTTOM_RIGHT;
 	lastKey = "";
 	numVisible = 0;

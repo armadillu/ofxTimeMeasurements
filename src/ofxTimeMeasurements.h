@@ -84,6 +84,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void setHighlightColor(ofColor c){hilightColor = c;}
 		void setTextColor(ofColor c){textColor = c;}
 
+		//set keyboard command activation keys
 		void setUIActivationKey(unsigned int k){activateKey = k;}
 		void setGlobalEnableDisableKey(unsigned int k){enableKey = k;}
 		void setEnableDisableSectionKey(unsigned int k){toggleSampleKey = k;}

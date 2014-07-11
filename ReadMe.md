@@ -25,17 +25,18 @@ Note the if() clause wrapping TIME_SAMPLE_START(); it is not required, but it wi
 ## FEATURES
 
 *	Measure execution time of any parts of your app
-*	Enable/disable execution of code on the fly
+*	Enable/disable execution of code sections on the fly
 *	Collapsable gui, see only what matters at the time
-*	Saves state settings across sessions (collapsed/expanded and enabled/disabled)
+*	Saves state settings across sessions (collapsed/expanded and enabled/disabled sections)
 *	Measure exact times, or average across frames
 *	Highlight frquently used calls, slowly fade unused calls
 *	setup(), update(), and draw() are autmatically time sampled.
+*	Optionally use [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer) for higher precision (recommended windows)
 
 ##KEY COMMANDS
 *	OF_KEY_PAGE_DOWN to toggle all time measurings, and the drawing of the widget
 * 	'T' when widget is visible (enabled) to get into interactive mode. 
-* 	when in interactive mode:
+* 	When in interactive mode:
 	* Up/Down keys to select, Left/Right keys to expand/collapse the sample tree
 	* Return key to toggle the execution of the selected item. This allows to disable parts of your code on the fly
 

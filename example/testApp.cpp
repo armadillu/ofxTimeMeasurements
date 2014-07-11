@@ -63,11 +63,13 @@ void testApp::draw(){
 	ofSetColor(255);
 	ofDrawBitmapString("Move mouse to the right to incrase draw complexity\n"
 					   "Notice how drawing more cubes takes longer\n"
-					   "Press 'Right Shift' key to toggle time sampling\n"
-					   "Press 'T' key to toggle menu interaction\n"
-					   "When active, press arrows keys to select/collapse\n"
-					   "Press 'RETURN' key to toggle the execution of the selected section\n",
+					   "Press 'PAGE_DOWN' key to toggle time sampling\n"
+					   "Press 'T' key to toggle interactive mode\n"
+					   "When in interactive mode:\n"
+					   "    press up/down arrows keys to select\n"
+					   "    press left/right arrow keys to collapse/expand\n"
+					   "    press 'RETURN' key to toggle the execution of the selected section\n",
 					   10,
-					   ofGetHeight() - 78);
+					   ofGetHeight() - 104);
 }
 

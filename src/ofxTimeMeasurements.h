@@ -25,8 +25,6 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #endif
 
 
-
-
 #define TIME_MEASUREMENTS_LINE_HEIGHT		14
 #define TIME_MEASUREMENTS_EDGE_GAP_H		5
 #define TIME_MEASUREMENTS_EDGE_GAP_V		5

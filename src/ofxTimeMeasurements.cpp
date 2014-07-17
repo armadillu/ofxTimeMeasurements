@@ -353,7 +353,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 	for(int i = 0; i < diff; i++) pad += " ";
 	ofDrawBitmapString( pad + msg, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 	ofSetColor(hilightColor);
-	ofDrawBitmapString( " '" + ofToString(char(activateKey)) + "'", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	ofDrawBitmapString( " '" + ofToString(char(activateKey)) + "'" + string(timeAveragePercent < 1.0 ? " avgd!" : ""), x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 	ofPopStyle();
 	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
 }
@@ -558,8 +558,10 @@ float ofxTimeMeasurements::durationForID( string ID){
 }
 
 
-void ofxTimeMeasurements::setTimeAveragePercent(float p){
-	timeAveragePercent = ofClamp(p, 0.0f, 1.0f);
+void ofxTimeMeasurements::setTimeAveragePercent(double p){
+	if(p > 1.0) p = 1.0;
+	if(p < 0.0) p = 0.0;
+	timeAveragePercent = p;
 }
 
 

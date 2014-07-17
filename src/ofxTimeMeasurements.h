@@ -77,7 +77,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		bool getEnabled();
 		void setDrawLocation(ofxTMDrawLocation loc, ofVec2f p = ofVec2f()); //p only relevant if using TIME_MEASUREMENTS_CUSTOM_LOCATION
 		void setMsPrecision(int digits);		//how many decimals for the ms units
-		void setTimeAveragePercent(float p);	//[0..1] >> if set to 1.0, 100% of every new sample contributes to the average.
+		void setTimeAveragePercent(double p);	//[0..1] >> if set to 1.0, 100% of every new sample contributes to the average.
 												//if set to 0.1, a new sample contributes 10% to the average
 		float durationForID( string ID);
 		void setBgColor(ofColor c){bgColor = c;}
@@ -159,7 +159,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		int								stackLevel; //for Nested measurements
 		string							lastKey;
 
-		float							timeAveragePercent;
+		double							timeAveragePercent;
 		int								msPrecision;
 
 		ofxTMDrawLocation				drawLocation;

@@ -55,6 +55,10 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_SAMPLE_GET_AVG_DURATION(x)	(ofxTimeMeasurements::instance()->getAvgDurationFor(x)) /* ms it took for last frame avgd*/
 #define TIME_SAMPLE_GET_INSTANCE()		(ofxTimeMeasurements::instance())
 
+#define TIME_SAMPLE_DRAW_LOC_TOP_LEFT TIME_MEASUREMENTS_TOP_LEFT 
+#define TIME_SAMPLE_DRAW_LOC_BOTTOM_LEFT TIME_MEASUREMENTS_BOTTOM_LEFT 
+#define TIME_SAMPLE_DRAW_LOC_BOTTOM_RIGHT TIME_MEASUREMENTS_BOTTOM_RIGHT 
+#define TIME_SAMPLE_DRAW_LOC_TOP_RIGHT TIME_MEASUREMENTS_TOP_RIGHT
 
 enum ofxTMDrawLocation{	TIME_MEASUREMENTS_TOP_LEFT,
 	TIME_MEASUREMENTS_TOP_RIGHT,

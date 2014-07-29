@@ -120,7 +120,8 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 	t.measuring = true;
 	t.microsecondsStart = TM_GET_MICROS();
 	t.microsecondsStop = 0;
-	t.error = true;
+	t.error = false;
+	t.measuring = true;
 	t.updatedLastFrame = true;
 	t.level = stackLevel;
 	times[ID] = t;
@@ -162,7 +163,9 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 			times[ID] = t;
 
 		}else{	//wrong use, start first, then stop
-			
+			TimeMeasurement t = times[ID];
+			t.error = true;
+			times[ID] = t;
 			ofLog( OF_LOG_WARNING, "Can't stopMeasuring(%s). Make sure you called startMeasuring with that ID first.", ID.c_str());				
 		}
 		stackLevel--;
@@ -284,46 +287,66 @@ void ofxTimeMeasurements::draw(float x, float y){
 				nesting += " ";
 			}
 
-			if ( t.error == false ){
+			if ( !t.error ){
 
-				sprintf(msChar, "%*.*f", 4, msPrecision, ms );
-				sprintf(percentChar, "% 6.1f",  percent );
-				bool hasChild = false;
-				if (t.nextKey.length()){
-					if (times[t.nextKey].level != t.level){
-						hasChild = true;
+				string fullLine;
+				ofColor lineColor = textColor;
+				if ( t.measuring ){
+					string anim = "";
+					switch ((ofGetFrameNum()/10)%6) {
+						case 0: anim = "   "; break;
+						case 1: anim = ".  "; break;
+						case 2: anim = ".. "; break;
+						case 3: anim = "..."; break;
+						case 4: anim = " .."; break;
+						case 5: anim = "  ."; break;
 					}
-				}
-				bool isLast = (ii->first == keyOrder.size() -1);
-				bool isEnabled = times[ii->second].enabled;
-				string label =	" " +
-								nesting +
-								string(hasChild && !isLast ? "+" : "-") +
-								key + 
-								string(isEnabled ? " " : "!");
+					fullLine = " *" + key + " measuring " + anim;
+				}else{
+					bool isLast = (ii->first == keyOrder.size() -1);
+					bool isEnabled = times[ii->second].enabled;
+					bool hasChild = false;
 
-				string padding = "";
-				for(int i = label.length(); i < longestLabel; i++){
-					padding += " ";
-				}
-
-				string fullLine = label + padding + " " + msChar + "ms " + percentChar + "%";
-
-				if(fullLine.length() > tempMaxW){
-					tempMaxW = fullLine.length();
-				}
-
-				ofColor lineColor = textColor * (0.5 + 0.5 * t.intensity);
-				if (!isEnabled) lineColor = disabledTextColor;
-				if(key == selection && menuActive){
-					if(ofGetFrameNum()%5 < 3){
-						lineColor = selectionColor;
+					if (t.nextKey.length()){
+						if (times[t.nextKey].level != t.level){
+							hasChild = true;
+						}
 					}
+
+					string label =	" " +
+					nesting +
+					string(hasChild && !isLast ? "+" : "-") +
+					key +
+					string(isEnabled ? " " : "!");
+
+					string padding = "";
+					for(int i = label.length(); i < longestLabel; i++){
+						padding += " ";
+					}
+
+					sprintf(msChar, "%*.*f", 4, msPrecision, ms );
+					sprintf(percentChar, "% 6.1f",  percent );
+
+					fullLine = label + padding + " " + msChar + "ms " + percentChar + "%";
+
+
+					if(fullLine.length() > tempMaxW){
+						tempMaxW = fullLine.length();
+					}
+
+					ofColor lineColor = textColor * (0.5 + 0.5 * t.intensity);
+					if (!isEnabled) lineColor = disabledTextColor;
+					if(key == selection && menuActive){
+						if(ofGetFrameNum()%5 < 3){
+							lineColor = selectionColor;
+						}
+					}
+
 				}
 				ofSetColor(lineColor);
 				ofDrawBitmapString( fullLine, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 			}else{
-				ofDrawBitmapString( " " + key + " = Usage Error! see log...", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+				ofDrawBitmapString( " " + key + " Usage Error!", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 			}
 			if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY ){
 				percentTotal += percent;

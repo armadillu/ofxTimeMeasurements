@@ -190,5 +190,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		#ifdef USE_MSA_TIMER
 		ofxMSATimer						timer;
 		#endif
+
+		ofMutex							mutex;
 };
 

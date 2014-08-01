@@ -101,6 +101,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 
 	if (!enabled) return true;
 
+	mutex.lock();
 	//see if we already had it, if we didnt, set its add order #
 	map<string,TimeMeasurement>::iterator it;
 	it = times.find(ID);
@@ -133,7 +134,9 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 		times[lastKey].nextKey = ID;
 	}
 	lastKey = ID;
-	return t.enabled;
+	bool ret = t.enabled;
+	mutex.unlock();
+	return ret;
 }
 
 
@@ -141,7 +144,11 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 
 	float ret = 0.0;
 	if (!enabled) return ret;
-	
+
+	uint64_t timeNow = TM_GET_MICROS(); //get the time before the lock() to avoid affecting
+	//the measurement as much as possible
+
+	mutex.lock();
 	map<string,TimeMeasurement>::iterator it;
 	it = times.find(ID);
 	
@@ -156,7 +163,7 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 			TimeMeasurement t = times[ID];
 			t.measuring = false;
 			t.error = false;
-			t.microsecondsStop = TM_GET_MICROS();
+			t.microsecondsStop = timeNow;
 			t.microsecondsStart = times[ID].microsecondsStart;
 			ret = t.duration = t.microsecondsStop - t.microsecondsStart;
 			t.avgDuration = (1.0f - timeAveragePercent) * times[ID].avgDuration + t.duration * timeAveragePercent;
@@ -170,7 +177,9 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 		}
 		stackLevel--;
 	}
-	return ret / 1000.; //convert to ms
+	ret = ret / 1000.;
+	mutex.unlock();
+	return ret; //convert to ms
 }
 
 
@@ -263,6 +272,8 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 	int tempMaxW = 0;
 
+	mutex.lock(); /////////////////////////////////////////
+	
 	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
 
 		string key = (*ii).second;
@@ -301,8 +312,15 @@ void ofxTimeMeasurements::draw(float x, float y){
 						case 4: anim = " .."; break;
 						case 5: anim = "  ."; break;
 					}
-					fullLine = " *" + key + " measuring " + anim;
+					string label = " *" + key;
+					string padding = "";
+					for(int i = label.length(); i < longestLabel; i++){
+						padding += " ";
+					}
+					fullLine = label + " " + padding + anim;
+
 				}else{
+
 					bool isLast = (ii->first == keyOrder.size() -1);
 					bool isEnabled = times[ii->second].enabled;
 					bool hasChild = false;
@@ -355,6 +373,8 @@ void ofxTimeMeasurements::draw(float x, float y){
 		t.intensity *= 0.75; //reduce intensity
 		times[key] = t;
 	}
+
+	mutex.unlock(); ////////////////////////////////////////////
 
 	maxW = tempMaxW;
 	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 1.0 ); // tolerance of 1 fps TODO!

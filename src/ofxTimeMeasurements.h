@@ -10,6 +10,8 @@
 #pragma once
 
 #include "ofMain.h"
+#include "tree.hh"
+#include "tree_util.hh"
 #include <map>
 
 /*
@@ -103,10 +105,11 @@ class ofxTimeMeasurements: public ofBaseDraws {
 
 		ofxTimeMeasurements(); // use ofxTimeMeasurements::instance() instead!
 
-	struct TimeMeasurementSettings{
-		bool visible;
-		bool enabled;
-	};
+		struct TimeMeasurementSettings{
+			bool visible;
+			bool enabled;
+		};
+
 		struct TimeMeasurement{
 			uint64_t microsecondsStart;
 			uint64_t microsecondsStop;
@@ -115,14 +118,15 @@ class ofxTimeMeasurements: public ofBaseDraws {
 			bool measuring;
 			bool error;
 			bool updatedLastFrame;
-			int level; //for nested measurements
-			string nextKey;
-			bool visible;
-			bool enabled; //
+			string key;
+			Poco::Thread* thread;
+
+			TimeMeasurementSettings settings;
+
 			TimeMeasurement(){
-				level = 0;
-				visible = true;
-				enabled = true;
+				thread = NULL;
+				settings.visible = true;
+				settings.enabled = true;
 				intensity = 0.0f;
 				duration = 0;
 				avgDuration = 0.0;
@@ -135,7 +139,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void _beforeUpdate(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};
 		void _afterUpdate(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};
 		void _beforeDraw(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_DRAW_KEY);};
-		void _afterDraw(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_DRAW_KEY); autoDraw(); };
+		void _afterDraw(ofEventArgs &d);
 
 		void _appExited(ofEventArgs &e);
 		void _keyPressed(ofKeyEventArgs &e);
@@ -152,45 +156,46 @@ class ofxTimeMeasurements: public ofBaseDraws {
 
 		map<int, string>::iterator getIndexForOrderedKey(string key);
 
-		static ofxTimeMeasurements*		singleton;
-		float							desiredFrameRate;
-		bool							enabled;
+		static ofxTimeMeasurements*				singleton;
 
-		map<string, TimeMeasurement>			times;
-		map<int, string>						keyOrder;
+		float									desiredFrameRate;
+		bool									enabled;
+
+		map<string, TimeMeasurement*>			times;
 		map<string, TimeMeasurementSettings>	settings; //visible/not at startup
 
-		int								stackLevel; //for Nested measurements
-		string							lastKey;
 
-		double							timeAveragePercent;
-		int								msPrecision;
+		map<Poco::Thread*, tree<string>	>				threadTrees;
+		map<Poco::Thread*, tree<string>::iterator >		threadTreesIterators;
 
-		ofxTMDrawLocation				drawLocation;
-		ofVec2f							loc;
-		int								maxW; //for a text line
-		int								longestLabel; //
+		double									timeAveragePercent;
+		int										msPrecision;
 
-		ofColor							bgColor;
-		ofColor							hilightColor;
-		ofColor							textColor;
-		ofColor							selectionColor;
-		ofColor							disabledTextColor;
+		ofxTMDrawLocation						drawLocation;
+		ofVec2f									loc;
+		int										maxW; //for a text line
+		int										longestLabel; //
 
+		ofColor									bgColor;
+		ofColor									hilightColor;
+		ofColor									textColor;
+		ofColor									selectionColor;
+		ofColor									disabledTextColor;
 
-		string							selection;
-		int								numVisible;
+		string									selection;
+		int										numVisible;
 
-		unsigned int					enableKey; //the whole addon
-		unsigned int					activateKey;
-		unsigned int					toggleSampleKey;  //selected time sample
+		unsigned int							enableKey; //the whole addon
+		unsigned int							activateKey;
+		unsigned int							toggleSampleKey;  //selected time sample
 
-		bool							menuActive;
-		//float							internalTimeSample; //to measure time spent drawing ofxTimeSample
+		bool									menuActive;
+		//float									internalTimeSample; //to measure time spent drawing ofxTimeSample
 		#ifdef USE_MSA_TIMER
-		ofxMSATimer						timer;
+		ofxMSATimer								timer;
 		#endif
 
-		ofMutex							mutex;
+		Poco::Thread*							mainThreadID;
+		ofMutex									mutex;
 };
 

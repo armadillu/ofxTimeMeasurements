@@ -1,7 +1,6 @@
 #include "testApp.h"
 
 
-//--------------------------------------------------------------
 void testApp::setup(){
 
 	ofBackground(22);
@@ -14,10 +13,26 @@ void testApp::setup(){
 	TIME_SAMPLE_SET_AVERAGE_RATE(0.1);	//averaging samples, (0..1],
 										//1.0 gets you no averaging at all
 										//use lower values to get steadier readings
+
+	startThread();
+}
+
+void testApp::threadedFunction(){
+
+	while(isThreadRunning()){
+		TIME_SAMPLE_START("thread");
+			ofSleepMillis(30);
+			TIME_SAMPLE_START("thread subtask1");
+			ofSleepMillis(1);
+			TIME_SAMPLE_STOP("thread subtask1");
+
+		TIME_SAMPLE_STOP("thread");
+
+		ofSleepMillis(300);
+	}
 }
 
 
-//--------------------------------------------------------------
 void testApp::update(){
 
 	if(TIME_SAMPLE_START("some common method")){
@@ -32,7 +47,6 @@ void testApp::update(){
 }
 
 
-//--------------------------------------------------------------
 void testApp::draw(){
 
 	
@@ -56,6 +70,11 @@ void testApp::draw(){
 
 			}TIME_SAMPLE_STOP("Nested Test 3");
 
+			if (ofGetFrameNum() > 10){
+				TIME_SAMPLE_START("Nested Test 4");
+				TIME_SAMPLE_STOP("Nested Test 4");
+			}
+
 		}TIME_SAMPLE_STOP("Nested Test 2");
 
 	}TIME_SAMPLE_STOP("Nested Test");		///////////////////////////////  STOP MEASURING  ///
@@ -73,3 +92,8 @@ void testApp::draw(){
 					   ofGetHeight() - 104);
 }
 
+void testApp::keyPressed( ofKeyEventArgs & key ){
+
+	TIME_SAMPLE_START("keyDown");
+	TIME_SAMPLE_STOP("keyDown");
+}

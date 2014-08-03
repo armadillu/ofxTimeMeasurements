@@ -40,6 +40,14 @@ void testApp::update(){
 	}TIME_SAMPLE_STOP("some common method");
 
 	if (ofGetFrameNum()%60 == 1){
+		TIME_SAMPLE_START("across frames");
+	}
+
+	if (ofGetFrameNum()%60 == 3){
+		TIME_SAMPLE_STOP("across frames");
+	}
+
+	if (ofGetFrameNum()%60 == 1){
 		if (TIME_SAMPLE_START("some uncommon method")){
 			ofSleepMillis(ofRandom(3));
 		}TIME_SAMPLE_STOP("some uncommon method");

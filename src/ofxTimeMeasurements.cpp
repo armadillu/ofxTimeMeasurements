@@ -10,6 +10,7 @@
 #include "ofxTimeMeasurements.h"
 #include <float.h>
 
+static int threadCounter = 0;
 ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL; 
 
 ofxTimeMeasurements::ofxTimeMeasurements(){
@@ -39,25 +40,6 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	mainThreadID = Poco::Thread::current();
 
 	loadSettings();
-
-
-	//test tree here!
-	tree<string>::iterator root;
-	tree<string>::iterator c1;
-	tree<string>::iterator c2;
-//	root = stackTree.insert(stackTree.begin(), "root");
-//	c1 = stackTree.append_child(root, "1stChild");
-//	c2 = stackTree.append_child(c1, "2ndstChild");
-//	stackTree.insert(c2, "notsure1");
-//	stackTree.insert(c2, "notsure2");
-//
-//	int maxd = stackTree.max_depth();
-//	int d = stackTree.depth(root);
-//	int d2 = stackTree.depth(c1);
-//	kptree::print_tree_bracketed(stackTree);
-
-
-
 
 #if (OF_VERSION_MINOR >= 8)
 		ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP);
@@ -127,22 +109,27 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 	threadIt = threadTrees.find(thread);
 
 	if (threadIt == threadTrees.end()){ //new thread!
+
+		if (!isMainThread){
+			threadCounter++; //count different threads, to name them
+		}
+		string tName = isMainThread ? "mainThread" : string("Thread " + ofToString(threadCounter));
 		//init the iterator
-		string tName = isMainThread ? "mainThread" : ofToString(thread);
 		threadTreesIterators[thread] = threadTrees[thread].insert(threadTrees[thread].begin(), tName);
 	}else{//we had that thread
 
 	}
 
 		
+	mutex.lock();
+
 	tree<string> &tr = threadTrees[thread]; //easier to read, tr is our tree from now on
 	threadTreesIterators[thread] = tr.append_child(threadTreesIterators[thread], ID);
 
-	mutex.lock();
 	int d = tr.depth(threadTreesIterators[thread]);
 
-	cout << "thread: " << thread << " START >> " << ID << " : " << d << endl;
-	cout << "  it is at: " << *threadTreesIterators[thread] << endl;
+	//cout << "thread: " << thread << " START >> " << ID << " : " << d << endl;
+	//cout << "  it is at: " << *threadTreesIterators[thread] << endl;
 	mutex.unlock();
 
 	mutex.lock();
@@ -193,14 +180,23 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 
 	Poco::Thread * thread = Poco::Thread::current();
 
+
+	mutex.lock();
+
 	tree<string> &tr = threadTrees[thread]; //easier to read, tr is our tree from now on
 	threadTreesIterators[thread] = tr.parent(threadTreesIterators[thread]);
 
-
-	mutex.lock();
+	if(thread){
+		map<Poco::Thread*, tree<string>	>::iterator ii;
+		for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
+			kptree::print_tree_bracketed(ii->second);
+			cout << endl;
+		}
+	}
+	cout << "thread: " << thread << " STOP >> " << ID << endl;
+	cout << "  it is at: " << *threadTreesIterators[thread] <<endl ;
 	int d = tr.depth(threadTreesIterators[thread]);
-	cout << "thread: " << thread << " STOP >> " << ID << " : " << d << endl;
-	cout << "  it is at: " << *threadTreesIterators[thread] << endl;
+	cout << "  depth: " << d << endl ;
 	mutex.unlock();
 
 
@@ -309,25 +305,23 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 
 	mutex.lock();
+	cout << "############################################################" << endl;
 	map<Poco::Thread*, tree<string>	>::iterator ii;
+	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
+		kptree::print_tree_bracketed(ii->second);
+		cout << endl;
+		ii->second.erase_children(ii->second.begin());
+		int size = ii->second.size();
+		threadTreesIterators[ii->first] = ii->second.begin();
+
+	}
+	cout << "############################################################" << endl;
+
 	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
 		kptree::print_tree_bracketed(ii->second);
 		cout << endl;
 	}
 	mutex.unlock();
-	//
-
-//	root = stackTree.insert(stackTree.begin(), "root");
-//	c1 = stackTree.append_child(root, "1stChild");
-//	c2 = stackTree.append_child(c1, "2ndstChild");
-//	stackTree.insert(c2, "notsure1");
-//	stackTree.insert(c2, "notsure2");
-//
-//	int maxd = stackTree.max_depth();
-//	int d = stackTree.depth(root);
-//	int d2 = stackTree.depth(c1);
-//	kptree::print_tree_bracketed(stackTree);
-//
 
 	//internalTimeSample = ofGetElapsedTimef();
 

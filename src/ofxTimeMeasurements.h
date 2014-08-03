@@ -32,9 +32,9 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_MEASUREMENTS_EDGE_GAP_V		5
 #define TIME_MEASUREMENTS_LINE_H_MULT		0.25
 
-#define TIME_MEASUREMENTS_SETUP_KEY			"setup()"
-#define TIME_MEASUREMENTS_UPDATE_KEY		"update()"
-#define TIME_MEASUREMENTS_DRAW_KEY			"draw()"
+#define TIME_MEASUREMENTS_SETUP_KEY			"setup"
+#define TIME_MEASUREMENTS_UPDATE_KEY		"update"
+#define TIME_MEASUREMENTS_DRAW_KEY			"draw"
 
 #define TIME_MEASUREMENTS_GLOBAL_TOGGLE_KEY		(OF_KEY_PAGE_DOWN)
 #define TIME_MEASUREMENTS_INTERACT_KEY			'T'

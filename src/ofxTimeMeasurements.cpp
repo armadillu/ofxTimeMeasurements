@@ -25,6 +25,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	hilightColor = selectionColor * 0.7;
 	textColor = ofColor(128);
 	disabledTextColor = ofColor(255,0,255);
+	measuringColor = ofColor(0,200,0);
 
 	longestLabel = 0;
 	selection = TIME_MEASUREMENTS_UPDATE_KEY;
@@ -342,10 +343,20 @@ void ofxTimeMeasurements::draw(float x, float y){
 						padding += " ";
 					}
 
+					string timeUnit = "ms";
+					if (ms > 1000){
+						ms /= 1000.0f;
+						timeUnit = "sec";
+						if(ms > 60){ //if more than a minute
+							ms /= 60.0f;
+							timeUnit = "min";
+						}
+					}
+
 					sprintf(msChar, "%*.*f", 4, msPrecision, ms );
 					sprintf(percentChar, "% 6.1f",  percent );
 
-					fullLine = label + padding + " " + msChar + "ms " + percentChar + "%";
+					fullLine = label + padding + " " + msChar + timeUnit + percentChar + "%";
 
 
 					if(fullLine.length() > tempMaxW){
@@ -362,6 +373,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 				}
 				ofSetColor(lineColor);
+				if (t.measuring) ofSetColor(measuringColor);
 				ofDrawBitmapString( fullLine, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
 			}else{
 				ofDrawBitmapString( " " + key + " Usage Error!", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );

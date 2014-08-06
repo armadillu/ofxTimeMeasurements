@@ -174,6 +174,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		ofColor							bgColor;
 		ofColor							hilightColor;
 		ofColor							textColor;
+		ofColor							measuringColor;
 		ofColor							selectionColor;
 		ofColor							disabledTextColor;
 

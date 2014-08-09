@@ -118,6 +118,8 @@ class ofxTimeMeasurements: public ofBaseDraws {
 			bool measuring;
 			bool error;
 			bool updatedLastFrame;
+			int frame; //used to compare start-stop calls frame, and see if its an across-frames measurement
+			bool acrossFrames;
 			string key;
 			Poco::Thread* thread;
 

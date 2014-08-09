@@ -47,7 +47,7 @@ void testApp::update(){
 		TIME_SAMPLE_STOP("across frames");
 	}
 
-	if (ofGetFrameNum()%60 == 1){
+	if (ofGetFrameNum()%60 == 5 || ofGetFrameNum()%60 == 1){
 		if (TIME_SAMPLE_START("some uncommon method")){
 			ofSleepMillis(ofRandom(3));
 		}TIME_SAMPLE_STOP("some uncommon method");

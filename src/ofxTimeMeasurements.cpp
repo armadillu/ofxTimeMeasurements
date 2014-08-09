@@ -40,6 +40,41 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 	mainThreadID = Poco::Thread::current();
 
+	{
+		tree<string> tr;
+		tree<string>::iterator top, one, two, loc, banana;
+
+		top=tr.begin();
+		one=tr.insert(top, "one");
+		two=tr.append_child(one, "two");
+		tr.append_child(two, "apple");
+		banana=tr.append_child(two, "banana");
+		tr.append_child(banana,"cherry");
+		tr.append_child(two, "peach");
+		tr.append_child(one,"three");
+
+		loc=find(tr.begin(), tr.end(), "two");
+		if(loc!=tr.end()) {
+			tree<string>::sibling_iterator sib=tr.begin(loc);
+			while(sib!=tr.end(loc)) {
+				cout << "_" <<(*sib) << endl;
+				++sib;
+			}
+			cout << endl;
+			tree<string>::iterator sib2=tr.begin(loc);
+			tree<string>::iterator end2=tr.end(loc);
+			while(sib2!=end2) {
+				for(int i=0; i<tr.depth(sib2)-2; ++i)
+					cout << " ";
+				cout << (*sib2) << endl;
+				++sib2;
+			}
+		}
+		kptree::print_tree_bracketed(tr); cout << endl;
+	}
+
+
+
 	loadSettings();
 
 #if (OF_VERSION_MINOR >= 8)
@@ -121,20 +156,27 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 
 		//init the iterator
 		threadTreesIterators[thread] = threadTrees[thread].insert(threadTrees[thread].begin(), tName);
-	}else{//we had that thread
-
 	}
-
 
 	tree<string> &tr = threadTrees[thread]; //easier to read, tr is our tree from now on
-	threadTreesIterators[thread] = tr.append_child(threadTreesIterators[thread], ID);
 
-	if(thread){
-		int d = tr.depth(threadTreesIterators[thread]);
-		cout << "### thread: '" << thread << "' START >> '" << ID << "' : " << d << endl;
+	//see if the new measurement already was in tree
+	tree<string>::iterator current = threadTreesIterators[thread];
+	//cout << "currently at " << *current << " measuring '" << ID << "'" << endl;
+	tree<string>::sibling_iterator searchIt = find(tr.begin(), tr.end(), ID);
+
+	if(searchIt == tr.end()){ //if it wasst in the tree, append it
+		threadTreesIterators[thread] = tr.append_child(current, ID);
+	}else{
+		threadTreesIterators[thread] = searchIt;
+	}
+
+	//if(thread){
+		//int d = tr.depth(threadTreesIterators[thread]);
+		//cout << "### thread: '" << thread << "' START >> '" << ID << "' : " << d << endl;
 		//cout << "  it is at: " << *threadTreesIterators[thread] << endl;
 		//see if we already had it, if we didnt, set its add order #
-	}
+	//}
 
 	map<string, TimeMeasurement*>::iterator tit = times.find(ID);
 
@@ -157,6 +199,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 	t->microsecondsStart = TM_GET_MICROS();
 	t->microsecondsStop = 0;
 	t->error = false;
+	t->frame = ofGetFrameNum();
 	t->measuring = true;
 	t->updatedLastFrame = true;
 	return t->settings.enabled;
@@ -179,18 +222,18 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 	tit = tr.parent(tit);
 	if(tit == NULL) tit = tr.begin();
 
-	if(thread){
+	//if(thread){
 		map<Poco::Thread*, tree<string>	>::iterator ii;
 //		for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
 //			cout << "    ";
 //			kptree::print_tree_bracketed(ii->second);
 //			cout << endl;
 //		}
-		cout << "### thread: '" << thread << "' STOP >> '" << ID << "'" << endl;
-		if(threadTreesIterators[thread] != NULL){
-			cout << "    iter is at: " << *threadTreesIterators[thread] << endl;
-		}
-	}
+//		cout << "### thread: '" << thread << "' STOP >> '" << ID << "'" << endl;
+//		if(threadTreesIterators[thread] != NULL){
+//			cout << "    iter is at: " << *threadTreesIterators[thread] << endl;
+//		}
+	//}
 	//int d = tr.depth(threadTreesIterators[thread]);
 	//cout << "  depth: " << d << endl ;
 
@@ -210,6 +253,7 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 
 			t->measuring = false;
 			t->error = false;
+			t->acrossFrames = (t->frame != ofGetFrameNum() && thread == NULL); //we only care about across-frames in main thread
 			t->microsecondsStop = timeNow;
 			ret = t->duration = t->microsecondsStop - t->microsecondsStart;
 			t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration + t->duration * timeAveragePercent;
@@ -292,26 +336,48 @@ void ofxTimeMeasurements::updateLongestLabel(){
 
 void ofxTimeMeasurements::draw(float x, float y){
 
-	tree<string>::iterator root;
-	tree<string>::iterator c1;
-	tree<string>::iterator c2;
-
 	vector<string> activeKeys;
-
 
 	mutex.lock();
 	cout << "############################################################" << endl;
+
+	string allTrees;
+
 	map<Poco::Thread*, tree<string>	>::iterator ii;
 	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
-		kptree::print_tree_bracketed(ii->second); cout << endl;
-		ii->second.erase_children(ii->second.begin());
-		int size = ii->second.size();
-		threadTreesIterators[ii->first] = ii->second.begin();
+		//kptree::print_tree_bracketed(ii->second); cout << endl;
+		//ii->second.erase_children(ii->second.begin());
+		//int size = ii->second.size();
+		//threadTreesIterators[ii->first] = ii->second.begin();
 
 		//kptree::print_tree_bracketed(ii->second); cout << endl;
 		//activeKeys.push_back(ii->first);
+		//cout << "currently at " << *threadTreesIterators[ii->first] << endl;
+
+		tree<string> &tr = ii->second;
+		tree<string>::iterator walker = tr.begin();
+		string totalTree = "+" + *tr.begin() + "\n";
+
+		if( walker != tr.end()) {
+			tree<string>::iterator sib = tr.begin(walker);
+			tree<string>::iterator end = tr.end(walker);
+			while(sib != end) {
+				for(int i = 0; i < tr.depth(sib); ++i)
+					totalTree += " ";
+				if (sib.number_of_children() == 0){
+					totalTree += "-";
+				}else{
+					totalTree += "+";
+				}
+				totalTree += *sib + " " + ofToString(times[*sib]->acrossFrames) +
+					/* + " " + ofToString(times[*sib]->life,1) */ + "\n";
+
+				++sib;
+			}
+		}
+		cout << totalTree << endl;
+		allTrees += totalTree + "\n\n";
 	}
-	cout << "############################################################" << endl;
 
 	mutex.unlock();
 
@@ -344,6 +410,10 @@ void ofxTimeMeasurements::draw(float x, float y){
 	float percentTotal = 0.0f;
 
 	int tempMaxW = 0;
+
+	ofDrawBitmapString(allTrees, x -100, y + 40);
+
+	return; ///////
 
 	mutex.lock(); /////////////////////////////////////////
 	

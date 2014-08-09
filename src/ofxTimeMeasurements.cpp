@@ -40,41 +40,6 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 	mainThreadID = Poco::Thread::current();
 
-	{
-		tree<string> tr;
-		tree<string>::iterator top, one, two, loc, banana;
-
-		top=tr.begin();
-		one=tr.insert(top, "one");
-		two=tr.append_child(one, "two");
-		tr.append_child(two, "apple");
-		banana=tr.append_child(two, "banana");
-		tr.append_child(banana,"cherry");
-		tr.append_child(two, "peach");
-		tr.append_child(one,"three");
-
-		loc=find(tr.begin(), tr.end(), "two");
-		if(loc!=tr.end()) {
-			tree<string>::sibling_iterator sib=tr.begin(loc);
-			while(sib!=tr.end(loc)) {
-				cout << "_" <<(*sib) << endl;
-				++sib;
-			}
-			cout << endl;
-			tree<string>::iterator sib2=tr.begin(loc);
-			tree<string>::iterator end2=tr.end(loc);
-			while(sib2!=end2) {
-				for(int i=0; i<tr.depth(sib2)-2; ++i)
-					cout << " ";
-				cout << (*sib2) << endl;
-				++sib2;
-			}
-		}
-		kptree::print_tree_bracketed(tr); cout << endl;
-	}
-
-
-
 	loadSettings();
 
 #if (OF_VERSION_MINOR >= 8)
@@ -152,7 +117,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 			threadCounter++; //count different threads, to ID them in some human readble way
 		}
 		//string tName = isMainThread ? "mainThread" : string("Thread " + ofToString(threadCounter));
-		string tName = isMainThread ? "mainThread" : string(Poco::Thread::current()->getName());
+		string tName = isMainThread ? "main Thread" : string(Poco::Thread::current()->getName());
 
 		//init the iterator
 		threadTreesIterators[thread] = threadTrees[thread].insert(threadTrees[thread].begin(), tName);
@@ -339,9 +304,8 @@ void ofxTimeMeasurements::draw(float x, float y){
 	vector<string> activeKeys;
 
 	mutex.lock();
-	cout << "############################################################" << endl;
 
-	string allTrees;
+	string allTrees = "###############################\n";
 
 	map<Poco::Thread*, tree<string>	>::iterator ii;
 	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
@@ -375,8 +339,8 @@ void ofxTimeMeasurements::draw(float x, float y){
 				++sib;
 			}
 		}
-		cout << totalTree << endl;
-		allTrees += totalTree + "\n\n";
+		//cout << totalTree << endl;
+		allTrees += totalTree + "###############################\n";
 	}
 
 	mutex.unlock();

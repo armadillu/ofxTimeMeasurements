@@ -14,6 +14,7 @@ static int threadCounter = 0;
 ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL; 
 
 ofxTimeMeasurements::ofxTimeMeasurements(){
+
 	desiredFrameRate = 60.0f;
 	enabled = true;
 	timeAveragePercent = 1;
@@ -105,131 +106,122 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 	Poco::Thread * thread = Poco::Thread::current();
 	bool isMainThread = (mainThreadID == thread);
 
+	mutex.lock();
+
 	map<Poco::Thread*, tree<string>	>::iterator threadIt;
 	threadIt = threadTrees.find(thread);
 
 	if (threadIt == threadTrees.end()){ //new thread!
 
 		if (!isMainThread){
-			threadCounter++; //count different threads, to name them
+			threadCounter++; //count different threads, to ID them in some human readble way
 		}
-		string tName = isMainThread ? "mainThread" : string("Thread " + ofToString(threadCounter));
+		//string tName = isMainThread ? "mainThread" : string("Thread " + ofToString(threadCounter));
+		string tName = isMainThread ? "mainThread" : string(Poco::Thread::current()->getName());
+
 		//init the iterator
 		threadTreesIterators[thread] = threadTrees[thread].insert(threadTrees[thread].begin(), tName);
 	}else{//we had that thread
 
 	}
 
-		
-	mutex.lock();
 
 	tree<string> &tr = threadTrees[thread]; //easier to read, tr is our tree from now on
 	threadTreesIterators[thread] = tr.append_child(threadTreesIterators[thread], ID);
 
-	int d = tr.depth(threadTreesIterators[thread]);
-
-	//cout << "thread: " << thread << " START >> " << ID << " : " << d << endl;
-	//cout << "  it is at: " << *threadTreesIterators[thread] << endl;
-	mutex.unlock();
-
-	mutex.lock();
-
-	//see if we already had it, if we didnt, set its add order #
-//	map<string,TimeMeasurement*>::iterator it;
-//	it = times.find(ID);
-//	if ( it == times.end() ){	//not found!
-//		keyOrder[ keyOrder.size() ] = ID;
-//		map<string, TimeMeasurementSettings>::iterator it2 = settings.find(ID);
-//		if (it2 != settings.end()){
-//			times[ID].visible = it2->second.visible;
-//			times[ID].enabled = it2->second.enabled;
-//		}
-//		updateNumVisible();
-//		updateLongestLabel();
-//	}
+	if(thread){
+		int d = tr.depth(threadTreesIterators[thread]);
+		cout << "### thread: '" << thread << "' START >> '" << ID << "' : " << d << endl;
+		//cout << "  it is at: " << *threadTreesIterators[thread] << endl;
+		//see if we already had it, if we didnt, set its add order #
+	}
 
 	map<string, TimeMeasurement*>::iterator tit = times.find(ID);
 
 	if (tit == times.end()){ //not found, let alloc a new TimeMeasurement
 		times[ID] = new TimeMeasurement();
+		keyOrder[ keyOrder.size() ] = ID;
+//		map<string, TimeMeasurementSettings>::iterator it2 = settings.find(ID);
+//		if (it2 != settings.end()){
+//			settings[ID].visible = it2->second.visible;
+//			settings[ID].enabled = it2->second.enabled;
+//		}
 	}
 
 	TimeMeasurement* t = times[ID];
-	t->intensity = 1.0;
+	mutex.unlock();
+
+	t->key = ID;
+	t->life = 1.0f; //
 	t->measuring = true;
 	t->microsecondsStart = TM_GET_MICROS();
 	t->microsecondsStop = 0;
 	t->error = false;
 	t->measuring = true;
 	t->updatedLastFrame = true;
-	times[ID] = t;
-	bool ret = t->settings.enabled;
-	mutex.unlock();
-	return ret;
+	return t->settings.enabled;
 }
 
 
 float ofxTimeMeasurements::stopMeasuring(string ID){
 
-	float ret = 0.0;
+	float ret = 0.0f;
 	if (!enabled) return ret;
 
 	uint64_t timeNow = TM_GET_MICROS(); //get the time before the lock() to avoid affecting
 	//the measurement as much as possible
 
-
 	Poco::Thread * thread = Poco::Thread::current();
 
-
 	mutex.lock();
-
 	tree<string> &tr = threadTrees[thread]; //easier to read, tr is our tree from now on
-	threadTreesIterators[thread] = tr.parent(threadTreesIterators[thread]);
+	tree<string>::iterator & tit = threadTreesIterators[thread];
+	tit = tr.parent(tit);
+	if(tit == NULL) tit = tr.begin();
 
 	if(thread){
 		map<Poco::Thread*, tree<string>	>::iterator ii;
-		for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
-			kptree::print_tree_bracketed(ii->second);
-			cout << endl;
+//		for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
+//			cout << "    ";
+//			kptree::print_tree_bracketed(ii->second);
+//			cout << endl;
+//		}
+		cout << "### thread: '" << thread << "' STOP >> '" << ID << "'" << endl;
+		if(threadTreesIterators[thread] != NULL){
+			cout << "    iter is at: " << *threadTreesIterators[thread] << endl;
 		}
 	}
-	cout << "thread: " << thread << " STOP >> " << ID << endl;
-	cout << "  it is at: " << *threadTreesIterators[thread] <<endl ;
-	int d = tr.depth(threadTreesIterators[thread]);
-	cout << "  depth: " << d << endl ;
-	mutex.unlock();
+	//int d = tr.depth(threadTreesIterators[thread]);
+	//cout << "  depth: " << d << endl ;
 
-
-
-	mutex.lock();
 	map<string,TimeMeasurement*>::iterator it;
 	it = times.find(ID);
 	
 	if ( it == times.end() ){	//not found!
 
-		ofLog( OF_LOG_WARNING, "ID (%s)not found at stopMeasuring(). Make sure you called startMeasuring with that ID first.", ID.c_str());
+		ofLog( OF_LOG_WARNING, "ID (%s)not found at stopMeasuring(). Make sure you called"
+			  " startMeasuring with that ID first.", ID.c_str());
 		
 	}else{
 		
+		TimeMeasurement* t = times[ID];
+
 		if ( times[ID]->measuring ){
 
-			TimeMeasurement* t = times[ID];
 			t->measuring = false;
 			t->error = false;
 			t->microsecondsStop = timeNow;
-			t->microsecondsStart = times[ID]->microsecondsStart;
 			ret = t->duration = t->microsecondsStop - t->microsecondsStart;
-			t->avgDuration = (1.0f - timeAveragePercent) * times[ID]->avgDuration + t->duration * timeAveragePercent;
-			times[ID] = t;
+			t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration + t->duration * timeAveragePercent;
 
 		}else{	//wrong use, start first, then stop
-			TimeMeasurement* t = times[ID];
+
 			t->error = true;
-			times[ID] = t;
-			ofLog( OF_LOG_WARNING, "Can't stopMeasuring(%s). Make sure you called startMeasuring with that ID first.", ID.c_str());				
+			ofLog( OF_LOG_WARNING, "Can't stopMeasuring(%s). Make sure you called startMeasuring"
+				  " with that ID first.", ID.c_str());
 		}
 	}
-	ret = ret / 1000.;
+	ret = ret / 1000.0f;
 	mutex.unlock();
 	return ret; //convert to ms
 }
@@ -260,7 +252,8 @@ void ofxTimeMeasurements::autoDraw(){
 			draw(TIME_MEASUREMENTS_EDGE_GAP_H,ofGetHeight() - getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V);
 			break;
 		case TIME_MEASUREMENTS_BOTTOM_RIGHT:
-			draw( ofGetWidth() - getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,ofGetHeight() - getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V);
+			draw( ofGetWidth() - getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,
+				 ofGetHeight() - getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V);
 			break;
 		case TIME_MEASUREMENTS_CUSTOM_LOCATION:
 			draw(loc.x, loc.y);
@@ -303,24 +296,23 @@ void ofxTimeMeasurements::draw(float x, float y){
 	tree<string>::iterator c1;
 	tree<string>::iterator c2;
 
+	vector<string> activeKeys;
+
 
 	mutex.lock();
 	cout << "############################################################" << endl;
 	map<Poco::Thread*, tree<string>	>::iterator ii;
 	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
-		kptree::print_tree_bracketed(ii->second);
-		cout << endl;
+		kptree::print_tree_bracketed(ii->second); cout << endl;
 		ii->second.erase_children(ii->second.begin());
 		int size = ii->second.size();
 		threadTreesIterators[ii->first] = ii->second.begin();
 
+		//kptree::print_tree_bracketed(ii->second); cout << endl;
+		//activeKeys.push_back(ii->first);
 	}
 	cout << "############################################################" << endl;
 
-	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
-		kptree::print_tree_bracketed(ii->second);
-		cout << endl;
-	}
 	mutex.unlock();
 
 	//internalTimeSample = ofGetElapsedTimef();
@@ -435,7 +427,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 					}
 
 					ofColor lineColor = textColor;
-//					ofColor lineColor = textColor * (0.5 + 0.5 * t.intensity);
+//					ofColor lineColor = textColor * (0.5 + 0.5 * t.life);
 //					if (!isEnabled) lineColor = disabledTextColor;
 //					if(key == selection && menuActive){
 //						if(ofGetFrameNum()%5 < 3){
@@ -453,7 +445,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 				percentTotal += percent;
 			}
 		}
-		t->intensity *= 0.75; //reduce intensity
+		t->life *= 0.8; //TODO magic #
 		times[key] = t;
 	}
 

@@ -127,11 +127,11 @@ class ofxTimeMeasurements: public ofBaseDraws {
 				thread = NULL;
 				settings.visible = true;
 				settings.enabled = true;
-				intensity = 0.0f;
+				life = 1.0f;
 				duration = 0;
 				avgDuration = 0.0;
 			}
-			float intensity;
+			float life;
 		};
 
 		void _beforeSetup(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_SETUP_KEY);};
@@ -161,6 +161,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		float									desiredFrameRate;
 		bool									enabled;
 
+		map<int, string>						keyOrder;
 		map<string, TimeMeasurement*>			times;
 		map<string, TimeMeasurementSettings>	settings; //visible/not at startup
 

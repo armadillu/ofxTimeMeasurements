@@ -590,7 +590,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 			allTime = ofToString(time,  msPrecision) + timeUnit;
 			int originalLen = allTime.length();
 
-			int expectedLen = 8;te
+			int expectedLen = 8;
 			for(int i = 0; i < expectedLen - originalLen; i++){
 				allTime = " " + allTime;
 			}

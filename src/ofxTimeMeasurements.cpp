@@ -122,7 +122,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 		//init the iterator
 		threadTreesIterators[thread] = threadTrees[thread].insert(threadTrees[thread].begin(), tName);
 		if (thread){
-			threadColors[thread] = ofColor(ofRandom(128,255), ofRandom(128,255), ofRandom(128,255));
+			threadColors[thread] = ofColor(ofRandom(64,200), ofRandom(64,200), ofRandom(64,200));
 		}else{
 			threadColors[thread] = hilightColor;
 		}
@@ -315,6 +315,9 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 	drawLines.clear();
 
+	float percentTotal = 0.0f;
+	float timePerFrame = 1000.0f / desiredFrameRate;
+
 	map<Poco::Thread*, tree<string>	>::iterator ii;
 	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
 		//kptree::print_tree_bracketed(ii->second); cout << endl;
@@ -332,6 +335,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 		PrintedLine header;
 		header.formattedKey = "+" + *walker;
 		header.color = threadColors[ii->first];
+		header.key = *walker; //key for selection, is thread name
 		drawLines.push_back(header);
 
 		if( walker != tr.end()) {
@@ -341,14 +345,16 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 			while(sib != end) {
 
-				TimeMeasurement * t = times[*sib];
+				string key = *sib;
+				TimeMeasurement * t = times[key];
+
 				bool active = (t->life > 0.01f);
 				bool visible = t->settings.visible;
 
 				if (visible){
 					PrintedLine l;
 					if (!t->error){
-						l.key = *sib;
+						l.key = key;
 						l.tm = t;
 						for(int i = 0; i < tr.depth(sib); ++i)
 							l.formattedKey += " ";
@@ -370,15 +376,19 @@ void ofxTimeMeasurements::draw(float x, float y){
 					//l.color = textColor * (0.35f + 0.65f * t->life);
 					l.color = threadColors[ii->first];
 					if (*sib == selection && menuActive){
-						if(ofGetFrameNum()%5 < 3){
+						if(ofGetFrameNum()%6 < 3){
 							l.color = selectionColor;
 						}else{}
 					}
 					if (!t->settings.enabled){
 						l.color = disabledTextColor;
 					}
-
 					drawLines.push_back(l);
+				}
+
+				//only update and draw count to the final %
+				if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
+					percentTotal += (t->avgDuration * 0.1f) / timePerFrame;
 				}
 				++sib;
 			}
@@ -421,34 +431,28 @@ void ofxTimeMeasurements::draw(float x, float y){
 	static char percentChar[64];
 	static char msg[128];
 
-	float c = TIME_MEASUREMENTS_LINE_H_MULT;
-	float timePerFrame = 1000.0f / desiredFrameRate;
-
 	ofSetupScreen(); //mmmm----
 
 	ofPushStyle();
 	ofSetColor(bgColor);
 	int barH = 1;
-	ofRect(x, y, getWidth(), getHeight());
+	ofRect(x, y + 1, getWidth(), getHeight());
 
 	//thread hd bg highlight
 
 	for(int i = 0; i < headerLocations.size(); i++){
 		int loc = headerLocations[i];
 		ofSetColor(drawLines[loc].color, 26);
-		int h = TIME_MEASUREMENTS_LINE_HEIGHT * ((i < headerLocations.size() - 1) ? headerLocations[i+1] : drawLines.size() - loc  );
+		int h = TIME_MEASUREMENTS_LINE_HEIGHT * ((i < headerLocations.size() - 1) ? headerLocations[i+1] : drawLines.size() - loc );
 		ofRect(x, y + 2 + loc * TIME_MEASUREMENTS_LINE_HEIGHT, getWidth(), h);
 		ofSetColor(drawLines[loc].color, 64);
 		ofRect(x, y + 2 + loc * TIME_MEASUREMENTS_LINE_HEIGHT, getWidth(), TIME_MEASUREMENTS_LINE_HEIGHT + 1);
 	}
 
 	ofSetColor(hilightColor);
-	ofRect(x, y, getWidth(), barH);
-	ofRect(x, y + getHeight() - TIME_MEASUREMENTS_LINE_HEIGHT - TIME_MEASUREMENTS_LINE_H_MULT * TIME_MEASUREMENTS_LINE_HEIGHT * 2.0 , getWidth(), barH);
+	ofRect(x, y + 1, getWidth(), barH);
+	ofRect(x, y + getHeight() - TIME_MEASUREMENTS_LINE_HEIGHT - 4 , getWidth(), barH);
 	ofRect(x, y + getHeight(), getWidth() - barH, barH);
-
-	float percentTotal = 0.0f;
-
 
 	for(int i = 0; i < drawLines.size(); i++){
 		ofSetColor(drawLines[i].color);
@@ -467,144 +471,12 @@ void ofxTimeMeasurements::draw(float x, float y){
 	string pad = " ";
 	int diff = (maxW - len) - 1;
 	for(int i = 0; i < diff; i++) pad += " ";
-	int lastLine = ( drawLines.size() + 1 ) * TIME_MEASUREMENTS_LINE_HEIGHT + 4;
+	int lastLine = ( drawLines.size() + 1 ) * TIME_MEASUREMENTS_LINE_HEIGHT + 2;
 	ofDrawBitmapString( pad + msg, x, y + lastLine );
 	ofSetColor(hilightColor);
 	ofDrawBitmapString( " '" + ofToString(char(activateKey)) + "'" + string(timeAveragePercent < 1.0 ? " avgd!" : ""),
 					   x, y + lastLine );
-
 	ofPopStyle();
-	return; /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//	mutex.lock(); /////////////////////////////////////////
-//	
-//	for( map<string,TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
-//
-//		string key = (*ii).first;
-//		TimeMeasurement *t = ii->second;
-//
-//		if (t->settings.visible){
-//			c++;
-//
-//			float ms = t->avgDuration / 1000.0f;
-//			float percent = 100.0f * ms / timePerFrame;
-//			//average here, only if enabled
-//			if (!t->updatedLastFrame && timeAveragePercent < 1.0f){ // if we didnt update that time, make it tend to zero slowly
-//				t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration;
-//			}
-//
-//			t->updatedLastFrame = false;
-//			times[key] = t;
-//			bool isRoot = (key == TIME_MEASUREMENTS_UPDATE_KEY || key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_SETUP_KEY);
-//			string nesting = "";
-////			for(int i = 0; i < t->level; i++){
-////				nesting += " ";
-////			}
-//
-//			if ( !t->error ){
-//
-//				string fullLine;
-//				ofColor lineColor = textColor;
-//				if ( t->measuring ){
-//					string anim = "";
-//					switch ((ofGetFrameNum()/10)%6) {
-//						case 0: anim = "   "; break;
-//						case 1: anim = ".  "; break;
-//						case 2: anim = ".. "; break;
-//						case 3: anim = "..."; break;
-//						case 4: anim = " .."; break;
-//						case 5: anim = "  ."; break;
-//					}
-//					string label = " *" + key;
-//					string padding = "";
-//					for(int i = label.length(); i < longestLabel; i++){
-//						padding += " ";
-//					}
-//					fullLine = label + " " + padding + anim;
-//
-//				}else{
-//
-////					bool isLast = (ii->first == keyOrder.size() -1);
-////					bool isEnabled = times[ii->second].enabled;
-////					bool hasChild = false;
-////
-////					if (t.nextKey.length()){
-////						if (times[t.nextKey].level != t.level){
-////							hasChild = true;
-////						}
-////					}
-//
-////					string label =	" " +
-////					nesting +
-////					string(hasChild && !isLast ? "+" : "-") +
-////					key +
-////					string(isEnabled ? " " : "!");
-//
-//					string label = key;
-//					string padding = "";
-//					for(int i = label.length(); i < longestLabel; i++){
-//						padding += " ";
-//					}
-//
-//					sprintf(msChar, "%*.*f", 4, msPrecision, ms );
-//					sprintf(percentChar, "% 6.1f",  percent );
-//
-//					//fullLine = label + padding + " " + msChar + "ms " + percentChar + "%";
-//					fullLine = label + padding + " " + msChar + "ms " + percentChar + "%";
-//
-//
-//					if(fullLine.length() > tempMaxW){
-//						tempMaxW = fullLine.length();
-//					}
-//
-//					ofColor lineColor = textColor;
-////					ofColor lineColor = textColor * (0.5 + 0.5 * t.life);
-////					if (!isEnabled) lineColor = disabledTextColor;
-////					if(key == selection && menuActive){
-////						if(ofGetFrameNum()%5 < 3){
-////							lineColor = selectionColor;
-////						}
-////					}
-//
-//				}
-//				ofSetColor(lineColor);
-//				ofDrawBitmapString( fullLine, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-//			}else{
-//				ofDrawBitmapString( " " + key + " Usage Error!", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-//			}
-//			if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY ){
-//				percentTotal += percent;
-//			}
-//		}
-//		times[key] = t;
-//	}
-//
-//	mutex.unlock(); ////////////////////////////////////////////
-//
-//	maxW = tempMaxW;
-//	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 1.0 ); // tolerance of 1 fps TODO!
-//	
-//	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
-//
-//	//internalTimeSample = ofGetElapsedTimef() - internalTimeSample;
-//
-//	sprintf(msg, "%2.1f fps % 5.1f%%", ofGetFrameRate(), percentTotal );
-//	c++;
-//	if(missingFrames){
-//		ofSetColor(170,33,33);
-//	}else{
-//		ofSetColor(hilightColor);
-//	}
-//	int len = strlen(msg);
-//	string pad = " ";
-//	int diff = (maxW - len) - 1;
-//	for(int i = 0; i < diff; i++) pad += " ";
-//	ofDrawBitmapString( pad + msg, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-//	ofSetColor(hilightColor);
-//	ofDrawBitmapString( " '" + ofToString(char(activateKey)) + "'" + string(timeAveragePercent < 1.0 ? " avgd!" : ""), x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-//	ofPopStyle();
-//	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
-
 }
 
 
@@ -618,8 +490,7 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 				settings[key].visible = times[key]->settings.visible;
 				settings[key].enabled = times[key]->settings.enabled;
 			}
-			//keyOrder.clear();
-			times.clear();
+			//times.clear();
 		}
 	}
 
@@ -627,96 +498,83 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 		if (e.key == activateKey){
 			menuActive = !menuActive;
 		}
-		/*
+
 		if(menuActive){
-			if (keyOrder.size()){
-				map<int,string>::iterator lastItem = keyOrder.end();
-				lastItem--; //get last item back
-				map<int,string>::iterator beyonLast = keyOrder.end();
-				map<int,string>::iterator firstItem = keyOrder.begin();
+
+			if (drawLines.size()){
+				int selIndex = -1;
+				for(int i = 0; i < drawLines.size(); i++){
+					if (drawLines[i].key == selection) selIndex = i;
+				}
+				if(selIndex == -1){
+					return;
+				}
 
 				switch (e.key) {
 
 					case OF_KEY_DOWN:{
-						map<int,string>::iterator it = getIndexForOrderedKey(selection);
-						it++;
-						if (it == beyonLast){
-							it = firstItem;
-						}else{
-							while (!times[it->second].visible) {
-								it++;
-								if(it == beyonLast){
-									it = firstItem;
-									break;
-								}
-							}
+						selIndex ++;
+						if(selIndex >= drawLines.size()) selIndex = 0;
+						while(drawLines[selIndex].tm == NULL){
+							selIndex ++;
+							if(selIndex >= drawLines.size()) selIndex = 0;
 						}
-						selection = it->second;
+						selection = drawLines[selIndex].key;
 					}break;
 
 					case OF_KEY_UP:{
-						map<int,string>::iterator it = getIndexForOrderedKey(selection);
-						if (it == firstItem){
-							it = lastItem;
-						}else{
-							it--;
+						selIndex --;
+						if(selIndex < 0 ) selIndex = drawLines.size() - 1;
+						while(drawLines[selIndex].tm == NULL){
+							selIndex --;
+							if(selIndex < 0 ) selIndex = drawLines.size() - 1;
 						}
-						while (!times[it->second].visible) {
-							it--;
-							if(it == firstItem){
-								it = lastItem;
-								break;
-							}
-						}
-						selection = it->second;
+						selection = drawLines[selIndex].key;
 					}break;
 
 					case OF_KEY_RETURN:{
-						map<int,string>::iterator it = getIndexForOrderedKey(selection);
-						if (it != keyOrder.end() ){
 							//cant disable update() & draw()
-							if (it->second != TIME_MEASUREMENTS_SETUP_KEY &&
-								it->second != TIME_MEASUREMENTS_UPDATE_KEY &&
-								it->second != TIME_MEASUREMENTS_DRAW_KEY ){
-								times[it->second].enabled = !times[it->second].enabled;
+							if (selection != TIME_MEASUREMENTS_SETUP_KEY &&
+								selection != TIME_MEASUREMENTS_UPDATE_KEY &&
+								selection != TIME_MEASUREMENTS_DRAW_KEY &&
+								drawLines[selIndex].tm
+								){
+									times[selection]->settings.enabled ^= 1;
 							}
-						}
 						}break;
 
 					case OF_KEY_RIGHT:
 						collapseExpand(selection, false); //expand
-						updateNumVisible();
 					break;
 
 					case OF_KEY_LEFT:
 						collapseExpand(selection, true ); //collapse
-						updateNumVisible();
 						break;
 				}
 			}
 		}
-		*/
 	}
 }
 
 
 void ofxTimeMeasurements::collapseExpand(string sel, bool collapse){
 
-//	map<int,string>::iterator it = getIndexForOrderedKey(selection);
-//	map<int,string>::iterator lastItem = keyOrder.end();
-//
-//	int baseLevel = times[it->second].level;
-//	it++;
-//	if(it != lastItem){
-//		while (times[it->second].level > baseLevel ) {
-//			times[it->second].visible = !collapse;
-//			it++;
-//			if(it == lastItem){
-//				break;
-//			}
-//		}
-//	}
-//	updateLongestLabel();
+	map<Poco::Thread*, tree<string>	>::iterator ii;
+
+	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
+
+		tree<string> &tr = ii->second;
+		tree<string>::iterator loc = find(tr.begin(), tr.end(), sel);
+
+		if( loc != tr.end()) {
+			tree<string>::iterator sib2 = tr.begin(loc);
+			tree<string>::iterator end2 = tr.end(loc);
+			while(sib2 != end2) {
+				times[*sib2]->settings.visible = !collapse;
+				++sib2;
+			}
+		}
+	}
 }
 
 
@@ -735,7 +593,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 			case 4: anim = " .."; break;
 			case 5: anim = "  ."; break;
 		}
-		return "   Running" + anim;
+		return "   Running " + anim;
 	}else{
 		time = tm->avgDuration / 1000.0f;
 		float timePerFrame = 1000.0f / desiredFrameRate;
@@ -841,13 +699,6 @@ void ofxTimeMeasurements::_appExited(ofEventArgs &e){
 	saveSettings();
 }
 
-
-void ofxTimeMeasurements::updateNumVisible(){
-//	numVisible = 0;
-//	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
-//		if(times[ii->second].visible) numVisible++;
-//	}
-}
 
 
 float ofxTimeMeasurements::durationForID( string ID){

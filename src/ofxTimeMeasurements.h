@@ -30,7 +30,6 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_MEASUREMENTS_LINE_HEIGHT		14
 #define TIME_MEASUREMENTS_EDGE_GAP_H		5
 #define TIME_MEASUREMENTS_EDGE_GAP_V		5
-#define TIME_MEASUREMENTS_LINE_H_MULT		0.25
 
 #define TIME_MEASUREMENTS_SETUP_KEY			"setup()"
 #define TIME_MEASUREMENTS_UPDATE_KEY		"update()"
@@ -96,7 +95,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void setEnableDisableSectionKey(unsigned int k){toggleSampleKey = k;}
 
 		virtual float getWidth(){ return (maxW + 1) * 8; }
-		virtual float getHeight(){ return ( drawLines.size() + 2 ) * TIME_MEASUREMENTS_LINE_HEIGHT - 4; };
+		virtual float getHeight(){ return ( drawLines.size() + 2 ) * TIME_MEASUREMENTS_LINE_HEIGHT - 8; };
 
 		float getLastDurationFor(string ID); //ms
 		float getAvgDurationFor(string ID); //ms
@@ -162,7 +161,6 @@ class ofxTimeMeasurements: public ofBaseDraws {
 
 		void autoDraw();
 		void collapseExpand(string sel, bool colapse);
-		void updateNumVisible();
 		void updateLongestLabel();
 		void loadSettings();
 		void saveSettings();

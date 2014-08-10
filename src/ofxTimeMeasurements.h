@@ -10,8 +10,8 @@
 #pragma once
 
 #include "ofMain.h"
-#include "tree.hh"
-#include "tree_util.hh"
+#include "../lib/tree.hh"
+#include "../lib/tree_util.hh"
 #include <map>
 
 /*

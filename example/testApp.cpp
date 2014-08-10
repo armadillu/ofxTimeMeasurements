@@ -10,25 +10,28 @@ void testApp::setup(){
 	//specify where the widget is to be drawn
 	TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_TOP_RIGHT ); //specify a drawing location (OPTIONAL)
 
+
 	TIME_SAMPLE_SET_AVERAGE_RATE(0.1);	//averaging samples, (0..1],
 										//1.0 gets you no averaging at all
 										//use lower values to get steadier readings
+	TIME_SAMPLE_DISABLE_AVERAGE();	//disable averaging
 
 	startThread();
 }
 
 void testApp::threadedFunction(){
 
+	getPocoThread().setName("MyLoopingThread");
+
 	while(isThreadRunning()){
 		TIME_SAMPLE_START("task");
 			ofSleepMillis(30);
 			TIME_SAMPLE_START("subtask1");
-			ofSleepMillis(1300);
+			ofSleepMillis(2030);
 			TIME_SAMPLE_STOP("subtask1");
 
 		TIME_SAMPLE_STOP("task");
-
-		ofSleepMillis(1000);
+		ofSleepMillis(3500);
 	}
 }
 
@@ -39,15 +42,16 @@ void testApp::update(){
 		ofSleepMillis(1);
 	}TIME_SAMPLE_STOP("some common method");
 
+
 	if (ofGetFrameNum()%60 == 1){
-		TIME_SAMPLE_START("across frames");
+		TIME_SAMPLE_START("sample across frames");
 	}
 
 	if (ofGetFrameNum()%60 == 3){
-		TIME_SAMPLE_STOP("across frames");
+		TIME_SAMPLE_STOP("sample across frames");
 	}
 
-	if (ofGetFrameNum()%60 == 5 || ofGetFrameNum()%60 == 1){
+	if (ofGetFrameNum()%60 == 30 || ofGetFrameNum()%60 == 1){
 		if (TIME_SAMPLE_START("some uncommon method")){
 			ofSleepMillis(ofRandom(3));
 		}TIME_SAMPLE_STOP("some uncommon method");
@@ -66,26 +70,11 @@ void testApp::draw(){
 	}TIME_SAMPLE_STOP("draw dots");			///////////////////////////////  STOP MEASURING  ///
 
 
-
-	//testing nested samples
-	if( TIME_SAMPLE_START("Nested Test")){	///////////////////////////////  START MEASURING ///
-
-		if( TIME_SAMPLE_START("Nested Test 2")){
-
-			if( TIME_SAMPLE_START("Nested Test 3")){
-
-				ofSleepMillis(1);
-
-			}TIME_SAMPLE_STOP("Nested Test 3");
-
-			if (ofGetFrameNum() > 10){
-				TIME_SAMPLE_START("Nested Test 4");
-				TIME_SAMPLE_STOP("Nested Test 4");
-			}
-
-		}TIME_SAMPLE_STOP("Nested Test 2");
-
-	}TIME_SAMPLE_STOP("Nested Test");		///////////////////////////////  STOP MEASURING  ///
+	//testing late samples
+	if (ofGetFrameNum() > 10){
+		TIME_SAMPLE_START("Nested Test L2");
+		TIME_SAMPLE_STOP("Nested Test L2");
+	}
 
 	ofSetColor(255);
 	ofDrawBitmapString("Move mouse to the right to incrase draw complexity\n"
@@ -100,8 +89,14 @@ void testApp::draw(){
 					   ofGetHeight() - 104);
 }
 
+
 void testApp::keyPressed( ofKeyEventArgs & key ){
 
 	TIME_SAMPLE_START("keyDown");
+	if(myThreads.size() < 3){
+		MyThread *t = new MyThread();
+		t->startThread();
+		myThreads.push_back(t);
+	}
 	TIME_SAMPLE_STOP("keyDown");
 }

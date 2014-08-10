@@ -195,8 +195,10 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		ofColor									bgColor;
 		ofColor									hilightColor;
 		ofColor									textColor;
-		ofColor									selectionColor;
 		ofColor									disabledTextColor;
+
+		vector<ofColor>							threadColorTable;
+		int										numThreads;
 
 		string									selection;
 		int										numVisible;

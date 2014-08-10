@@ -22,8 +22,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	maxW = 27;
 
 	bgColor = ofColor(15);
-	selectionColor = ofColor(77,100,255);
-	hilightColor = selectionColor * 0.7;
+	hilightColor = ofColor(77,100,255) * 0.8;
 	textColor = ofColor(128);
 	disabledTextColor = ofColor(255,0,255);
 
@@ -39,6 +38,14 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	menuActive = false;
 
 	mainThreadID = Poco::Thread::current();
+
+	int v = 100;
+	threadColorTable.push_back(ofColor(v,0,0));
+	threadColorTable.push_back(ofColor(0,v,0));
+	threadColorTable.push_back(ofColor(v,v,0));
+	threadColorTable.push_back(ofColor(0,v,v));
+	threadColorTable.push_back(ofColor(v,0,v));
+	numThreads = 0;
 
 	loadSettings();
 
@@ -122,11 +129,11 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 		//init the iterator
 		threadTreesIterators[thread] = threadTrees[thread].insert(threadTrees[thread].begin(), tName);
 		if (thread){
-			threadColors[thread] = ofColor(ofRandom(64,200), ofRandom(64,200), ofRandom(64,200));
+			threadColors[thread] = threadColorTable[numThreads%(threadColorTable.size())];
+			numThreads++;
 		}else{
 			threadColors[thread] = hilightColor;
 		}
-
 	}
 
 	tree<string> &tr = threadTrees[thread]; //easier to read, tr is our tree from now on
@@ -149,8 +156,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 		//keyOrder[ keyOrder.size() ] = ID;
 		map<string, TimeMeasurementSettings>::iterator it2 = settings.find(ID);
 		if (it2 != settings.end()){
-			settings[ID].visible = it2->second.visible;
-			settings[ID].enabled = it2->second.enabled;
+			times[ID]->settings = settings[ID];
 		}
 	}
 
@@ -186,21 +192,6 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 	tree<string>::iterator & tit = threadTreesIterators[thread];
 	tit = tr.parent(tit);
 	if(tit == NULL) tit = tr.begin();
-
-	//if(thread){
-		map<Poco::Thread*, tree<string>	>::iterator ii;
-//		for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
-//			cout << "    ";
-//			kptree::print_tree_bracketed(ii->second);
-//			cout << endl;
-//		}
-//		cout << "### thread: '" << thread << "' STOP >> '" << ID << "'" << endl;
-//		if(threadTreesIterators[thread] != NULL){
-//			cout << "    iter is at: " << *threadTreesIterators[thread] << endl;
-//		}
-	//}
-	//int d = tr.depth(threadTreesIterators[thread]);
-	//cout << "  depth: " << d << endl ;
 
 	map<string,TimeMeasurement*>::iterator it;
 	it = times.find(ID);
@@ -302,11 +293,8 @@ void ofxTimeMeasurements::draw(float x, float y){
 		TimeMeasurement* t = ii->second;
 		string key = ii->first;
 		if(!t->measuring){
-			t->life *= 0.95; //decrease life
+			t->life *= 0.97; //decrease life
 		}
-//		if (!t->settings.visible){
-//			hiddenKeys.push_back(key);
-//		}
 		if (!t->updatedLastFrame && timeAveragePercent < 1.0f){ // if we didnt update that time, make it tend to zero slowly
 			t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration;
 		}
@@ -319,15 +307,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 	float timePerFrame = 1000.0f / desiredFrameRate;
 
 	map<Poco::Thread*, tree<string>	>::iterator ii;
-	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
-		//kptree::print_tree_bracketed(ii->second); cout << endl;
-		//ii->second.erase_children(ii->second.begin());
-		//int size = ii->second.size();
-		//threadTreesIterators[ii->first] = ii->second.begin();
-
-		//kptree::print_tree_bracketed(ii->second); cout << endl;
-		//activeKeys.push_back(ii->first);
-		//cout << "currently at " << *threadTreesIterators[ii->first] << endl;
+	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){ //walk all thread trees
 
 		tree<string> &tr = ii->second;
 		tree<string>::iterator walker = tr.begin();
@@ -336,7 +316,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 		header.formattedKey = "+" + *walker;
 		header.color = threadColors[ii->first];
 		header.key = *walker; //key for selection, is thread name
-		drawLines.push_back(header);
+		drawLines.push_back(header); //add header to drawLines
 
 		if( walker != tr.end()) {
 
@@ -348,45 +328,36 @@ void ofxTimeMeasurements::draw(float x, float y){
 				string key = *sib;
 				TimeMeasurement * t = times[key];
 
-				bool active = (t->life > 0.01f);
 				bool visible = t->settings.visible;
 
 				if (visible){
 					PrintedLine l;
-					if (!t->error){
-						l.key = key;
-						l.tm = t;
-						for(int i = 0; i < tr.depth(sib); ++i)
-							l.formattedKey += " ";
-						if (sib.number_of_children() == 0){
-							l.formattedKey += "-";
-						}else{
-							l.formattedKey += "+";
-						}
-						l.formattedKey += *sib;
-						if (!t->settings.enabled){
-							l.formattedKey += "!";
-						}
-						l.time = getTimeStringForTM(t);
+					l.key = key;
+					l.tm = t;
+					for(int i = 0; i < tr.depth(sib); ++i)
+						l.formattedKey += " ";
+					if (sib.number_of_children() == 0){
+						l.formattedKey += "-";
 					}else{
-						l.key = "Usage Error!";
-						l.formattedKey = l.key;
+						l.formattedKey += "+";
 					}
+					l.formattedKey += key;
+					l.time = getTimeStringForTM(t);
 
 					//l.color = textColor * (0.35f + 0.65f * t->life);
-					l.color = threadColors[ii->first];
-					if (*sib == selection && menuActive){
-						if(ofGetFrameNum()%6 < 3){
-							l.color = selectionColor;
-						}else{}
-					}
+					l.color = threadColors[ii->first] * (0.6f + 0.4f * t->life);
 					if (!t->settings.enabled){
 						l.color = disabledTextColor;
+					}
+					if (*sib == selection && menuActive){
+						if(ofGetFrameNum()%5 < 4){
+							l.color.invert();
+						}
 					}
 					drawLines.push_back(l);
 				}
 
-				//only update and draw count to the final %
+				//only update() and draw() count to the final %
 				if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
 					percentTotal += (t->avgDuration * 0.1f) / timePerFrame;
 				}
@@ -399,24 +370,21 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 	//internalTimeSample = ofGetElapsedTimef();
 
-	//if (ofGetFrameNum()%60 == 2){ //todo ghetto!
 	updateLongestLabel();
-	//}
 
 	//update max width, find headers
 	int tempMaxW = -1;
 	vector<int> headerLocations;
 	for( int i = 0; i < drawLines.size(); i++ ){
-		if (drawLines[i].tm){
-			//padding to fit columns
+		if (drawLines[i].tm){ //its a measurement
+			//add padding to draw in columns
 			for(int j = drawLines[i].formattedKey.length(); j < longestLabel; j++){
 				drawLines[i].formattedKey += " ";
 			}
-
 			if (!drawLines[i].tm->error){
 				drawLines[i].fullLine = drawLines[i].formattedKey + " " + drawLines[i].time;
 			}else{
-				drawLines[i].fullLine = " Usage Error!";
+				drawLines[i].fullLine = drawLines[i].formattedKey + "    Error!" ;
 			}
 			int len = drawLines[i].fullLine.length();
 			if(len > tempMaxW) tempMaxW = len;
@@ -427,8 +395,6 @@ void ofxTimeMeasurements::draw(float x, float y){
 	}
 	maxW = tempMaxW;
 
-	static char msChar[64];
-	static char percentChar[64];
 	static char msg[128];
 
 	ofSetupScreen(); //mmmm----
@@ -439,11 +405,10 @@ void ofxTimeMeasurements::draw(float x, float y){
 	ofRect(x, y + 1, getWidth(), getHeight());
 
 	//thread hd bg highlight
-
 	for(int i = 0; i < headerLocations.size(); i++){
 		int loc = headerLocations[i];
 		ofSetColor(drawLines[loc].color, 26);
-		int h = TIME_MEASUREMENTS_LINE_HEIGHT * ((i < headerLocations.size() - 1) ? headerLocations[i+1] : drawLines.size() - loc );
+		int h = TIME_MEASUREMENTS_LINE_HEIGHT * ((i < headerLocations.size() - 1) ? headerLocations[i+1] - headerLocations[i] : drawLines.size() - loc );
 		ofRect(x, y + 2 + loc * TIME_MEASUREMENTS_LINE_HEIGHT, getWidth(), h);
 		ofSetColor(drawLines[loc].color, 64);
 		ofRect(x, y + 2 + loc * TIME_MEASUREMENTS_LINE_HEIGHT, getWidth(), TIME_MEASUREMENTS_LINE_HEIGHT + 1);
@@ -595,37 +560,46 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 		}
 		return "   Running " + anim;
 	}else{
-		time = tm->avgDuration / 1000.0f;
-		float timePerFrame = 1000.0f / desiredFrameRate;
-		float percent = 100.0f * time / timePerFrame;
-		bool over = false;
-		if (percent > 100.0f){
-			percent = 100.0f;
-			over = true;
-		}
 
-		timeUnit = "ms";
-		if (time > 1000){ //if more than 1 sec
-			time /= 1000.0f;
-			timeUnit = "sec";
-			if(time > 60){ //if more than a minute
-				time /= 60.0f;
-				timeUnit = "min";
-			}
-		}
-		string allTime = ofToString(time,  msPrecision) + timeUnit;
-		int originalLen = allTime.length();
-
-		int expectedLen = 8;
-		for(int i = 0; i < expectedLen - originalLen; i++){
-			allTime = " " + allTime;
-		}
-
+		string allTime;
 		char percentChar[64];
-		if (over){
-			sprintf(percentChar, " *100");
+
+		if (!tm->settings.enabled){
+
+			return "   DISABLED!";
+
 		}else{
-			sprintf(percentChar, "% 5.1f", percent);
+
+			time = tm->avgDuration / 1000.0f;
+			float timePerFrame = 1000.0f / desiredFrameRate;
+			float percent = 100.0f * time / timePerFrame;
+			bool over = false;
+			if (percent > 100.0f){
+				percent = 100.0f;
+				over = true;
+			}
+			timeUnit = "ms";
+			if (time > 1000){ //if more than 1 sec
+				time /= 1000.0f;
+				timeUnit = "sec";
+				if(time > 60){ //if more than a minute
+					time /= 60.0f;
+					timeUnit = "min";
+				}
+			}
+			allTime = ofToString(time,  msPrecision) + timeUnit;
+			int originalLen = allTime.length();
+
+			int expectedLen = 8;te
+			for(int i = 0; i < expectedLen - originalLen; i++){
+				allTime = " " + allTime;
+			}
+
+			if (over){
+				sprintf(percentChar, int(ofGetFrameNum() * 0.8)%5 < 3  ? " *100": "  100");
+			}else{
+				sprintf(percentChar, "% 5.1f", percent);
+			}
 		}
 
 		return allTime + percentChar + "%" ;
@@ -652,6 +626,7 @@ void ofxTimeMeasurements::loadSettings(){
 	string name, visible, enabled;
 
 	if (myfile.is_open()){
+
 		while( !myfile.eof() ){
 			getline( myfile, name, '=' );//name
 			getline( myfile, visible, '|' ); //visible
@@ -688,7 +663,7 @@ void ofxTimeMeasurements::saveSettings(){
 			visible = enabled = true;
 		}
 
-		myfile << ii->second << "=" << string(visible ? "1" : "0") << "|" <<
+		myfile << ii->first << "=" << string(visible ? "1" : "0") << "|" <<
 		string(enabled ? "1" : "0") << endl;
 	}
 	myfile.close();

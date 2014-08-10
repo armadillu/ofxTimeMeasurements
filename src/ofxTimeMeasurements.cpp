@@ -313,14 +313,15 @@ void ofxTimeMeasurements::draw(float x, float y){
 	map<Poco::Thread*, tree<string>	>::iterator ii;
 	int c = 0;
 	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){ //walk all thread trees
-		
+
+		Poco::Thread* thread = threadOrder[c];
 		tree<string> &tr = threadTrees[threadOrder[c]];
 		c++;
 		tree<string>::iterator walker = tr.begin();
 
 		PrintedLine header;
 		header.formattedKey = "+" + *walker;
-		header.color = threadColors[ii->first];
+		header.color = threadColors[thread];
 		header.key = *walker; //key for selection, is thread name
 		drawLines.push_back(header); //add header to drawLines
 
@@ -351,7 +352,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 					l.time = getTimeStringForTM(t);
 
 					//l.color = textColor * (0.35f + 0.65f * t->life);
-					l.color = threadColors[ii->first] * (0.6f + 0.4f * t->life);
+					l.color = threadColors[thread] * (0.6f + 0.4f * t->life);
 					if (!t->settings.enabled){
 						l.color = disabledTextColor;
 					}

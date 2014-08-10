@@ -20,15 +20,15 @@ void testApp::setup(){
 void testApp::threadedFunction(){
 
 	while(isThreadRunning()){
-		TIME_SAMPLE_START("thread");
+		TIME_SAMPLE_START("task");
 			ofSleepMillis(30);
-			TIME_SAMPLE_START("thread subtask1");
-			ofSleepMillis(1);
-			TIME_SAMPLE_STOP("thread subtask1");
+			TIME_SAMPLE_START("subtask1");
+			ofSleepMillis(1300);
+			TIME_SAMPLE_STOP("subtask1");
 
-		TIME_SAMPLE_STOP("thread");
+		TIME_SAMPLE_STOP("task");
 
-		ofSleepMillis(300);
+		ofSleepMillis(1000);
 	}
 }
 

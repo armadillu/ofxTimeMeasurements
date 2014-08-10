@@ -117,47 +117,44 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 			threadCounter++; //count different threads, to ID them in some human readble way
 		}
 		//string tName = isMainThread ? "mainThread" : string("Thread " + ofToString(threadCounter));
-		string tName = isMainThread ? "main Thread" : string(Poco::Thread::current()->getName());
+		string tName = isMainThread ? "Main Thread" : string(Poco::Thread::current()->getName());
 
 		//init the iterator
 		threadTreesIterators[thread] = threadTrees[thread].insert(threadTrees[thread].begin(), tName);
+		if (thread){
+			threadColors[thread] = ofColor(ofRandom(128,255), ofRandom(128,255), ofRandom(128,255));
+		}else{
+			threadColors[thread] = hilightColor;
+		}
+
 	}
 
 	tree<string> &tr = threadTrees[thread]; //easier to read, tr is our tree from now on
 
 	//see if the new measurement already was in tree
 	tree<string>::iterator current = threadTreesIterators[thread];
-	//cout << "currently at " << *current << " measuring '" << ID << "'" << endl;
 	tree<string>::sibling_iterator searchIt = find(tr.begin(), tr.end(), ID);
 
-	if(searchIt == tr.end()){ //if it wasst in the tree, append it
+	if(searchIt == tr.end()){ //if it wasnt in the tree, append it
 		threadTreesIterators[thread] = tr.append_child(current, ID);
 	}else{
 		threadTreesIterators[thread] = searchIt;
 	}
 
-	//if(thread){
-		//int d = tr.depth(threadTreesIterators[thread]);
-		//cout << "### thread: '" << thread << "' START >> '" << ID << "' : " << d << endl;
-		//cout << "  it is at: " << *threadTreesIterators[thread] << endl;
-		//see if we already had it, if we didnt, set its add order #
-	//}
-
+	//see if we had an actual measurement, or its a new one
 	map<string, TimeMeasurement*>::iterator tit = times.find(ID);
 
 	if (tit == times.end()){ //not found, let alloc a new TimeMeasurement
 		times[ID] = new TimeMeasurement();
-		keyOrder[ keyOrder.size() ] = ID;
-//		map<string, TimeMeasurementSettings>::iterator it2 = settings.find(ID);
-//		if (it2 != settings.end()){
-//			settings[ID].visible = it2->second.visible;
-//			settings[ID].enabled = it2->second.enabled;
-//		}
+		//keyOrder[ keyOrder.size() ] = ID;
+		map<string, TimeMeasurementSettings>::iterator it2 = settings.find(ID);
+		if (it2 != settings.end()){
+			settings[ID].visible = it2->second.visible;
+			settings[ID].enabled = it2->second.enabled;
+		}
 	}
 
 	TimeMeasurement* t = times[ID];
-	mutex.unlock();
-
 	t->key = ID;
 	t->life = 1.0f; //
 	t->measuring = true;
@@ -167,6 +164,9 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 	t->frame = ofGetFrameNum();
 	t->measuring = true;
 	t->updatedLastFrame = true;
+
+	mutex.unlock();
+
 	return t->settings.enabled;
 }
 
@@ -238,7 +238,7 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 
 void ofxTimeMeasurements::setDrawLocation(ofxTMDrawLocation l, ofVec2f p){
 	drawLocation = l;
-	loc = p;
+	customDrawLocation = p;
 }
 
 void ofxTimeMeasurements::_afterDraw(ofEventArgs &d){
@@ -265,7 +265,7 @@ void ofxTimeMeasurements::autoDraw(){
 				 ofGetHeight() - getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V);
 			break;
 		case TIME_MEASUREMENTS_CUSTOM_LOCATION:
-			draw(loc.x, loc.y);
+			draw(customDrawLocation.x, customDrawLocation.y);
 			break;
 	}
 }
@@ -273,39 +273,47 @@ void ofxTimeMeasurements::autoDraw(){
 
 void ofxTimeMeasurements::updateLongestLabel(){
 
-//	longestLabel = 0;
-//	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
-//
-//		string key = (*ii).second;
-//		TimeMeasurement *t = times[key];
-//
-//		if (t.visible){
-//
-//			string nesting = "";
-//			for(int i = 0; i < t.level; i++){
-//				nesting += " ";
-//			}
-//
-//			if ( t.error == false ){
-//				bool isLast = (ii->first == keyOrder.size() -1);
-//				string label = " " + nesting + " " + key + "  "; //TODO this has to be same lenght as line #285
-//				int len = label.length();
-//				if (len > longestLabel){
-//					longestLabel = len;
-//				}
-//			}
-//		}
-//	}
+	longestLabel = 0;
+	for( int i = 0; i < drawLines.size(); i++ ){
+
+		TimeMeasurement *t = drawLines[i].tm;
+		if (t){
+			if (t->settings.visible){ //kinda redundant ...
+				int len = drawLines[i].formattedKey.length();
+				if (len > longestLabel){
+					longestLabel = len;
+				}
+			}
+		}
+	}
 }
 
 
 void ofxTimeMeasurements::draw(float x, float y){
 
-	vector<string> activeKeys;
+	vector<string> hiddenKeys;
+
+	if (!enabled) return;
 
 	mutex.lock();
 
-	string allTrees = "###############################\n";
+	//update time stuff, build draw lists
+	for( map<string,TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
+		TimeMeasurement* t = ii->second;
+		string key = ii->first;
+		if(!t->measuring){
+			t->life *= 0.95; //decrease life
+		}
+//		if (!t->settings.visible){
+//			hiddenKeys.push_back(key);
+//		}
+		if (!t->updatedLastFrame && timeAveragePercent < 1.0f){ // if we didnt update that time, make it tend to zero slowly
+			t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration;
+		}
+		t->updatedLastFrame = false;
+	}
+
+	drawLines.clear();
 
 	map<Poco::Thread*, tree<string>	>::iterator ii;
 	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
@@ -320,37 +328,94 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 		tree<string> &tr = ii->second;
 		tree<string>::iterator walker = tr.begin();
-		string totalTree = "+" + *tr.begin() + "\n";
+
+		PrintedLine header;
+		header.formattedKey = "+" + *walker;
+		header.color = threadColors[ii->first];
+		drawLines.push_back(header);
 
 		if( walker != tr.end()) {
+
 			tree<string>::iterator sib = tr.begin(walker);
 			tree<string>::iterator end = tr.end(walker);
-			while(sib != end) {
-				for(int i = 0; i < tr.depth(sib); ++i)
-					totalTree += " ";
-				if (sib.number_of_children() == 0){
-					totalTree += "-";
-				}else{
-					totalTree += "+";
-				}
-				totalTree += *sib + " " + ofToString(times[*sib]->acrossFrames) +
-					/* + " " + ofToString(times[*sib]->life,1) */ + "\n";
 
+			while(sib != end) {
+
+				TimeMeasurement * t = times[*sib];
+				bool active = (t->life > 0.01f);
+				bool visible = t->settings.visible;
+
+				if (visible){
+					PrintedLine l;
+					if (!t->error){
+						l.key = *sib;
+						l.tm = t;
+						for(int i = 0; i < tr.depth(sib); ++i)
+							l.formattedKey += " ";
+						if (sib.number_of_children() == 0){
+							l.formattedKey += "-";
+						}else{
+							l.formattedKey += "+";
+						}
+						l.formattedKey += *sib;
+						if (!t->settings.enabled){
+							l.formattedKey += "!";
+						}
+						l.time = getTimeStringForTM(t);
+					}else{
+						l.key = "Usage Error!";
+						l.formattedKey = l.key;
+					}
+
+					//l.color = textColor * (0.35f + 0.65f * t->life);
+					l.color = threadColors[ii->first];
+					if (*sib == selection && menuActive){
+						if(ofGetFrameNum()%5 < 3){
+							l.color = selectionColor;
+						}else{}
+					}
+					if (!t->settings.enabled){
+						l.color = disabledTextColor;
+					}
+
+					drawLines.push_back(l);
+				}
 				++sib;
 			}
 		}
-		//cout << totalTree << endl;
-		allTrees += totalTree + "###############################\n";
 	}
 
 	mutex.unlock();
 
 	//internalTimeSample = ofGetElapsedTimef();
 
-	if (!enabled) return;
 	//if (ofGetFrameNum()%60 == 2){ //todo ghetto!
-		updateLongestLabel();
+	updateLongestLabel();
 	//}
+
+	//update max width, find headers
+	int tempMaxW = -1;
+	vector<int> headerLocations;
+	for( int i = 0; i < drawLines.size(); i++ ){
+		if (drawLines[i].tm){
+			//padding to fit columns
+			for(int j = drawLines[i].formattedKey.length(); j < longestLabel; j++){
+				drawLines[i].formattedKey += " ";
+			}
+
+			if (!drawLines[i].tm->error){
+				drawLines[i].fullLine = drawLines[i].formattedKey + " " + drawLines[i].time;
+			}else{
+				drawLines[i].fullLine = " Usage Error!";
+			}
+			int len = drawLines[i].fullLine.length();
+			if(len > tempMaxW) tempMaxW = len;
+		}else{ //its a header
+			drawLines[i].fullLine = drawLines[i].formattedKey;
+			headerLocations.push_back(i);
+		}
+	}
+	maxW = tempMaxW;
 
 	static char msChar[64];
 	static char percentChar[64];
@@ -366,6 +431,17 @@ void ofxTimeMeasurements::draw(float x, float y){
 	int barH = 1;
 	ofRect(x, y, getWidth(), getHeight());
 
+	//thread hd bg highlight
+
+	for(int i = 0; i < headerLocations.size(); i++){
+		int loc = headerLocations[i];
+		ofSetColor(drawLines[loc].color, 26);
+		int h = TIME_MEASUREMENTS_LINE_HEIGHT * ((i < headerLocations.size() - 1) ? headerLocations[i+1] : drawLines.size() - loc  );
+		ofRect(x, y + 2 + loc * TIME_MEASUREMENTS_LINE_HEIGHT, getWidth(), h);
+		ofSetColor(drawLines[loc].color, 64);
+		ofRect(x, y + 2 + loc * TIME_MEASUREMENTS_LINE_HEIGHT, getWidth(), TIME_MEASUREMENTS_LINE_HEIGHT + 1);
+	}
+
 	ofSetColor(hilightColor);
 	ofRect(x, y, getWidth(), barH);
 	ofRect(x, y + getHeight() - TIME_MEASUREMENTS_LINE_HEIGHT - TIME_MEASUREMENTS_LINE_H_MULT * TIME_MEASUREMENTS_LINE_HEIGHT * 2.0 , getWidth(), barH);
@@ -373,127 +449,15 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 	float percentTotal = 0.0f;
 
-	int tempMaxW = 0;
 
-	ofDrawBitmapString(allTrees, x -100, y + 40);
-
-	return; ///////
-
-	mutex.lock(); /////////////////////////////////////////
-	
-	for( map<string,TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
-
-		string key = (*ii).first;
-		TimeMeasurement *t = ii->second;
-
-		if (t->settings.visible){
-			c++;
-
-			float ms = t->avgDuration / 1000.0f;
-			float percent = 100.0f * ms / timePerFrame;
-			//average here, only if enabled
-			if (!t->updatedLastFrame && timeAveragePercent < 1.0f){ // if we didnt update that time, make it tend to zero slowly
-				t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration;
-			}
-
-			t->updatedLastFrame = false;
-			times[key] = t;
-			bool isRoot = (key == TIME_MEASUREMENTS_UPDATE_KEY || key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_SETUP_KEY);
-			string nesting = "";
-//			for(int i = 0; i < t->level; i++){
-//				nesting += " ";
-//			}
-
-			if ( !t->error ){
-
-				string fullLine;
-				ofColor lineColor = textColor;
-				if ( t->measuring ){
-					string anim = "";
-					switch ((ofGetFrameNum()/10)%6) {
-						case 0: anim = "   "; break;
-						case 1: anim = ".  "; break;
-						case 2: anim = ".. "; break;
-						case 3: anim = "..."; break;
-						case 4: anim = " .."; break;
-						case 5: anim = "  ."; break;
-					}
-					string label = " *" + key;
-					string padding = "";
-					for(int i = label.length(); i < longestLabel; i++){
-						padding += " ";
-					}
-					fullLine = label + " " + padding + anim;
-
-				}else{
-
-//					bool isLast = (ii->first == keyOrder.size() -1);
-//					bool isEnabled = times[ii->second].enabled;
-//					bool hasChild = false;
-//
-//					if (t.nextKey.length()){
-//						if (times[t.nextKey].level != t.level){
-//							hasChild = true;
-//						}
-//					}
-
-//					string label =	" " +
-//					nesting +
-//					string(hasChild && !isLast ? "+" : "-") +
-//					key +
-//					string(isEnabled ? " " : "!");
-
-					string label = key;
-					string padding = "";
-					for(int i = label.length(); i < longestLabel; i++){
-						padding += " ";
-					}
-
-					sprintf(msChar, "%*.*f", 4, msPrecision, ms );
-					sprintf(percentChar, "% 6.1f",  percent );
-
-					//fullLine = label + padding + " " + msChar + "ms " + percentChar + "%";
-					fullLine = label + padding + " " + msChar + "ms " + percentChar + "%";
-
-
-					if(fullLine.length() > tempMaxW){
-						tempMaxW = fullLine.length();
-					}
-
-					ofColor lineColor = textColor;
-//					ofColor lineColor = textColor * (0.5 + 0.5 * t.life);
-//					if (!isEnabled) lineColor = disabledTextColor;
-//					if(key == selection && menuActive){
-//						if(ofGetFrameNum()%5 < 3){
-//							lineColor = selectionColor;
-//						}
-//					}
-
-				}
-				ofSetColor(lineColor);
-				ofDrawBitmapString( fullLine, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-			}else{
-				ofDrawBitmapString( " " + key + " Usage Error!", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
-			}
-			if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY ){
-				percentTotal += percent;
-			}
-		}
-		t->life *= 0.8; //TODO magic #
-		times[key] = t;
+	for(int i = 0; i < drawLines.size(); i++){
+		ofSetColor(drawLines[i].color);
+		ofDrawBitmapString(drawLines[i].fullLine, x , y + (i + 1) * TIME_MEASUREMENTS_LINE_HEIGHT);
 	}
 
-	mutex.unlock(); ////////////////////////////////////////////
-
-	maxW = tempMaxW;
+	//print bottom line, fps and stuff
 	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 1.0 ); // tolerance of 1 fps TODO!
-	
-	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
-
-	//internalTimeSample = ofGetElapsedTimef() - internalTimeSample;
-
 	sprintf(msg, "%2.1f fps % 5.1f%%", ofGetFrameRate(), percentTotal );
-	c++;
 	if(missingFrames){
 		ofSetColor(170,33,33);
 	}else{
@@ -503,11 +467,144 @@ void ofxTimeMeasurements::draw(float x, float y){
 	string pad = " ";
 	int diff = (maxW - len) - 1;
 	for(int i = 0; i < diff; i++) pad += " ";
-	ofDrawBitmapString( pad + msg, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	int lastLine = ( drawLines.size() + 1 ) * TIME_MEASUREMENTS_LINE_HEIGHT + 4;
+	ofDrawBitmapString( pad + msg, x, y + lastLine );
 	ofSetColor(hilightColor);
-	ofDrawBitmapString( " '" + ofToString(char(activateKey)) + "'" + string(timeAveragePercent < 1.0 ? " avgd!" : ""), x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+	ofDrawBitmapString( " '" + ofToString(char(activateKey)) + "'" + string(timeAveragePercent < 1.0 ? " avgd!" : ""),
+					   x, y + lastLine );
+
 	ofPopStyle();
-	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
+	return; /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//	mutex.lock(); /////////////////////////////////////////
+//	
+//	for( map<string,TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
+//
+//		string key = (*ii).first;
+//		TimeMeasurement *t = ii->second;
+//
+//		if (t->settings.visible){
+//			c++;
+//
+//			float ms = t->avgDuration / 1000.0f;
+//			float percent = 100.0f * ms / timePerFrame;
+//			//average here, only if enabled
+//			if (!t->updatedLastFrame && timeAveragePercent < 1.0f){ // if we didnt update that time, make it tend to zero slowly
+//				t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration;
+//			}
+//
+//			t->updatedLastFrame = false;
+//			times[key] = t;
+//			bool isRoot = (key == TIME_MEASUREMENTS_UPDATE_KEY || key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_SETUP_KEY);
+//			string nesting = "";
+////			for(int i = 0; i < t->level; i++){
+////				nesting += " ";
+////			}
+//
+//			if ( !t->error ){
+//
+//				string fullLine;
+//				ofColor lineColor = textColor;
+//				if ( t->measuring ){
+//					string anim = "";
+//					switch ((ofGetFrameNum()/10)%6) {
+//						case 0: anim = "   "; break;
+//						case 1: anim = ".  "; break;
+//						case 2: anim = ".. "; break;
+//						case 3: anim = "..."; break;
+//						case 4: anim = " .."; break;
+//						case 5: anim = "  ."; break;
+//					}
+//					string label = " *" + key;
+//					string padding = "";
+//					for(int i = label.length(); i < longestLabel; i++){
+//						padding += " ";
+//					}
+//					fullLine = label + " " + padding + anim;
+//
+//				}else{
+//
+////					bool isLast = (ii->first == keyOrder.size() -1);
+////					bool isEnabled = times[ii->second].enabled;
+////					bool hasChild = false;
+////
+////					if (t.nextKey.length()){
+////						if (times[t.nextKey].level != t.level){
+////							hasChild = true;
+////						}
+////					}
+//
+////					string label =	" " +
+////					nesting +
+////					string(hasChild && !isLast ? "+" : "-") +
+////					key +
+////					string(isEnabled ? " " : "!");
+//
+//					string label = key;
+//					string padding = "";
+//					for(int i = label.length(); i < longestLabel; i++){
+//						padding += " ";
+//					}
+//
+//					sprintf(msChar, "%*.*f", 4, msPrecision, ms );
+//					sprintf(percentChar, "% 6.1f",  percent );
+//
+//					//fullLine = label + padding + " " + msChar + "ms " + percentChar + "%";
+//					fullLine = label + padding + " " + msChar + "ms " + percentChar + "%";
+//
+//
+//					if(fullLine.length() > tempMaxW){
+//						tempMaxW = fullLine.length();
+//					}
+//
+//					ofColor lineColor = textColor;
+////					ofColor lineColor = textColor * (0.5 + 0.5 * t.life);
+////					if (!isEnabled) lineColor = disabledTextColor;
+////					if(key == selection && menuActive){
+////						if(ofGetFrameNum()%5 < 3){
+////							lineColor = selectionColor;
+////						}
+////					}
+//
+//				}
+//				ofSetColor(lineColor);
+//				ofDrawBitmapString( fullLine, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+//			}else{
+//				ofDrawBitmapString( " " + key + " Usage Error!", x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+//			}
+//			if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY ){
+//				percentTotal += percent;
+//			}
+//		}
+//		times[key] = t;
+//	}
+//
+//	mutex.unlock(); ////////////////////////////////////////////
+//
+//	maxW = tempMaxW;
+//	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 1.0 ); // tolerance of 1 fps TODO!
+//	
+//	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
+//
+//	//internalTimeSample = ofGetElapsedTimef() - internalTimeSample;
+//
+//	sprintf(msg, "%2.1f fps % 5.1f%%", ofGetFrameRate(), percentTotal );
+//	c++;
+//	if(missingFrames){
+//		ofSetColor(170,33,33);
+//	}else{
+//		ofSetColor(hilightColor);
+//	}
+//	int len = strlen(msg);
+//	string pad = " ";
+//	int diff = (maxW - len) - 1;
+//	for(int i = 0; i < diff; i++) pad += " ";
+//	ofDrawBitmapString( pad + msg, x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+//	ofSetColor(hilightColor);
+//	ofDrawBitmapString( " '" + ofToString(char(activateKey)) + "'" + string(timeAveragePercent < 1.0 ? " avgd!" : ""), x, y + c * TIME_MEASUREMENTS_LINE_HEIGHT );
+//	ofPopStyle();
+//	c += TIME_MEASUREMENTS_LINE_H_MULT * 2;
+
 }
 
 
@@ -515,88 +612,90 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
 	if (e.key == enableKey){
 		TIME_SAMPLE_SET_ENABLED(!TIME_SAMPLE_GET_ENABLED());
-//		if (!TIME_SAMPLE_GET_ENABLED()){
-//			for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
-//				settings[ii->second].visible = times[ii->second].visible;
-//				settings[ii->second].enabled = times[ii->second].enabled;
-//			}
-//			keyOrder.clear();
-//			times.clear();
-//		}
+		if (!TIME_SAMPLE_GET_ENABLED()){
+			for( map<string, TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
+				string key = ii->first;
+				settings[key].visible = times[key]->settings.visible;
+				settings[key].enabled = times[key]->settings.enabled;
+			}
+			//keyOrder.clear();
+			times.clear();
+		}
 	}
 
 	if (TIME_SAMPLE_GET_ENABLED()){
 		if (e.key == activateKey){
 			menuActive = !menuActive;
 		}
+		/*
+		if(menuActive){
+			if (keyOrder.size()){
+				map<int,string>::iterator lastItem = keyOrder.end();
+				lastItem--; //get last item back
+				map<int,string>::iterator beyonLast = keyOrder.end();
+				map<int,string>::iterator firstItem = keyOrder.begin();
 
-//		if(menuActive){
-//			if (keyOrder.size()){
-//				map<int,string>::iterator lastItem = keyOrder.end();
-//				lastItem--; //get last item back
-//				map<int,string>::iterator beyonLast = keyOrder.end();
-//				map<int,string>::iterator firstItem = keyOrder.begin();
-//
-//				switch (e.key) {
-//
-//					case OF_KEY_DOWN:{
-//						map<int,string>::iterator it = getIndexForOrderedKey(selection);
-//						it++;
-//						if (it == beyonLast){
-//							it = firstItem;
-//						}else{
-//							while (!times[it->second].visible) {
-//								it++;
-//								if(it == beyonLast){
-//									it = firstItem;
-//									break;
-//								}
-//							}
-//						}
-//						selection = it->second;
-//					}break;
-//
-//					case OF_KEY_UP:{
-//						map<int,string>::iterator it = getIndexForOrderedKey(selection);
-//						if (it == firstItem){
-//							it = lastItem;
-//						}else{
-//							it--;
-//						}
-//						while (!times[it->second].visible) {
-//							it--;
-//							if(it == firstItem){
-//								it = lastItem;
-//								break;
-//							}
-//						}
-//						selection = it->second;
-//					}break;
-//
-//					case OF_KEY_RETURN:{
-//						map<int,string>::iterator it = getIndexForOrderedKey(selection);
-//						if (it != keyOrder.end() ){
-//							//cant disable update() & draw()
-//							if (it->second != TIME_MEASUREMENTS_SETUP_KEY &&
-//								it->second != TIME_MEASUREMENTS_UPDATE_KEY &&
-//								it->second != TIME_MEASUREMENTS_DRAW_KEY ){
-//								times[it->second].enabled = !times[it->second].enabled;
-//							}
-//						}
-//						}break;
-//
-//					case OF_KEY_RIGHT:
-//						collapseExpand(selection, false /*expand*/);
-//						updateNumVisible();
-//					break;
-//
-//					case OF_KEY_LEFT:
-//						collapseExpand(selection, true /*collapse*/);
-//						updateNumVisible();
-//						break;
-//				}
-//			}
-//		}
+				switch (e.key) {
+
+					case OF_KEY_DOWN:{
+						map<int,string>::iterator it = getIndexForOrderedKey(selection);
+						it++;
+						if (it == beyonLast){
+							it = firstItem;
+						}else{
+							while (!times[it->second].visible) {
+								it++;
+								if(it == beyonLast){
+									it = firstItem;
+									break;
+								}
+							}
+						}
+						selection = it->second;
+					}break;
+
+					case OF_KEY_UP:{
+						map<int,string>::iterator it = getIndexForOrderedKey(selection);
+						if (it == firstItem){
+							it = lastItem;
+						}else{
+							it--;
+						}
+						while (!times[it->second].visible) {
+							it--;
+							if(it == firstItem){
+								it = lastItem;
+								break;
+							}
+						}
+						selection = it->second;
+					}break;
+
+					case OF_KEY_RETURN:{
+						map<int,string>::iterator it = getIndexForOrderedKey(selection);
+						if (it != keyOrder.end() ){
+							//cant disable update() & draw()
+							if (it->second != TIME_MEASUREMENTS_SETUP_KEY &&
+								it->second != TIME_MEASUREMENTS_UPDATE_KEY &&
+								it->second != TIME_MEASUREMENTS_DRAW_KEY ){
+								times[it->second].enabled = !times[it->second].enabled;
+							}
+						}
+						}break;
+
+					case OF_KEY_RIGHT:
+						collapseExpand(selection, false); //expand
+						updateNumVisible();
+					break;
+
+					case OF_KEY_LEFT:
+						collapseExpand(selection, true ); //collapse
+						updateNumVisible();
+						break;
+				}
+			}
+		}
+		*/
 	}
 }
 
@@ -618,6 +717,61 @@ void ofxTimeMeasurements::collapseExpand(string sel, bool collapse){
 //		}
 //	}
 //	updateLongestLabel();
+}
+
+
+string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
+
+	float time;
+	string timeUnit;
+
+	if (tm->measuring){
+		string anim;
+		switch ((int(ofGetFrameNum() * 0.2f))%6) {
+			case 0: anim = "   "; break;
+			case 1: anim = ".  "; break;
+			case 2: anim = ".. "; break;
+			case 3: anim = "..."; break;
+			case 4: anim = " .."; break;
+			case 5: anim = "  ."; break;
+		}
+		return "   Running" + anim;
+	}else{
+		time = tm->avgDuration / 1000.0f;
+		float timePerFrame = 1000.0f / desiredFrameRate;
+		float percent = 100.0f * time / timePerFrame;
+		bool over = false;
+		if (percent > 100.0f){
+			percent = 100.0f;
+			over = true;
+		}
+
+		timeUnit = "ms";
+		if (time > 1000){ //if more than 1 sec
+			time /= 1000.0f;
+			timeUnit = "sec";
+			if(time > 60){ //if more than a minute
+				time /= 60.0f;
+				timeUnit = "min";
+			}
+		}
+		string allTime = ofToString(time,  msPrecision) + timeUnit;
+		int originalLen = allTime.length();
+
+		int expectedLen = 8;
+		for(int i = 0; i < expectedLen - originalLen; i++){
+			allTime = " " + allTime;
+		}
+
+		char percentChar[64];
+		if (over){
+			sprintf(percentChar, " *100");
+		}else{
+			sprintf(percentChar, "% 5.1f", percent);
+		}
+
+		return allTime + percentChar + "%" ;
+	}
 }
 
 
@@ -664,22 +818,22 @@ void ofxTimeMeasurements::loadSettings(){
 
 
 void ofxTimeMeasurements::saveSettings(){
-//	ofstream myfile;
-//	myfile.open(ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME,true).c_str());
-//	for( map<int,string>::iterator ii = keyOrder.begin(); ii != keyOrder.end(); ++ii ){
-//		bool visible = times[ii->second].visible;
-//		bool enabled = times[ii->second].enabled;
-//
-//		if (ii->second == TIME_MEASUREMENTS_SETUP_KEY ||
-//			ii->second == TIME_MEASUREMENTS_UPDATE_KEY ||
-//			ii->second == TIME_MEASUREMENTS_DRAW_KEY){
-//			visible = enabled = true;
-//		}
-//
-//		myfile << ii->second << "=" << string(visible ? "1" : "0") << "|" <<
-//		string(enabled ? "1" : "0") << endl;
-//	}
-//	myfile.close();
+	ofstream myfile;
+	myfile.open(ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME,true).c_str());
+	for( map<string, TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
+		bool visible = times[ii->first]->settings.visible;
+		bool enabled = times[ii->first]->settings.enabled;
+
+		if (ii->first == TIME_MEASUREMENTS_SETUP_KEY ||
+			ii->first == TIME_MEASUREMENTS_UPDATE_KEY ||
+			ii->first == TIME_MEASUREMENTS_DRAW_KEY){
+			visible = enabled = true;
+		}
+
+		myfile << ii->second << "=" << string(visible ? "1" : "0") << "|" <<
+		string(enabled ? "1" : "0") << endl;
+	}
+	myfile.close();
 }
 
 

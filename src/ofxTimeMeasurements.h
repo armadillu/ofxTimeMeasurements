@@ -32,9 +32,9 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_MEASUREMENTS_EDGE_GAP_V		5
 #define TIME_MEASUREMENTS_LINE_H_MULT		0.25
 
-#define TIME_MEASUREMENTS_SETUP_KEY			"setup"
-#define TIME_MEASUREMENTS_UPDATE_KEY		"update"
-#define TIME_MEASUREMENTS_DRAW_KEY			"draw"
+#define TIME_MEASUREMENTS_SETUP_KEY			"setup()"
+#define TIME_MEASUREMENTS_UPDATE_KEY		"update()"
+#define TIME_MEASUREMENTS_DRAW_KEY			"draw()"
 
 #define TIME_MEASUREMENTS_GLOBAL_TOGGLE_KEY		(OF_KEY_PAGE_DOWN)
 #define TIME_MEASUREMENTS_INTERACT_KEY			'T'
@@ -96,7 +96,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void setEnableDisableSectionKey(unsigned int k){toggleSampleKey = k;}
 
 		virtual float getWidth(){ return (maxW + 1) * 8; }
-		virtual float getHeight(){ return ( 1.2 + numVisible + 1 ) * TIME_MEASUREMENTS_LINE_HEIGHT; };
+		virtual float getHeight(){ return ( drawLines.size() + 2 ) * TIME_MEASUREMENTS_LINE_HEIGHT - 4; };
 
 		float getLastDurationFor(string ID); //ms
 		float getAvgDurationFor(string ID); //ms
@@ -111,6 +111,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		};
 
 		struct TimeMeasurement{
+
 			uint64_t microsecondsStart;
 			uint64_t microsecondsStop;
 			uint64_t duration;
@@ -136,6 +137,16 @@ class ofxTimeMeasurements: public ofBaseDraws {
 			float life;
 		};
 
+		struct PrintedLine{
+			string key;
+			string formattedKey;
+			string time;
+			string fullLine;
+			ofColor color;
+			TimeMeasurement * tm;
+			PrintedLine(){ tm = NULL; }
+		};
+
 		void _beforeSetup(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_SETUP_KEY);};
 		void _afterSetup(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_SETUP_KEY);};
 		void _beforeUpdate(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};
@@ -156,6 +167,8 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void loadSettings();
 		void saveSettings();
 
+		string getTimeStringForTM(TimeMeasurement* tm);
+
 		map<int, string>::iterator getIndexForOrderedKey(string key);
 
 		static ofxTimeMeasurements*				singleton;
@@ -163,19 +176,21 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		float									desiredFrameRate;
 		bool									enabled;
 
-		map<int, string>						keyOrder;
+		//map<int, string>						keyOrder;
 		map<string, TimeMeasurement*>			times;
 		map<string, TimeMeasurementSettings>	settings; //visible/not at startup
 
-
 		map<Poco::Thread*, tree<string>	>				threadTrees;
+		map<Poco::Thread*, ofColor	>					threadColors;
 		map<Poco::Thread*, tree<string>::iterator >		threadTreesIterators;
 
+		vector<PrintedLine>								drawLines; //what's drawn line by line
+
 		double									timeAveragePercent;
-		int										msPrecision;
+		int										msPrecision; //number of decimals to show
 
 		ofxTMDrawLocation						drawLocation;
-		ofVec2f									loc;
+		ofVec2f									customDrawLocation;
 		int										maxW; //for a text line
 		int										longestLabel; //
 
@@ -198,7 +213,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		ofxMSATimer								timer;
 		#endif
 
-		Poco::Thread*							mainThreadID;
+		Poco::Thread*							mainThreadID; //usually NULL
 		ofMutex									mutex;
 };
 

@@ -24,13 +24,13 @@ void testApp::threadedFunction(){
 	getPocoThread().setName("MyLoopingThread");
 
 	while(isThreadRunning()){
-		TIME_SAMPLE_START("task");
+		TS_START("task");
 			ofSleepMillis(30);
-			TIME_SAMPLE_START("subtask1");
+			TS_START("subtask1");
 			ofSleepMillis(2030);
-			TIME_SAMPLE_STOP("subtask1");
+			TS_STOP("subtask1");
 
-		TIME_SAMPLE_STOP("task");
+		TS_STOP("task");
 		ofSleepMillis(3500);
 	}
 }
@@ -38,23 +38,23 @@ void testApp::threadedFunction(){
 
 void testApp::update(){
 
-	if(TIME_SAMPLE_START("some common method")){
+	if(TS_START("some common method")){
 		ofSleepMillis(1);
-	}TIME_SAMPLE_STOP("some common method");
+	}TS_STOP("some common method");
 
 
 	if (ofGetFrameNum()%60 == 1){
-		TIME_SAMPLE_START("sample across frames");
+		TS_START("sample across frames");
 	}
 
 	if (ofGetFrameNum()%60 == 3){
-		TIME_SAMPLE_STOP("sample across frames");
+		TS_STOP("sample across frames");
 	}
 
 	if (ofGetFrameNum()%60 == 30 || ofGetFrameNum()%60 == 1){
-		if (TIME_SAMPLE_START("some uncommon method")){
+		if (TS_START("some uncommon method")){
 			ofSleepMillis(ofRandom(3));
-		}TIME_SAMPLE_STOP("some uncommon method");
+		}TS_STOP("some uncommon method");
 	}
 }
 
@@ -62,18 +62,18 @@ void testApp::update(){
 void testApp::draw(){
 
 	
-	if( TIME_SAMPLE_START("draw dots") ){	///////////////////////////////  START MEASURING ///
+	if( TS_START("draw dots") ){	///////////////////////////////  START MEASURING ///
 		for(int i = 0; i < ofGetMouseX() * 5; i++){
 			ofSetColor( ofRandom(96) );
 			ofRect( ofRandom( ofGetWidth()), ofRandom( ofGetHeight()), 4, 4);
 		}
-	}TIME_SAMPLE_STOP("draw dots");			///////////////////////////////  STOP MEASURING  ///
+	}TS_STOP("draw dots");			///////////////////////////////  STOP MEASURING  ///
 
 
 	//testing late samples
 	if (ofGetFrameNum() > 10){
-		TIME_SAMPLE_START("Nested Test L2");
-		TIME_SAMPLE_STOP("Nested Test L2");
+		TS_START("Nested Test L2");
+		TS_STOP("Nested Test L2");
 	}
 
 	ofSetColor(255);
@@ -92,11 +92,11 @@ void testApp::draw(){
 
 void testApp::keyPressed( ofKeyEventArgs & key ){
 
-	TIME_SAMPLE_START("keyDown");
+	TS_START("keyDown");
 	if(myThreads.size() < 3){
 		MyThread *t = new MyThread();
 		t->startThread();
 		myThreads.push_back(t);
 	}
-	TIME_SAMPLE_STOP("keyDown");
+	TS_STOP("keyDown");
 }

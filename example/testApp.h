@@ -12,9 +12,9 @@ class MyThread: public ofThread{
 		string ID = ofToString(tcount);
 		tcount++;
 		getPocoThread().setName("MyThread_" + ID);
-		TIME_SAMPLE_START("task_" + ID);
+		TS_START("task_" + ID);
 		ofSleepMillis(1000 * 62); //sleep > one minute
-		TIME_SAMPLE_STOP("task_" + ID);
+		TS_STOP("task_" + ID);
 	}
 };
 

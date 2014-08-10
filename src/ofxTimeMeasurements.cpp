@@ -46,6 +46,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	threadColorTable.push_back(ofColor(v,v,0));
 	threadColorTable.push_back(ofColor(0,v,v));
 	threadColorTable.push_back(ofColor(v,0,v));
+	threadColorTable.push_back(ofColor(v,v/2,0));
 	numThreads = 0;
 
 	loadSettings();
@@ -288,6 +289,10 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 	if (!enabled) return;
 
+	drawLines.clear();
+	float percentTotal = 0.0f;
+	float timePerFrame = 1000.0f / desiredFrameRate;
+
 	mutex.lock();
 
 	//update time stuff, build draw lists
@@ -303,10 +308,6 @@ void ofxTimeMeasurements::draw(float x, float y){
 		t->updatedLastFrame = false;
 	}
 
-	drawLines.clear();
-
-	float percentTotal = 0.0f;
-	float timePerFrame = 1000.0f / desiredFrameRate;
 
 	map<Poco::Thread*, tree<string>	>::iterator ii;
 	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){ //walk all thread trees
@@ -373,8 +374,6 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 	mutex.unlock();
 
-	//internalTimeSample = ofGetElapsedTimef();
-
 	updateLongestLabel();
 
 	//update max width, find headers
@@ -399,8 +398,6 @@ void ofxTimeMeasurements::draw(float x, float y){
 		}
 	}
 	maxW = tempMaxW;
-
-	static char msg[128];
 
 	ofSetupScreen(); //mmmm----
 
@@ -431,6 +428,8 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 	//print bottom line, fps and stuff
 	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 1.0 ); // tolerance of 1 fps TODO!
+	static char msg[128];
+
 	sprintf(msg, "%2.1f fps % 5.1f%%", ofGetFrameRate(), percentTotal );
 	if(missingFrames){
 		ofSetColor(170,33,33);

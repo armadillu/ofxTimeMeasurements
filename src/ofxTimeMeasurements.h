@@ -56,6 +56,11 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_SAMPLE_GET_AVG_DURATION(x)	(ofxTimeMeasurements::instance()->getAvgDurationFor(x)) /* ms it took for last frame avgd*/
 #define TIME_SAMPLE_GET_INSTANCE()		(ofxTimeMeasurements::instance())
 
+//shortcuts
+#define TS_START(x)	(TIME_SAMPLE_START(x))
+#define TS_STOP(x)	(TIME_SAMPLE_STOP(x))
+
+
 #define TIME_SAMPLE_DRAW_LOC_TOP_LEFT TIME_MEASUREMENTS_TOP_LEFT 
 #define TIME_SAMPLE_DRAW_LOC_BOTTOM_LEFT TIME_MEASUREMENTS_BOTTOM_LEFT 
 #define TIME_SAMPLE_DRAW_LOC_BOTTOM_RIGHT TIME_MEASUREMENTS_BOTTOM_RIGHT 
@@ -172,7 +177,6 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		float									desiredFrameRate;
 		bool									enabled;
 
-		//map<int, string>						keyOrder;
 		map<string, TimeMeasurement*>			times;
 		map<string, TimeMeasurementSettings>	settings; //visible/not at startup
 
@@ -207,7 +211,6 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		unsigned int							toggleSampleKey;  //selected time sample
 
 		bool									menuActive;
-		//float									internalTimeSample; //to measure time spent drawing ofxTimeSample
 		#ifdef USE_MSA_TIMER
 		ofxMSATimer								timer;
 		#endif

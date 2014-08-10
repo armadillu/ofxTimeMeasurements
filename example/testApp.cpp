@@ -93,7 +93,7 @@ void testApp::draw(){
 void testApp::keyPressed( ofKeyEventArgs & key ){
 
 	TS_START("keyDown");
-	if(myThreads.size() < 3){
+	if(myThreads.size() < 6){
 		MyThread *t = new MyThread();
 		t->startThread();
 		myThreads.push_back(t);

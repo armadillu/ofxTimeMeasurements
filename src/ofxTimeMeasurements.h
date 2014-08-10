@@ -182,6 +182,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 
 		map<Poco::Thread*, tree<string>	>				threadTrees;
 		map<Poco::Thread*, ofColor	>					threadColors;
+		map<int, Poco::Thread*>							threadOrder;
 		map<Poco::Thread*, tree<string>::iterator >		threadTreesIterators;
 
 		vector<PrintedLine>								drawLines; //what's drawn line by line

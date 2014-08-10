@@ -122,6 +122,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 
 	if (threadIt == threadTrees.end()){ //new thread!
 
+		threadOrder[threadOrder.size()] = thread;
 		if (!isMainThread){
 			threadCounter++; //count different threads, to ID them in some human readble way
 		}
@@ -310,9 +311,11 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 
 	map<Poco::Thread*, tree<string>	>::iterator ii;
+	int c = 0;
 	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){ //walk all thread trees
-
-		tree<string> &tr = ii->second;
+		
+		tree<string> &tr = threadTrees[threadOrder[c]];
+		c++;
 		tree<string>::iterator walker = tr.begin();
 
 		PrintedLine header;
@@ -352,9 +355,9 @@ void ofxTimeMeasurements::draw(float x, float y){
 					if (!t->settings.enabled){
 						l.color = disabledTextColor;
 					}
-					if (t->measuring){
-						l.color = measuringColor;
-					}
+//					if (t->measuring){
+//						l.color = measuringColor;
+//					}
 					if (*sib == selection && menuActive){
 						if(ofGetFrameNum()%5 < 4){
 							l.color.invert();

@@ -22,7 +22,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	maxW = 27;
 
 	bgColor = ofColor(15);
-	hilightColor = ofColor(77,100,255) * 0.8;
+	hilightColor = ofColor(44,77,255);
 	textColor = ofColor(128);
 	disabledTextColor = ofColor(255,0,255);
 	measuringColor = ofColor(0,130,0);
@@ -40,7 +40,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 	mainThreadID = Poco::Thread::current();
 
-	int v = 100;
+	int v = 180;
 	threadColorTable.push_back(ofColor(v,0,0));
 	threadColorTable.push_back(ofColor(0,v,0));
 	threadColorTable.push_back(ofColor(v,v,0));
@@ -413,10 +413,10 @@ void ofxTimeMeasurements::draw(float x, float y){
 	//thread hd bg highlight
 	for(int i = 0; i < headerLocations.size(); i++){
 		int loc = headerLocations[i];
-		ofSetColor(drawLines[loc].color, 26);
+		ofSetColor(drawLines[loc].color, 20);
 		int h = TIME_MEASUREMENTS_LINE_HEIGHT * ((i < headerLocations.size() - 1) ? headerLocations[i+1] - headerLocations[i] : drawLines.size() - loc );
 		ofRect(x, y + 2 + loc * TIME_MEASUREMENTS_LINE_HEIGHT, getWidth(), h);
-		ofSetColor(drawLines[loc].color, 64);
+		ofSetColor(drawLines[loc].color, 50);
 		ofRect(x, y + 2 + loc * TIME_MEASUREMENTS_LINE_HEIGHT, getWidth(), TIME_MEASUREMENTS_LINE_HEIGHT + 1);
 	}
 

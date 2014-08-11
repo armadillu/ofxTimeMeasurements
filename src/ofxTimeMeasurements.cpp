@@ -145,7 +145,16 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 	tree<string>::sibling_iterator searchIt = find(tr.begin(), tr.end(), ID);
 
 	if(searchIt == tr.end()){ //if it wasnt in the tree, append it
-		threadInfo[thread].tit = tr.append_child(current, ID);
+
+		if (ID == TIME_MEASUREMENTS_SETUP_KEY ||
+			ID == TIME_MEASUREMENTS_UPDATE_KEY ||
+			ID == TIME_MEASUREMENTS_DRAW_KEY
+			){ //setup update and draw are always at root level!
+			threadInfo[thread].tit = tr.append_child(tr.begin(), ID);
+		}else{
+			threadInfo[thread].tit = tr.append_child(current, ID);
+		}
+
 	}else{
 		threadInfo[thread].tit = searchIt;
 	}

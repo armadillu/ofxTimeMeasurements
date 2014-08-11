@@ -10,8 +10,7 @@
 #include "ofxTimeMeasurements.h"
 #include <float.h>
 
-static int threadCounter = 0;
-ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL; 
+ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
 
 ofxTimeMeasurements::ofxTimeMeasurements(){
 
@@ -117,38 +116,38 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 
 	mutex.lock();
 
-	map<Poco::Thread*, tree<string>	>::iterator threadIt;
-	threadIt = threadTrees.find(thread);
+	map<Poco::Thread*, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
 
-	if (threadIt == threadTrees.end()){ //new thread!
+	if (threadIt == threadInfo.end()){ //new thread!
 
 		threadOrder[threadOrder.size()] = thread;
-		if (!isMainThread){
-			threadCounter++; //count different threads, to ID them in some human readble way
-		}
 		//string tName = isMainThread ? "mainThread" : string("Thread " + ofToString(threadCounter));
 		string tName = isMainThread ? "Main Thread" : string(Poco::Thread::current()->getName());
 
 		//init the iterator
-		threadTreesIterators[thread] = threadTrees[thread].insert(threadTrees[thread].begin(), tName);
+		threadInfo[thread].tit = threadInfo[thread].tree.insert(threadInfo[thread].tree.begin(), tName);
 		if (thread){
-			threadColors[thread] = threadColorTable[numThreads%(threadColorTable.size())];
+			threadInfo[thread].color = threadColorTable[numThreads%(threadColorTable.size())];
 			numThreads++;
 		}else{
-			threadColors[thread] = hilightColor;
+			threadInfo[thread].color = hilightColor;
 		}
 	}
 
-	tree<string> &tr = threadTrees[thread]; //easier to read, tr is our tree from now on
+	tree<string> &tr = threadInfo[thread].tree; //easier to read, tr is our tree from now on
+
+//	if(thread){ //add thread name prefix to ID to minimize name conflicts
+//		ID = thread->getName() + " " + ID;
+//	}
 
 	//see if the new measurement already was in tree
-	tree<string>::iterator current = threadTreesIterators[thread];
+	tree<string>::iterator current = threadInfo[thread].tit;
 	tree<string>::sibling_iterator searchIt = find(tr.begin(), tr.end(), ID);
 
 	if(searchIt == tr.end()){ //if it wasnt in the tree, append it
-		threadTreesIterators[thread] = tr.append_child(current, ID);
+		threadInfo[thread].tit = tr.append_child(current, ID);
 	}else{
-		threadTreesIterators[thread] = searchIt;
+		threadInfo[thread].tit = searchIt;
 	}
 
 	//see if we had an actual measurement, or its a new one
@@ -190,9 +189,13 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 
 	Poco::Thread * thread = Poco::Thread::current();
 
+//	if(thread){ //add thread name prefix to ID to minimize name conflicts
+//		ID = thread->getName() + " " + ID;
+//	}
+
 	mutex.lock();
-	tree<string> &tr = threadTrees[thread]; //easier to read, tr is our tree from now on
-	tree<string>::iterator & tit = threadTreesIterators[thread];
+	tree<string> &tr = threadInfo[thread].tree; //easier to read, tr is our tree from now on
+	tree<string>::iterator & tit = threadInfo[thread].tit;
 	tit = tr.parent(tit);
 	if(tit == NULL) tit = tr.begin();
 
@@ -310,21 +313,29 @@ void ofxTimeMeasurements::draw(float x, float y){
 	}
 
 
-	map<Poco::Thread*, tree<string>	>::iterator ii;
-	int c = 0;
-	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){ //walk all thread trees
+	map<Poco::Thread*, ThreadInfo>::iterator ii;
+	vector<Poco::Thread*> expiredThreads;
 
-		Poco::Thread* thread = threadOrder[c];
-		tree<string> &tr = threadTrees[threadOrder[c]];
+	int c = 0;
+	for( ii = threadInfo.begin(); ii != threadInfo.end(); ++ii ){ //walk all thread trees
+
+//		Poco::Thread* thread = threadOrder[c];
+//		tree<string> &tr = threadInfo[threadOrder[c]].tree;
+
+		Poco::Thread* thread = ii->first;
+		tree<string> &tr = ii->second.tree;
+
 		c++;
 		tree<string>::iterator walker = tr.begin();
 
 		PrintedLine header;
 		header.formattedKey = "+" + *walker;
-		header.color = threadColors[thread];
+		header.color = threadInfo[thread].color;
 		header.key = *walker; //key for selection, is thread name
 		drawLines.push_back(header); //add header to drawLines
 
+		int numAlive = 0;
+		int numAdded = 0;
 		if( walker != tr.end()) {
 
 			tree<string>::iterator sib = tr.begin(walker);
@@ -336,6 +347,10 @@ void ofxTimeMeasurements::draw(float x, float y){
 				TimeMeasurement * t = times[key];
 
 				bool visible = t->settings.visible;
+				bool alive = t->life > 0.001;
+				if(alive){
+					numAlive++;
+				}
 
 				if (visible){
 					PrintedLine l;
@@ -352,7 +367,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 					l.time = getTimeStringForTM(t);
 
 					//l.color = textColor * (0.35f + 0.65f * t->life);
-					l.color = threadColors[thread] * (0.6f + 0.4f * t->life);
+					l.color = threadInfo[thread].color * (0.6f + 0.4f * t->life);
 					if (!t->settings.enabled){
 						l.color = disabledTextColor;
 					}
@@ -365,6 +380,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 						}
 					}
 					drawLines.push_back(l);
+					numAdded++;
 				}
 
 				//only update() and draw() count to the final %
@@ -374,6 +390,23 @@ void ofxTimeMeasurements::draw(float x, float y){
 				++sib;
 			}
 		}
+		if (numAlive == 0){
+			//drop that whole section if all entries in it are not alive
+			for(int i = 0; i < numAdded + 1; i++){
+				if(drawLines.size() > 0){
+					drawLines.erase(drawLines.begin() + drawLines.size() - 1);
+				}
+			}
+
+			expiredThreads.push_back(thread);
+		}
+	}
+
+	//delete expired threads
+	for(int i = 0; i < expiredThreads.size(); i++){
+		map<Poco::Thread*, ThreadInfo>::iterator treeIt = threadInfo.find(expiredThreads[i]);
+		if (treeIt != threadInfo.end()) threadInfo.erase(treeIt);
+
 	}
 
 	mutex.unlock();
@@ -532,11 +565,11 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
 void ofxTimeMeasurements::collapseExpand(string sel, bool collapse){
 
-	map<Poco::Thread*, tree<string>	>::iterator ii;
+	map<Poco::Thread*, ThreadInfo>::iterator ii;
 
-	for( ii = threadTrees.begin(); ii != threadTrees.end(); ++ii ){
+	for( ii = threadInfo.begin(); ii != threadInfo.end(); ++ii ){
 
-		tree<string> &tr = ii->second;
+		tree<string> &tr = ii->second.tree;
 		tree<string>::iterator loc = find(tr.begin(), tr.end(), sel);
 
 		if( loc != tr.end()) {

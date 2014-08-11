@@ -151,6 +151,12 @@ class ofxTimeMeasurements: public ofBaseDraws {
 			PrintedLine(){ tm = NULL; }
 		};
 
+	struct ThreadInfo{
+		tree<string>::iterator		tit;
+		tree<string>					tree;
+		ofColor						color;
+	};
+
 		void _beforeSetup(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_SETUP_KEY);};
 		void _afterSetup(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_SETUP_KEY);};
 		void _beforeUpdate(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};
@@ -180,12 +186,10 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		map<string, TimeMeasurement*>			times;
 		map<string, TimeMeasurementSettings>	settings; //visible/not at startup
 
-		map<Poco::Thread*, tree<string>	>				threadTrees;
-		map<Poco::Thread*, ofColor	>					threadColors;
-		map<int, Poco::Thread*>							threadOrder;
-		map<Poco::Thread*, tree<string>::iterator >		threadTreesIterators;
+		map<Poco::Thread*, ThreadInfo >			threadInfo;
+		map<int, Poco::Thread*>					threadOrder;
 
-		vector<PrintedLine>								drawLines; //what's drawn line by line
+		vector<PrintedLine>						drawLines; //what's drawn line by line
 
 		double									timeAveragePercent;
 		int										msPrecision; //number of decimals to show

@@ -328,9 +328,6 @@ void ofxTimeMeasurements::draw(float x, float y){
 	int c = 0;
 	for( ii = threadInfo.begin(); ii != threadInfo.end(); ++ii ){ //walk all thread trees
 
-//		Poco::Thread* thread = threadOrder[c];
-//		tree<string> &tr = threadInfo[threadOrder[c]].tree;
-
 		Poco::Thread* thread = ii->first;
 		tree<string> &tr = ii->second.tree;
 
@@ -448,7 +445,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 	ofSetupScreen(); //mmmm----
 
 	ofPushStyle();
-	ofSetColor(bgColor);
+	ofSetColor(bgColor, 245);
 	int barH = 1;
 	ofRect(x, y + 1, getWidth(), getHeight());
 

@@ -48,6 +48,8 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	threadColorTable.push_back(ofColor(v,v/2,0));
 	numThreads = 0;
 
+	removeExpiredThreads = true;
+
 	loadSettings();
 
 #if (OF_VERSION_MINOR >= 8)
@@ -403,7 +405,6 @@ void ofxTimeMeasurements::draw(float x, float y){
 					drawLines.erase(drawLines.begin() + drawLines.size() - 1);
 				}
 			}
-
 			expiredThreads.push_back(thread);
 		}
 	}

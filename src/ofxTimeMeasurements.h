@@ -54,6 +54,8 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_SAMPLE_SET_PRECISION(x)	(ofxTimeMeasurements::instance()->setMsPrecision(x)) /* how many precion digits to show on time measurements */
 #define TIME_SAMPLE_GET_LAST_DURATION(x)(ofxTimeMeasurements::instance()->getLastDurationFor(x)) /* ms it took for last frame*/
 #define TIME_SAMPLE_GET_AVG_DURATION(x)	(ofxTimeMeasurements::instance()->getAvgDurationFor(x)) /* ms it took for last frame avgd*/
+#define TIME_SAMPLE_SET_REMOVE_EXPIRED_THREADS(x) (ofxTimeMeasurements::instance()->setRemoveExpiredThreads(x))
+
 #define TIME_SAMPLE_GET_INSTANCE()		(ofxTimeMeasurements::instance())
 
 //shortcuts
@@ -104,6 +106,8 @@ class ofxTimeMeasurements: public ofBaseDraws {
 
 		float getLastDurationFor(string ID); //ms
 		float getAvgDurationFor(string ID); //ms
+
+		void setRemoveExpiredThreads(bool b){removeExpiredThreads = b;}
 
 	private:
 
@@ -222,5 +226,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 
 		Poco::Thread*							mainThreadID; //usually NULL
 		ofMutex									mutex;
+
+		bool									removeExpiredThreads;
 };
 

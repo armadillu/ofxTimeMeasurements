@@ -124,7 +124,8 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 
 		threadOrder[threadOrder.size()] = thread;
 		//string tName = isMainThread ? "mainThread" : string("Thread " + ofToString(threadCounter));
-		string tName = isMainThread ? "Main Thread" : string(Poco::Thread::current()->getName());
+		string tName = isMainThread ? "Main Thread" : string(Poco::Thread::current()->getName() +
+															 " Thread(" + ofToString(numThreads) + ")");
 
 		//init the iterator
 		threadInfo[thread].tit = threadInfo[thread].tree.insert(threadInfo[thread].tree.begin(), tName);

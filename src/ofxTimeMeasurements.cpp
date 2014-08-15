@@ -398,7 +398,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 				++sib;
 			}
 		}
-		if (numAlive == 0){
+		if (numAlive == 0 && removeExpiredThreads){
 			//drop that whole section if all entries in it are not alive
 			for(int i = 0; i < numAdded + 1; i++){
 				if(drawLines.size() > 0){

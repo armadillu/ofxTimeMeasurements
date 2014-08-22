@@ -31,7 +31,7 @@ void testApp::threadedFunction(){
 			TS_STOP("subtask1");
 
 		TS_STOP("task");
-		ofSleepMillis(500);
+		ofSleepMillis(100);
 	}
 }
 
@@ -62,6 +62,13 @@ void testApp::update(){
 		TS_START_ACC("accum test");
 		ofSleepMillis(1);
 		TS_STOP_ACC("accum test");
+	}
+
+	for(int i = myThreads.size() - 1; i >= 0 ; i--){
+		if (!myThreads[i]->isThreadRunning()){
+			delete myThreads[i];
+			myThreads.erase(myThreads.begin() + i);
+		}
 	}
 }
 

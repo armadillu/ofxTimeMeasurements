@@ -408,7 +408,12 @@ void ofxTimeMeasurements::draw(float x, float y){
 			//drop that whole section if all entries in it are not alive
 			for(int i = 0; i < numAdded + 1; i++){
 				if(drawLines.size() > 0){
-					drawLines.erase(drawLines.begin() + drawLines.size() - 1);
+					int delID = drawLines.size() - 1;
+					//clear selection if needed
+					if (selection == drawLines[delID].key){
+						selection = TIME_MEASUREMENTS_UPDATE_KEY;
+					}
+					drawLines.erase(drawLines.begin() + delID);
 				}
 			}
 			expiredThreads.push_back(thread);
@@ -419,7 +424,6 @@ void ofxTimeMeasurements::draw(float x, float y){
 	for(int i = 0; i < expiredThreads.size(); i++){
 		map<Poco::Thread*, ThreadInfo>::iterator treeIt = threadInfo.find(expiredThreads[i]);
 		if (treeIt != threadInfo.end()) threadInfo.erase(treeIt);
-
 	}
 
 	mutex.unlock();

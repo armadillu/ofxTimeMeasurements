@@ -13,7 +13,7 @@ class MyThread: public ofThread{
 		tcount++;
 		getPocoThread().setName("MyThread_" + ID);
 		TS_START("task_" + ID);
-		ofSleepMillis(1000 * 62); //sleep > one minute
+		ofSleepMillis(1000 * 5); //sleep for a bit
 		TS_STOP("task_" + ID);
 	}
 };
@@ -24,6 +24,7 @@ class testApp : public ofBaseApp,  ofThread{
 		void setup();
 		void update();
 		void draw();
+		void exit(){stopThread();}
 
 		void keyPressed( ofKeyEventArgs & key );
 

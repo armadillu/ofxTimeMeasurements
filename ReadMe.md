@@ -1,35 +1,34 @@
 #ofxTimeMeasurements
 
-![ofxTimeMeasurements screenshot](https://farm3.staticflickr.com/2907/14501389525_ec53ea6b42_o.png)
+![ofxTimeMeasurements anim](https://www.dropbox.com/s/y6nsin52sugpmms/ofxTimeMeasurementsAnim.gif?dl=1)
 
-Simple of addon to easily measure execution times of any parts of your code.
+Simple of addon to easily measure execution times across any sections of your code.
 ## HOW TO
 
 	void setup(){	
-	
 		//setup a target framerate (mandatory)
 		TIME_SAMPLE_SET_FRAMERATE(60.0f);  
 	}	
 
 	void draw(){		
 	
-		if( TIME_SAMPLE_START("myTimeSample") ){  			//start!
-			//your code here, will get time sampled
-		}TIME_SAMPLE_STOP("myTimeSample"); 					//stop!		
+		if( TS_START("myTimeSample") ){
+			//your code here! will get time sampled!
+		}TS_STOP("myTimeSample");
 	}
 
 Note the if() clause wrapping TIME_SAMPLE_START(); it is not required, but it will let you dynamically disable that part of your code through the widget UI if so required.
-
 
 
 ## FEATURES
 
 *	Measure execution time of any parts of your app
 *	Enable/disable execution of code sections on the fly
-*	Collapsable gui, see only what matters at the time
-*	Saves state settings across sessions (collapsed/expanded and enabled/disabled sections)
-*	Measure exact times, or average across frames
-*	Highlight frquently used calls, slowly fade unused calls
+*	Collapsable GUI, see only what matters at the time (saved on quit)
+*	Execution times clustered by Thread
+*	Measure exact times, or averaged time across frames
+*	Measure cumulative times (TS_START_ACC) for shared code sections
+*	Highlight frequently used calls, slowly fade unused calls
 *	setup(), update(), and draw() are autmatically time sampled.
 *	Optionally use [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer) for higher precision (recommended windows)
 
@@ -37,8 +36,8 @@ Note the if() clause wrapping TIME_SAMPLE_START(); it is not required, but it wi
 *	OF_KEY_PAGE_DOWN to toggle all time measurings, and the drawing of the widget
 * 	'T' when widget is visible (enabled) to get into interactive mode. 
 * 	When in interactive mode:
-	* Up/Down keys to select, Left/Right keys to expand/collapse the sample tree
-	* Return key to toggle the execution of the selected item. This allows to disable parts of your code on the fly
+	* Up / Down keys to select, Left / Right keys to expand/collapse the sample tree
+	* Return key to toggle the execution of the selected item. This allows to disable parts of your code on the fly, as long as its wrapped around an if() clause
 
 ## NOTES
 
@@ -49,8 +48,8 @@ If times vary too much from frame to frame to be readable, you can enable smooth
 	TIME_SAMPLE_DISABLE_AVERAGE();  //disable time sample averaging
 	
 
-#### Color legend
-Time samples on the widget list appear in bright gray if the corresponding code section has just been executed, and they slowly fade to a darker gray if that section of code is not accessed.
+#### Colors
+Time samples on the widget list appear in bright color (depending on the thread) if the corresponding code section has just been executed, and they slowly fade to a darker color of the same hue if that section of code is not accessed.
 
 
 ####Customizations

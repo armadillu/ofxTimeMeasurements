@@ -22,18 +22,20 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 	bgColor = ofColor(15);
 	hilightColor = ofColor(44,77,255);
-	textColor = ofColor(128);
 	disabledTextColor = ofColor(255,0,255);
 	measuringColor = ofColor(0,130,0);
+
+	idleTimeColorFadePercent = 0.6;
+	idleTimeColorDecay = 0.97;
 
 	longestLabel = 0;
 	selection = TIME_MEASUREMENTS_UPDATE_KEY;
 	drawLocation = TIME_MEASUREMENTS_BOTTOM_RIGHT;
 	numVisible = 0;
 
+	enableKey = TIME_MEASUREMENTS_GLOBAL_TOGGLE_KEY;
 	activateKey = TIME_MEASUREMENTS_INTERACT_KEY;
 	toggleSampleKey = TIME_MEASUREMENTS_TOGGLE_SAMPLE_KEY;
-	enableKey = TIME_MEASUREMENTS_GLOBAL_TOGGLE_KEY;
 
 	menuActive = false;
 
@@ -77,6 +79,12 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 }
 
 
+void ofxTimeMeasurements::setThreadColors(vector<ofColor> tc){
+	threadColorTable.clear();
+	threadColorTable = tc;
+}
+
+
 ofxTimeMeasurements* ofxTimeMeasurements::instance(){	
 	if (!singleton){   // Only allow one instance of class to be generated.
 		singleton = new ofxTimeMeasurements();
@@ -106,6 +114,11 @@ float ofxTimeMeasurements::getAvgDurationFor(string ID){
 		r = times[ID]->avgDuration / 1000.0f; //to ms
 	}
 	return r;
+}
+
+void ofxTimeMeasurements::setHighlightColor(ofColor c){
+	hilightColor = c;
+	threadInfo[mainThreadID].color = c;
 }
 
 
@@ -319,7 +332,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 		TimeMeasurement* t = ii->second;
 		string key = ii->first;
 		if(!t->measuring){
-			t->life *= 0.97; //decrease life
+			t->life *= idleTimeColorDecay; //decrease life
 		}
 		if (!t->updatedLastFrame && timeAveragePercent < 1.0f){ // if we didnt update that time, make it tend to zero slowly
 			t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration;
@@ -378,7 +391,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 					l.time = getTimeStringForTM(t);
 
 					//l.color = textColor * (0.35f + 0.65f * t->life);
-					l.color = threadInfo[thread].color * (0.6f + 0.4f * t->life);
+					l.color = threadInfo[thread].color * ((1.0 - idleTimeColorFadePercent) + idleTimeColorFadePercent * t->life);
 					if (!t->settings.enabled){
 						l.color = disabledTextColor;
 					}
@@ -460,13 +473,15 @@ void ofxTimeMeasurements::draw(float x, float y){
 	int barH = 1;
 	ofRect(x, y + 1, getWidth(), getHeight());
 
-	//thread hd bg highlight
+	//thread header bg highlight
 	for(int i = 0; i < headerLocations.size(); i++){
 		int loc = headerLocations[i];
-		ofSetColor(drawLines[loc].color, 20);
+		//whole section
+		ofSetColor(drawLines[loc].color, 40);
 		int h = TIME_MEASUREMENTS_LINE_HEIGHT * ((i < headerLocations.size() - 1) ? headerLocations[i+1] - headerLocations[i] : drawLines.size() - loc );
 		ofRect(x, y + 2 + loc * TIME_MEASUREMENTS_LINE_HEIGHT, getWidth(), h);
-		ofSetColor(drawLines[loc].color, 50);
+		//thread header
+		ofSetColor(drawLines[loc].color, 40);
 		ofRect(x, y + 2 + loc * TIME_MEASUREMENTS_LINE_HEIGHT, getWidth(), TIME_MEASUREMENTS_LINE_HEIGHT + 1);
 	}
 

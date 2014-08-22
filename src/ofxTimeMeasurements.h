@@ -100,13 +100,19 @@ class ofxTimeMeasurements: public ofBaseDraws {
 												//if set to 0.1, a new sample contributes 10% to the average
 		float durationForID( string ID);
 		void setBgColor(ofColor c){bgColor = c;}
-		void setHighlightColor(ofColor c){hilightColor = c;}
-		void setTextColor(ofColor c){textColor = c;}
+		void setHighlightColor(ofColor c);
+		void setThreadColors(vector<ofColor> tc); //supply your own thread color list
+
+		//[0..1], 0.5 means inactive times show 50% darker than active ones
+		void setIdleTimeColorFadePercent(float p){ idleTimeColorFadePercent = p;}
+
+		//[0..1], 0.97 means that timeSample decreases 3% its life per frame
+		void setIdleTimeDecay(float decay){ idleTimeColorDecay = decay;}
 
 		//set keyboard command activation keys
-		void setUIActivationKey(unsigned int k){activateKey = k;}
-		void setGlobalEnableDisableKey(unsigned int k){enableKey = k;}
-		void setEnableDisableSectionKey(unsigned int k){toggleSampleKey = k;}
+		void setUIActivationKey(unsigned int k){activateKey = k;} //to show/hide the widget
+		void setGlobalEnableDisableKey(unsigned int k){enableKey = k;} //to enable/disable widget interaction
+		void setEnableDisableSectionKey(unsigned int k){toggleSampleKey = k;} //to enable/disable the selected time measurement
 
 		virtual float getWidth(){ return (maxW + 1) * 8; }
 		virtual float getHeight(){ return ( drawLines.size() + 2 ) * TIME_MEASUREMENTS_LINE_HEIGHT - 8; };
@@ -166,7 +172,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 
 		struct ThreadInfo{
 			tree<string>::iterator		tit; //tree iterator, to keep track of which node are we measuring now
-			tree<string>					tree;
+			tree<string>				tree;
 			ofColor						color;
 		};
 
@@ -217,6 +223,9 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		ofColor									textColor;
 		ofColor									disabledTextColor;
 		ofColor									measuringColor;
+
+		float									idleTimeColorFadePercent;
+		float									idleTimeColorDecay;
 
 		vector<ofColor>							threadColorTable;
 		int										numThreads;

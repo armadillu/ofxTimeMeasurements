@@ -3,7 +3,7 @@
 
 void testApp::setup(){
 
-	ofBackground(22);
+	ofBackground(0);
 
 	TIME_SAMPLE_SET_FRAMERATE( 60.0f ); //set the app's target framerate (MANDATORY)
 
@@ -16,7 +16,11 @@ void testApp::setup(){
 										//use lower values to get steadier readings
 	TIME_SAMPLE_DISABLE_AVERAGE();	//disable averaging
 
+	//customize color
+	//TIME_SAMPLE_GET_INSTANCE()->setHighlightColor(ofColor::yellow);
+
 	startThread();
+
 }
 
 void testApp::threadedFunction(){
@@ -27,7 +31,7 @@ void testApp::threadedFunction(){
 		TS_START("task");
 			ofSleepMillis(30);
 			TS_START("subtask1");
-			ofSleepMillis(2030);
+			ofSleepMillis(300);
 			TS_STOP("subtask1");
 
 		TS_STOP("task");
@@ -51,7 +55,7 @@ void testApp::update(){
 		TS_STOP("sample across frames");
 	}
 
-	if (ofGetFrameNum()%60 == 30 || ofGetFrameNum()%60 == 1){
+	if (ofGetFrameNum()%600 == 30 || ofGetFrameNum() == 1){
 		if (TS_START("some uncommon method")){
 			ofSleepMillis(ofRandom(3));
 		}TS_STOP("some uncommon method");

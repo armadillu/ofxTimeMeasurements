@@ -31,7 +31,7 @@ void testApp::threadedFunction(){
 			TS_STOP("subtask1");
 
 		TS_STOP("task");
-		ofSleepMillis(3500);
+		ofSleepMillis(500);
 	}
 }
 
@@ -56,12 +56,18 @@ void testApp::update(){
 			ofSleepMillis(ofRandom(3));
 		}TS_STOP("some uncommon method");
 	}
+
+	//test accumulation time sampling
+	for(int i = 0; i < 3; i++){
+		TS_START_ACC("accum test");
+		ofSleepMillis(1);
+		TS_STOP_ACC("accum test");
+	}
 }
 
 
 void testApp::draw(){
 
-	
 	if( TS_START("draw dots") ){	///////////////////////////////  START MEASURING ///
 		for(int i = 0; i < ofGetMouseX() * 5; i++){
 			ofSetColor( ofRandom(96) );

@@ -42,8 +42,13 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_MEASUREMENTS_SETTINGS_FILENAME	"ofxTimeMeasurements.settings"
 
 #define TIME_SAMPLE_SET_FRAMERATE(x)	(ofxTimeMeasurements::instance()->setDesiredFrameRate(x))
-#define TIME_SAMPLE_START(x)			(ofxTimeMeasurements::instance()->startMeasuring(x))
-#define TIME_SAMPLE_STOP(x)				(ofxTimeMeasurements::instance()->stopMeasuring(x))
+
+#define TIME_SAMPLE_START(x)			(ofxTimeMeasurements::instance()->startMeasuring(x, false))
+#define TIME_SAMPLE_STOP(x)				(ofxTimeMeasurements::instance()->stopMeasuring(x, false))
+
+#define TIME_SAMPLE_START_ACC(x)			(ofxTimeMeasurements::instance()->startMeasuring(x, true))
+#define TIME_SAMPLE_STOP_ACC(x)				(ofxTimeMeasurements::instance()->stopMeasuring(x, true))
+
 #define TIME_SAMPLE_SET_DRAW_LOCATION(x,...)(ofxTimeMeasurements::instance()->setDrawLocation(x,##__VA_ARGS__))
 #define TIME_SAMPLE_GET_ENABLED()		(ofxTimeMeasurements::instance()->getEnabled())
 #define TIME_SAMPLE_SET_ENABLED(e)		(ofxTimeMeasurements::instance()->setEnabled(e))
@@ -59,9 +64,10 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_SAMPLE_GET_INSTANCE()		(ofxTimeMeasurements::instance())
 
 //shortcuts
-#define TS_START(x)	(TIME_SAMPLE_START(x))
-#define TS_STOP(x)	(TIME_SAMPLE_STOP(x))
-
+#define TS_START(x)		(TIME_SAMPLE_START(x))
+#define TS_STOP(x)		(TIME_SAMPLE_STOP(x))
+#define TS_START_ACC(x)	(TIME_SAMPLE_START_ACC(x))
+#define TS_STOP_ACC(x)	(TIME_SAMPLE_STOP_ACC(x))
 
 #define TIME_SAMPLE_DRAW_LOC_TOP_LEFT TIME_MEASUREMENTS_TOP_LEFT 
 #define TIME_SAMPLE_DRAW_LOC_BOTTOM_LEFT TIME_MEASUREMENTS_BOTTOM_LEFT 
@@ -75,6 +81,7 @@ enum ofxTMDrawLocation{	TIME_MEASUREMENTS_TOP_LEFT,
 	TIME_MEASUREMENTS_CUSTOM_LOCATION
 };
 
+
 class ofxTimeMeasurements: public ofBaseDraws {
 
 	public :
@@ -83,8 +90,8 @@ class ofxTimeMeasurements: public ofBaseDraws {
 	
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 											//affects the % busy indicator
-		bool startMeasuring(string ID);
-		float stopMeasuring(string ID);
+		bool startMeasuring(string ID, bool accumulate);
+		float stopMeasuring(string ID, bool accumulate);
 		void setEnabled( bool enable );
 		bool getEnabled();
 		void setDrawLocation(ofxTMDrawLocation loc, ofVec2f p = ofVec2f()); //p only relevant if using TIME_MEASUREMENTS_CUSTOM_LOCATION
@@ -119,30 +126,32 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		};
 
 		struct TimeMeasurement{
-
 			uint64_t microsecondsStart;
 			uint64_t microsecondsStop;
+			uint64_t microsecondsAccum;
 			uint64_t duration;
 			double avgDuration;
 			bool measuring;
 			bool error;
 			bool updatedLastFrame;
+			bool accumulating; //start stop doesnt reset the timing, unless you call stop with accum=true
 			int frame; //used to compare start-stop calls frame, and see if its an across-frames measurement
 			bool acrossFrames;
 			string key;
 			Poco::Thread* thread;
-
+			float life;
 			TimeMeasurementSettings settings;
 
 			TimeMeasurement(){
 				thread = NULL;
+				microsecondsAccum = 0;
 				settings.visible = true;
 				settings.enabled = true;
 				life = 1.0f;
+				accumulating = false;
 				duration = 0;
 				avgDuration = 0.0;
 			}
-			float life;
 		};
 
 		struct PrintedLine{
@@ -155,17 +164,17 @@ class ofxTimeMeasurements: public ofBaseDraws {
 			PrintedLine(){ tm = NULL; }
 		};
 
-	struct ThreadInfo{
-		tree<string>::iterator		tit;
-		tree<string>					tree;
-		ofColor						color;
-	};
+		struct ThreadInfo{
+			tree<string>::iterator		tit; //tree iterator, to keep track of which node are we measuring now
+			tree<string>					tree;
+			ofColor						color;
+		};
 
-		void _beforeSetup(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_SETUP_KEY);};
-		void _afterSetup(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_SETUP_KEY);};
-		void _beforeUpdate(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};
-		void _afterUpdate(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_UPDATE_KEY);};
-		void _beforeDraw(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_DRAW_KEY);};
+		void _beforeSetup(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_SETUP_KEY, false);};
+		void _afterSetup(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_SETUP_KEY, false);};
+		void _beforeUpdate(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_UPDATE_KEY, false);};
+		void _afterUpdate(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_UPDATE_KEY, false);};
+		void _beforeDraw(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_DRAW_KEY, false);};
 		void _afterDraw(ofEventArgs &d);
 
 		void _appExited(ofEventArgs &e);

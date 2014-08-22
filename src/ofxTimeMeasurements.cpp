@@ -109,12 +109,15 @@ float ofxTimeMeasurements::getAvgDurationFor(string ID){
 }
 
 
-bool ofxTimeMeasurements::startMeasuring(string ID){
+bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate){
 
 	if (!enabled) return true;
 
 	Poco::Thread * thread = Poco::Thread::current();
 	bool isMainThread = (mainThreadID == thread);
+
+	uint64_t timeNow = TM_GET_MICROS(); //get the time before the lock() to avoid affecting
+	//the measurement as much as possible
 
 	mutex.lock();
 
@@ -126,7 +129,6 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 		//string tName = isMainThread ? "mainThread" : string("Thread " + ofToString(threadCounter));
 		string tName = isMainThread ? "Main Thread" : string(Poco::Thread::current()->getName() +
 															 " Thread(" + ofToString(numThreads) + ")");
-
 		//init the iterator
 		threadInfo[thread].tit = threadInfo[thread].tree.insert(threadInfo[thread].tree.begin(), tName);
 		if (thread){
@@ -157,7 +159,6 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 		}else{
 			threadInfo[thread].tit = tr.append_child(current, ID);
 		}
-
 	}else{
 		threadInfo[thread].tit = searchIt;
 	}
@@ -178,8 +179,9 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 	t->key = ID;
 	t->life = 1.0f; //
 	t->measuring = true;
-	t->microsecondsStart = TM_GET_MICROS();
+	t->microsecondsStart = timeNow;
 	t->microsecondsStop = 0;
+	t->accumulating = accumulate;
 	t->error = false;
 	t->frame = ofGetFrameNum();
 	t->measuring = true;
@@ -191,7 +193,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID){
 }
 
 
-float ofxTimeMeasurements::stopMeasuring(string ID){
+float ofxTimeMeasurements::stopMeasuring(string ID, bool accumulate){
 
 	float ret = 0.0f;
 	if (!enabled) return ret;
@@ -200,12 +202,12 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 	//the measurement as much as possible
 
 	Poco::Thread * thread = Poco::Thread::current();
-
 //	if(thread){ //add thread name prefix to ID to minimize name conflicts
 //		ID = thread->getName() + " " + ID;
 //	}
 
 	mutex.lock();
+
 	tree<string> &tr = threadInfo[thread].tree; //easier to read, tr is our tree from now on
 	tree<string>::iterator & tit = threadInfo[thread].tit;
 	tit = tr.parent(tit);
@@ -215,10 +217,8 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 	it = times.find(ID);
 	
 	if ( it == times.end() ){	//not found!
-
 		ofLog( OF_LOG_WARNING, "ID (%s)not found at stopMeasuring(). Make sure you called"
 			  " startMeasuring with that ID first.", ID.c_str());
-		
 	}else{
 		
 		TimeMeasurement* t = times[ID];
@@ -231,6 +231,9 @@ float ofxTimeMeasurements::stopMeasuring(string ID){
 			t->microsecondsStop = timeNow;
 			ret = t->duration = t->microsecondsStop - t->microsecondsStart;
 			t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration + t->duration * timeAveragePercent;
+			if (accumulate){
+				t->microsecondsAccum += t->duration;
+			}
 
 		}else{	//wrong use, start first, then stop
 
@@ -252,7 +255,7 @@ void ofxTimeMeasurements::setDrawLocation(ofxTMDrawLocation l, ofVec2f p){
 
 
 void ofxTimeMeasurements::_afterDraw(ofEventArgs &d){
-	stopMeasuring(TIME_MEASUREMENTS_DRAW_KEY);
+	stopMeasuring(TIME_MEASUREMENTS_DRAW_KEY, false);
 	autoDraw();
 };
 
@@ -324,7 +327,6 @@ void ofxTimeMeasurements::draw(float x, float y){
 		t->updatedLastFrame = false;
 	}
 
-
 	map<Poco::Thread*, ThreadInfo>::iterator ii;
 	vector<Poco::Thread*> expiredThreads;
 
@@ -345,7 +347,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 		int numAlive = 0;
 		int numAdded = 0;
-		if( walker != tr.end()) {
+		if( walker != tr.end()){
 
 			tree<string>::iterator sib = tr.begin(walker);
 			tree<string>::iterator end = tr.end(walker);
@@ -396,9 +398,12 @@ void ofxTimeMeasurements::draw(float x, float y){
 				if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
 					percentTotal += (t->avgDuration * 0.1f) / timePerFrame;
 				}
+				t->accumulating = false;
+				t->microsecondsAccum = 0;
 				++sib;
 			}
 		}
+
 		if (numAlive == 0 && removeExpiredThreads){
 			//drop that whole section if all entries in it are not alive
 			for(int i = 0; i < numAdded + 1; i++){
@@ -614,12 +619,15 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 		char percentChar[64];
 
 		if (!tm->settings.enabled){
-
 			return "   DISABLED!";
-
 		}else{
 
-			time = tm->avgDuration / 1000.0f;
+			if(tm->accumulating){
+				time = tm->microsecondsAccum / 1000.0f;
+			}else{
+				time = tm->avgDuration / 1000.0f;
+			}
+
 			float timePerFrame = 1000.0f / desiredFrameRate;
 			float percent = 100.0f * time / timePerFrame;
 			bool over = false;

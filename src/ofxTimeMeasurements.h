@@ -11,7 +11,6 @@
 
 #include "ofMain.h"
 #include "../lib/tree.hh"
-#include "../lib/tree_util.hh"
 #include <map>
 
 /*

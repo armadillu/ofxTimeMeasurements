@@ -2,23 +2,7 @@
 
 ![ofxTimeMeasurements anim](https://www.dropbox.com/s/y6nsin52sugpmms/ofxTimeMeasurementsAnim.gif?dl=1)
 
-Simple of addon to easily measure execution times across any sections of your code.
-## HOW TO
-
-	void setup(){	
-		//setup a target framerate (mandatory)
-		TIME_SAMPLE_SET_FRAMERATE(60.0f);  
-	}	
-
-	void draw(){		
-	
-		if( TS_START("myTimeSample") ){
-			//your code here! will get time sampled!
-		}TS_STOP("myTimeSample");
-	}
-
-Note the if() clause wrapping TIME_SAMPLE_START(); it is not required, but it will let you dynamically disable that part of your code through the widget UI if so required.
-
+Simple OpenFrameworks addon to easily measure execution times across any sections of your code.
 
 ## FEATURES
 
@@ -32,7 +16,23 @@ Note the if() clause wrapping TIME_SAMPLE_START(); it is not required, but it wi
 *	setup(), update(), and draw() are autmatically time sampled.
 *	Optionally use [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer) for higher precision (recommended windows)
 
-##KEY COMMANDS
+## QUICK START
+
+	void setup(){
+		//setup a target framerate (mandatory)
+		TIME_SAMPLE_SET_FRAMERATE(60.0f);
+	}
+
+	void draw(){
+		if( TS_START("myTimeSample") ){
+			//your code here! will get time sampled!
+		}TS_STOP("myTimeSample");
+	}
+
+Note the if() clause wrapping TIME_SAMPLE_START(); it is not required, but it will let you dynamically disable that part of your code through the widget UI if so required.
+
+
+##KEYBOARD COMMANDS
 *	OF_KEY_PAGE_DOWN to toggle all time measurings, and the drawing of the widget
 * 	'T' when widget is visible (enabled) to get into interactive mode. 
 * 	When in interactive mode:
@@ -49,7 +49,7 @@ If times vary too much from frame to frame to be readable, you can enable smooth
 	
 
 #### Colors
-Time samples on the widget list appear in bright color (depending on the thread) if the corresponding code section has just been executed, and they slowly fade to a darker color of the same hue if that section of code is not accessed.
+Time samples on the widget list appear in different colors. The first section will always represent times measured in the main thread. Following sections show times measured in different threads. Time Measurements will appear in a bright color if the corresponding code section has just been executed, and they will slowly fade to a darker color of the same hue if that section of code is not accessed. The final fading percentage and the fade speed are customizable.
 
 
 ####Customizations
@@ -58,20 +58,22 @@ All key commands and ui colors are cusomizable, you only need to get a hold of t
 	TIME_SAMPLE_GET_INSTANCE()->setUIActivationKey('T');
 	TIME_SAMPLE_GET_INSTANCE()->setHighlightColor(ofColor::red);
 	
+	
+	
 
 ####Measuring setup()
-If you want the setup() call to be automatically measured, you need to at least call once ofxTimeMeasurements in your main.cpp, just before the ofRunApp() line. This is so that ofxTimeMeasurements is allocated before setup() is called. Make sure you call it after ofSetupOpenGL() otherwise it might not be able to find its settings file bc ofToDataPath might not be set yet. 
+If you want the setup() call to be automatically measured, you need to at least call once ofxTimeMeasurements in your main.cpp, just before the ofRunApp() line. This is so that the ofxTimeMeasurements instance is allocated before setup() is called. Make sure you call it after ofSetupOpenGL() otherwise it might not be able to find its settings file, because ofToDataPath might not be set yet. 
 
 	int main(){
-		ofAppGLFWWindow win;
-		ofSetupOpenGL(&win, 1680,1050, OF_WINDOW);
+		ofSetupOpenGL(1680,1050, OF_WINDOW);
 		TIME_SAMPLE_SET_FRAMERATE(60);
-		TIME_SAMPLE_DISABLE_AVERAGE();
-		TIME_SAMPLE_SET_DRAW_LOCATION(TIME_MEASUREMENTS_TOP_RIGHT);
-	
 		ofRunApp(new testApp());
 	}
 
 ####Percentages
 The percentages shown besides the ms counts represent how much of a full frame that code section takes. For example; on a 60fps app, if a code section takes 16.6ms, it will fully saturate the desired between-frames time (16.6ms), and it will show 100% 
 
+####LICENSE
+ofxTimeMeasurements is made available under the [MIT](http://opensource.org/licenses/MIT) license.
+
+ofxTimeMeasurements makes small use of [tree.hh](http://tree.phi-sci.com) which is licensed under the terms of the GNU General Public License [2](http://www.gnu.org/licenses/old-licenses/gpl-2.0.html) or [3](http://www.gnu.org/licenses/old-licenses/gpl-3.0.html).

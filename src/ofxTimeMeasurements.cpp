@@ -21,12 +21,12 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	maxW = 27;
 
 	bgColor = ofColor(15);
-	hilightColor = ofColor(44,77,255);
+	hilightColor = ofColor(44,77,255) * 1.5;
 	disabledTextColor = ofColor(255,0,255);
 	measuringColor = ofColor(0,130,0);
 
-	idleTimeColorFadePercent = 0.6;
-	idleTimeColorDecay = 0.97;
+	idleTimeColorFadePercent = 0.5;
+	idleTimeColorDecay = 0.96;
 
 	longestLabel = 0;
 	selection = TIME_MEASUREMENTS_UPDATE_KEY;

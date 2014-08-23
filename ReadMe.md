@@ -7,13 +7,13 @@ Simple OpenFrameworks addon to easily measure execution times across any section
 ## FEATURES
 
 *	Measure execution time of any parts of your app
-*	Enable/disable execution of code sections on the fly
-*	Collapsable GUI, see only what matters at the time (saved on quit)
-*	Execution times clustered by Thread
+*	Enable / disable execution of code sections on the fly through the widget
+*	Collapsable GUI, see only what matters at the time (saves on quit)
+*	Execution times organized by Thread
 *	Measure exact times, or averaged time across frames
 *	Measure cumulative times (TS_START_ACC) for shared code sections
 *	Highlight frequently used calls, slowly fade unused calls
-*	setup(), update(), and draw() are autmatically time sampled.
+*	setup(), update(), and draw() are automatically time sampled.
 *	Optionally use [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer) for higher precision (recommended windows)
 
 ## QUICK START
@@ -33,7 +33,7 @@ Note the if() clause wrapping TIME_SAMPLE_START(); it is not required, but it wi
 
 
 ##KEYBOARD COMMANDS
-*	OF_KEY_PAGE_DOWN to toggle all time measurings, and the drawing of the widget
+*	OF_KEY_PAGE_DOWN to toggle all time measuring, and the drawing of the widget
 * 	'T' when widget is visible (enabled) to get into interactive mode. 
 * 	When in interactive mode:
 	* Up / Down keys to select, Left / Right keys to expand/collapse the sample tree
@@ -42,7 +42,7 @@ Note the if() clause wrapping TIME_SAMPLE_START(); it is not required, but it wi
 ## NOTES
 
 ####Sample Averaging
-If times vary too much from frame to frame to be readable, you can enable smoothing; if you do so, each new time sample will be blended with the previous one; obtaining a smoother reading. Keep in mind that several samples will be required to get accurate readings when using averaging. You can also completelly disable averaging.
+If times vary too much from frame to frame to be readable, you can enable smoothing; if you do so, each new time sample will be blended with the previous one; obtaining a smoother reading. Keep in mind that several samples will be required to get accurate readings when using averaging. You can also completely disable averaging.
 
 	TIME_SAMPLE_SET_AVERAGE_RATE(0.01); //every new sample effects 1% of the value shown 
 	TIME_SAMPLE_DISABLE_AVERAGE();  //disable time sample averaging
@@ -53,7 +53,7 @@ Time samples on the widget list appear in different colors. The first section wi
 
 
 ####Customizations
-All key commands and ui colors are cusomizable, you only need to get a hold of the instance
+All key commands and ui colors are customizable, you only need to get a hold of the instance
 
 	TIME_SAMPLE_GET_INSTANCE()->setUIActivationKey('T');
 	TIME_SAMPLE_GET_INSTANCE()->setHighlightColor(ofColor::red);

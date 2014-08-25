@@ -50,9 +50,10 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	threadColorTable.push_back(ofColor(v,v/2,0));
 	numThreads = 0;
 
+	configsDir = ".";
 	removeExpiredThreads = true;
 
-	loadSettings();
+	settingsLoaded = false;
 
 #if (OF_VERSION_MINOR >= 8)
 		ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP);
@@ -125,6 +126,10 @@ void ofxTimeMeasurements::setHighlightColor(ofColor c){
 bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate){
 
 	if (!enabled) return true;
+	if (!settingsLoaded){
+		loadSettings();
+		settingsLoaded = true;
+	}
 
 	Poco::Thread * thread = Poco::Thread::current();
 	bool isMainThread = (mainThreadID == thread);
@@ -716,6 +721,12 @@ void ofxTimeMeasurements::loadSettings(){
 
 
 void ofxTimeMeasurements::saveSettings(){
+
+	ofDirectory d;
+	d.open(configsDir);
+	if(!d.exists()){
+		d.create(true);
+	}
 	ofstream myfile;
 	myfile.open(ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME,true).c_str());
 	for( map<string, TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){

@@ -38,8 +38,11 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_MEASUREMENTS_INTERACT_KEY			'T'
 #define TIME_MEASUREMENTS_TOGGLE_SAMPLE_KEY		OF_KEY_RETURN
 
-#define TIME_MEASUREMENTS_SETTINGS_FILENAME	"ofxTimeMeasurements.settings"
+#define TIME_MEASUREMENTS_SETTINGS_FILENAME	(configsDir + "/" + "ofxTimeMeasurements.settings")
 
+//methods
+
+#define TIME_SAMPLE_SET_CONFIG_DIR(x) 	(ofxTimeMeasurements::instance()->setConfigsDir(x))
 #define TIME_SAMPLE_SET_FRAMERATE(x)	(ofxTimeMeasurements::instance()->setDesiredFrameRate(x))
 
 #define TIME_SAMPLE_START(x)			(ofxTimeMeasurements::instance()->startMeasuring(x, false))
@@ -60,18 +63,17 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_SAMPLE_GET_AVG_DURATION(x)	(ofxTimeMeasurements::instance()->getAvgDurationFor(x)) /* ms it took for last frame avgd*/
 #define TIME_SAMPLE_SET_REMOVE_EXPIRED_THREADS(x) (ofxTimeMeasurements::instance()->setRemoveExpiredThreads(x))
 
-#define TIME_SAMPLE_GET_INSTANCE()		(ofxTimeMeasurements::instance())
-
 //shortcuts
 #define TS_START(x)		(TIME_SAMPLE_START(x))
 #define TS_STOP(x)		(TIME_SAMPLE_STOP(x))
 #define TS_START_ACC(x)	(TIME_SAMPLE_START_ACC(x))
 #define TS_STOP_ACC(x)	(TIME_SAMPLE_STOP_ACC(x))
 
-#define TIME_SAMPLE_DRAW_LOC_TOP_LEFT TIME_MEASUREMENTS_TOP_LEFT 
-#define TIME_SAMPLE_DRAW_LOC_BOTTOM_LEFT TIME_MEASUREMENTS_BOTTOM_LEFT 
-#define TIME_SAMPLE_DRAW_LOC_BOTTOM_RIGHT TIME_MEASUREMENTS_BOTTOM_RIGHT 
-#define TIME_SAMPLE_DRAW_LOC_TOP_RIGHT TIME_MEASUREMENTS_TOP_RIGHT
+//locations shortcuts
+#define TIME_SAMPLE_DRAW_LOC_TOP_LEFT 		TIME_MEASUREMENTS_TOP_LEFT
+#define TIME_SAMPLE_DRAW_LOC_BOTTOM_LEFT 	TIME_MEASUREMENTS_BOTTOM_LEFT
+#define TIME_SAMPLE_DRAW_LOC_BOTTOM_RIGHT 	TIME_MEASUREMENTS_BOTTOM_RIGHT
+#define TIME_SAMPLE_DRAW_LOC_TOP_RIGHT 		TIME_MEASUREMENTS_TOP_RIGHT
 
 enum ofxTMDrawLocation{	TIME_MEASUREMENTS_TOP_LEFT,
 	TIME_MEASUREMENTS_TOP_RIGHT,
@@ -86,7 +88,8 @@ class ofxTimeMeasurements: public ofBaseDraws {
 	public :
 
 		static ofxTimeMeasurements* instance();
-	
+
+		void setConfigsDir(string d){configsDir = d;}
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 											//affects the % busy indicator
 		bool startMeasuring(string ID, bool accumulate);
@@ -244,6 +247,9 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		Poco::Thread*							mainThreadID; //usually NULL
 		ofMutex									mutex;
 
+		string									configsDir;
+
 		bool									removeExpiredThreads;
+		bool 									settingsLoaded;
 };
 

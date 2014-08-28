@@ -13,6 +13,15 @@
 #include "../lib/tree.hh"
 #include <map>
 
+#if __cplusplus>=200103L
+#include <unordered_map>
+	#include <unordered_map>
+#else
+#include <tr1/unordered_map>
+	#include <tr1/unordered_map>
+	using std::tr1::unordered_map;
+#endif
+
 /*
 if you want better resolution on windows, the use of ofxMsaTimer is recommended.
 Just include it in your project, and define USE_MSA_TIMER in your project preprocessor macros.
@@ -220,11 +229,11 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		float									desiredFrameRate;
 		bool									enabled;
 
-		map<string, TimeMeasurement*>			times;
-		map<string, TimeMeasurementSettings>	settings; //visible/not at startup
+		unordered_map<string, TimeMeasurement*>			times;
+		unordered_map<string, TimeMeasurementSettings>	settings; //visible/not at startup
 
-		map<Poco::Thread*, ThreadInfo >			threadInfo;
-		map<int, Poco::Thread*>					threadOrder;
+		unordered_map<Poco::Thread*, ThreadInfo >			threadInfo;
+		unordered_map<int, Poco::Thread*>					threadOrder;
 
 		vector<PrintedLine>						drawLines; //what's drawn line by line
 

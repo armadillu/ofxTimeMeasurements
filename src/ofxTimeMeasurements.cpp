@@ -97,7 +97,7 @@ ofxTimeMeasurements* ofxTimeMeasurements::instance(){
 float ofxTimeMeasurements::getLastDurationFor(string ID){
 
 	float r = 0.0f;
-	map<string,TimeMeasurement*>::iterator it;
+	unordered_map<string,TimeMeasurement*>::iterator it;
 	it = times.find(ID);
 	if ( it != times.end() ){	//not found!
 		r = times[ID]->duration / 1000.0f; //to ms
@@ -109,7 +109,7 @@ float ofxTimeMeasurements::getLastDurationFor(string ID){
 float ofxTimeMeasurements::getAvgDurationFor(string ID){
 
 	float r = 0.0f;
-	map<string,TimeMeasurement*>::iterator it;
+	unordered_map<string,TimeMeasurement*>::iterator it;
 	it = times.find(ID);
 	if ( it != times.end() ){	//not found!
 		r = times[ID]->avgDuration / 1000.0f; //to ms
@@ -139,7 +139,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate){
 
 	mutex.lock();
 
-	map<Poco::Thread*, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
+	unordered_map<Poco::Thread*, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
 
 	if (threadIt == threadInfo.end()){ //new thread!
 
@@ -182,12 +182,12 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate){
 	}
 
 	//see if we had an actual measurement, or its a new one
-	map<string, TimeMeasurement*>::iterator tit = times.find(ID);
+	unordered_map<string, TimeMeasurement*>::iterator tit = times.find(ID);
 
 	if (tit == times.end()){ //not found, let alloc a new TimeMeasurement
 		times[ID] = new TimeMeasurement();
 		//keyOrder[ keyOrder.size() ] = ID;
-		map<string, TimeMeasurementSettings>::iterator it2 = settings.find(ID);
+		unordered_map<string, TimeMeasurementSettings>::iterator it2 = settings.find(ID);
 		if (it2 != settings.end()){
 			times[ID]->settings = settings[ID];
 		}
@@ -231,7 +231,7 @@ float ofxTimeMeasurements::stopMeasuring(string ID, bool accumulate){
 	tit = tr.parent(tit);
 	if(tit == NULL) tit = tr.begin();
 
-	map<string,TimeMeasurement*>::iterator it;
+	unordered_map<string,TimeMeasurement*>::iterator it;
 	it = times.find(ID);
 	
 	if ( it == times.end() ){	//not found!
@@ -333,7 +333,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 	mutex.lock();
 
 	//update time stuff, build draw lists
-	for( map<string,TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
+	for( unordered_map<string,TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
 		TimeMeasurement* t = ii->second;
 		string key = ii->first;
 		if(!t->measuring){
@@ -345,7 +345,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 		t->updatedLastFrame = false;
 	}
 
-	map<Poco::Thread*, ThreadInfo>::iterator ii;
+	unordered_map<Poco::Thread*, ThreadInfo>::iterator ii;
 	vector<Poco::Thread*> expiredThreads;
 
 	int c = 0;
@@ -440,7 +440,7 @@ void ofxTimeMeasurements::draw(float x, float y){
 
 	//delete expired threads
 	for(int i = 0; i < expiredThreads.size(); i++){
-		map<Poco::Thread*, ThreadInfo>::iterator treeIt = threadInfo.find(expiredThreads[i]);
+		unordered_map<Poco::Thread*, ThreadInfo>::iterator treeIt = threadInfo.find(expiredThreads[i]);
 		if (treeIt != threadInfo.end()) threadInfo.erase(treeIt);
 	}
 
@@ -528,7 +528,7 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 	if (e.key == enableKey){
 		TIME_SAMPLE_SET_ENABLED(!TIME_SAMPLE_GET_ENABLED());
 		if (!TIME_SAMPLE_GET_ENABLED()){
-			for( map<string, TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
+			for( unordered_map<string, TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
 				string key = ii->first;
 				settings[key].visible = times[key]->settings.visible;
 				settings[key].enabled = times[key]->settings.enabled;
@@ -602,7 +602,7 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
 void ofxTimeMeasurements::collapseExpand(string sel, bool collapse){
 
-	map<Poco::Thread*, ThreadInfo>::iterator ii;
+	unordered_map<Poco::Thread*, ThreadInfo>::iterator ii;
 
 	for( ii = threadInfo.begin(); ii != threadInfo.end(); ++ii ){
 
@@ -736,7 +736,7 @@ void ofxTimeMeasurements::saveSettings(){
 	}
 	ofstream myfile;
 	myfile.open(ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME,true).c_str());
-	for( map<string, TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
+	for( unordered_map<string, TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
 		bool visible = times[ii->first]->settings.visible;
 		bool enabled = times[ii->first]->settings.enabled;
 
@@ -761,7 +761,7 @@ void ofxTimeMeasurements::_appExited(ofEventArgs &e){
 
 float ofxTimeMeasurements::durationForID( string ID){
 
-	map<string,TimeMeasurement*>::iterator it;
+	unordered_map<string,TimeMeasurement*>::iterator it;
 	it = times.find(ID);
 	
 	if ( it == times.end() ){	//not found!

@@ -51,6 +51,12 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_SAMPLE_START_ACC(x)		if(ofxTimeMeasurements::instance()->startMeasuring(x, true)){
 #define TIME_SAMPLE_STOP_ACC(x)			}ofxTimeMeasurements::instance()->stopMeasuring(x, true)
 
+#define TIME_SAMPLE_START_NOIF(x)		ofxTimeMeasurements::instance()->startMeasuring(x, false)
+#define TIME_SAMPLE_STOP_NOIF(x)		ofxTimeMeasurements::instance()->stopMeasuring(x, false)
+
+#define TIME_SAMPLE_START_ACC_NOIF(x)	ofxTimeMeasurements::instance()->startMeasuring(x, true)
+#define TIME_SAMPLE_STOP_ACC_NOIF(x)	ofxTimeMeasurements::instance()->stopMeasuring(x, true)
+
 #define TIME_SAMPLE_SET_DRAW_LOCATION(x,...)(ofxTimeMeasurements::instance()->setDrawLocation(x,##__VA_ARGS__))
 #define TIME_SAMPLE_GET_ENABLED()		(ofxTimeMeasurements::instance()->getEnabled())
 #define TIME_SAMPLE_SET_ENABLED(e)		(ofxTimeMeasurements::instance()->setEnabled(e))
@@ -64,10 +70,19 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_SAMPLE_SET_REMOVE_EXPIRED_THREADS(x) (ofxTimeMeasurements::instance()->setRemoveExpiredThreads(x))
 
 //shortcuts
+
+//includes if(){ } caluse for you
 #define TS_START(x)						TIME_SAMPLE_START(x)
 #define TS_STOP(x)						TIME_SAMPLE_STOP(x)
 #define TS_START_ACC(x)					TIME_SAMPLE_START_ACC(x)
 #define TS_STOP_ACC(x)					TIME_SAMPLE_STOP_ACC(x)
+
+//no if clause, to be used in timings that are measured across several methods / frames
+#define TS_START_NIF(x)						TIME_SAMPLE_START_NOIF(x)
+#define TS_STOP_NIF(x)						TIME_SAMPLE_STOP_NOIF(x)
+#define TS_START_ACC_NIF(x)					TIME_SAMPLE_START_ACC_NOIF(x)
+#define TS_STOP_ACC_NIF(x)					TIME_SAMPLE_STOP_ACC_NOIF(x)
+
 
 //locations shortcuts
 #define TIME_SAMPLE_DRAW_LOC_TOP_LEFT 		TIME_MEASUREMENTS_TOP_LEFT

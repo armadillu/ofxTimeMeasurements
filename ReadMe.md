@@ -24,12 +24,10 @@ Simple OpenFrameworks addon to easily measure execution times across any section
 	}
 
 	void draw(){
-		if( TS_START("myTimeSample") ){
+		TS_START("myTimeSample")
 			//your code here! will get time sampled!
-		}TS_STOP("myTimeSample");
+		TS_STOP("myTimeSample");
 	}
-
-Note the if() clause wrapping TIME_SAMPLE_START(); it is not required, but it will let you dynamically disable that part of your code through the widget UI if so required.
 
 
 ##KEYBOARD COMMANDS
@@ -37,9 +35,16 @@ Note the if() clause wrapping TIME_SAMPLE_START(); it is not required, but it wi
 * 	'T' when widget is visible (enabled) to get into interactive mode. 
 * 	When in interactive mode:
 	* Up / Down keys to select, Left / Right keys to expand/collapse the sample tree
-	* Return key to toggle the execution of the selected item. This allows to disable parts of your code on the fly, as long as its wrapped around an if() clause
+	* Return key to toggle the execution of the selected item. This allows to disable parts of your code on the fly
 
 ## NOTES
+
+#####How does it work? Why am I getting compile errors?
+
+TS_START and TS_STOP create an if clause around the code between them; to allow the enabling/disabling of the code section on the fly. This means that if you define variables inside the timing section, it will not be visible outside of it, as it is only declared withing the scope of the if() clause. To fix this, just declare the variabled outside the TS_START() and TS_STOP() section.
+
+If you want to time sections from different functions, or across several frames, then there's no way to make 
+TS_START TS_STOP work; as the if clause will be unbalanced. For those cases, you should use TS_START_NIF and TS_STOP_NIF, which don't include the if clause. Disabling that section from the gui will not work though.
 
 ####Sample Averaging
 If times vary too much from frame to frame to be readable, you can enable smoothing; if you do so, each new time sample will be blended with the previous one; obtaining a smoother reading. Keep in mind that several samples will be required to get accurate readings when using averaging. You can also completely disable averaging.

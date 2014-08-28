@@ -24,7 +24,7 @@ Simple OpenFrameworks addon to easily measure execution times across any section
 	}
 
 	void draw(){
-		TS_START("myTimeSample")
+		TS_START("myTimeSample");
 			//your code here! will get time sampled!
 		TS_STOP("myTimeSample");
 	}

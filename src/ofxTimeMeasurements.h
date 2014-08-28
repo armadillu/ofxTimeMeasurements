@@ -45,11 +45,11 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_SAMPLE_SET_CONFIG_DIR(x) 	(ofxTimeMeasurements::instance()->setConfigsDir(x))
 #define TIME_SAMPLE_SET_FRAMERATE(x)	(ofxTimeMeasurements::instance()->setDesiredFrameRate(x))
 
-#define TIME_SAMPLE_START(x)			(ofxTimeMeasurements::instance()->startMeasuring(x, false))
-#define TIME_SAMPLE_STOP(x)				(ofxTimeMeasurements::instance()->stopMeasuring(x, false))
+#define TIME_SAMPLE_START(x)			if(ofxTimeMeasurements::instance()->startMeasuring(x, false)){
+#define TIME_SAMPLE_STOP(x)				}ofxTimeMeasurements::instance()->stopMeasuring(x, false)
 
-#define TIME_SAMPLE_START_ACC(x)			(ofxTimeMeasurements::instance()->startMeasuring(x, true))
-#define TIME_SAMPLE_STOP_ACC(x)				(ofxTimeMeasurements::instance()->stopMeasuring(x, true))
+#define TIME_SAMPLE_START_ACC(x)		if(ofxTimeMeasurements::instance()->startMeasuring(x, true)){
+#define TIME_SAMPLE_STOP_ACC(x)			}ofxTimeMeasurements::instance()->stopMeasuring(x, true)
 
 #define TIME_SAMPLE_SET_DRAW_LOCATION(x,...)(ofxTimeMeasurements::instance()->setDrawLocation(x,##__VA_ARGS__))
 #define TIME_SAMPLE_GET_ENABLED()		(ofxTimeMeasurements::instance()->getEnabled())
@@ -64,10 +64,10 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_SAMPLE_SET_REMOVE_EXPIRED_THREADS(x) (ofxTimeMeasurements::instance()->setRemoveExpiredThreads(x))
 
 //shortcuts
-#define TS_START(x)		(TIME_SAMPLE_START(x))
-#define TS_STOP(x)		(TIME_SAMPLE_STOP(x))
-#define TS_START_ACC(x)	(TIME_SAMPLE_START_ACC(x))
-#define TS_STOP_ACC(x)	(TIME_SAMPLE_STOP_ACC(x))
+#define TS_START(x)						TIME_SAMPLE_START(x)
+#define TS_STOP(x)						TIME_SAMPLE_STOP(x)
+#define TS_START_ACC(x)					TIME_SAMPLE_START_ACC(x)
+#define TS_STOP_ACC(x)					TIME_SAMPLE_STOP_ACC(x)
 
 //locations shortcuts
 #define TIME_SAMPLE_DRAW_LOC_TOP_LEFT 		TIME_MEASUREMENTS_TOP_LEFT

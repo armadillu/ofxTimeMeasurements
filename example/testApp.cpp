@@ -42,9 +42,9 @@ void testApp::threadedFunction(){
 
 void testApp::update(){
 
-	if(TS_START("some common method")){
+	TS_START("some common method");
 		ofSleepMillis(1);
-	}TS_STOP("some common method");
+	TS_STOP("some common method");
 
 
 	if (ofGetFrameNum()%60 == 1){
@@ -56,9 +56,9 @@ void testApp::update(){
 	}
 
 	if (ofGetFrameNum()%600 == 30 || ofGetFrameNum() == 1){
-		if (TS_START("some uncommon method")){
+		TS_START("some uncommon method")
 			ofSleepMillis(ofRandom(3));
-		}TS_STOP("some uncommon method");
+		TS_STOP("some uncommon method");
 	}
 
 	//test accumulation time sampling
@@ -79,12 +79,12 @@ void testApp::update(){
 
 void testApp::draw(){
 
-	if( TS_START("draw dots") ){	///////////////////////////////  START MEASURING ///
+	TS_START("draw dots") ///////////////////////////////  START MEASURING ///
 		for(int i = 0; i < ofGetMouseX() * 5; i++){
 			ofSetColor( ofRandom(96) );
 			ofRect( ofRandom( ofGetWidth()), ofRandom( ofGetHeight()), 4, 4);
 		}
-	}TS_STOP("draw dots");			///////////////////////////////  STOP MEASURING  ///
+	TS_STOP("draw dots");			///////////////////////////////  STOP MEASURING  ///
 
 
 	//testing late samples

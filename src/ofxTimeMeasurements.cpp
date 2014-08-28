@@ -620,12 +620,26 @@ void ofxTimeMeasurements::collapseExpand(string sel, bool collapse){
 	}
 }
 
+string ofxTimeMeasurements::formatTime(uint64_t microSeconds, int precision){
+
+	float time = microSeconds / 1000.0f; //to ms
+	string timeUnit = "ms";
+	if (time > 1000){ //if more than 1 sec
+		time /= 1000.0f;
+		timeUnit = "sec";
+		if(time > 60){ //if more than a minute
+			time /= 60.0f;
+			timeUnit = "min";
+		}
+	}
+	return ofToString(time,  precision) + timeUnit;
+}
+
 
 string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 
-	float time;
 	string timeUnit;
-
+	float time;
 	if (tm->measuring){
 		string anim;
 		switch ((int(ofGetFrameNum() * 0.2f))%6) {
@@ -636,10 +650,13 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 			case 4: anim = " .."; break;
 			case 5: anim = "  ."; break;
 		}
-		return "   Running " + anim;
+		//return "   Running " + anim;
+		return string((ofGetFrameNum()% 6 < 3 ) ? " >  " : "    ") +
+				formatTime( ofGetElapsedTimeMicros() - tm->microsecondsStart, 1) +
+				anim;
 	}else{
 
-		string allTime;
+		string timeString;
 		char percentChar[64];
 
 		if (!tm->settings.enabled){
@@ -647,33 +664,25 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 		}else{
 
 			if(tm->accumulating){
+				timeString = formatTime(tm->microsecondsAccum, msPrecision);
 				time = tm->microsecondsAccum / 1000.0f;
 			}else{
+				timeString = formatTime(tm->avgDuration, msPrecision);
 				time = tm->avgDuration / 1000.0f;
 			}
 
-			float timePerFrame = 1000.0f / desiredFrameRate;
-			float percent = 100.0f * time / timePerFrame;
+			float percent = 100.0f * time / (1000.0f / desiredFrameRate);
 			bool over = false;
 			if (percent > 100.0f){
 				percent = 100.0f;
 				over = true;
 			}
-			timeUnit = "ms";
-			if (time > 1000){ //if more than 1 sec
-				time /= 1000.0f;
-				timeUnit = "sec";
-				if(time > 60){ //if more than a minute
-					time /= 60.0f;
-					timeUnit = "min";
-				}
-			}
-			allTime = ofToString(time,  msPrecision) + timeUnit;
-			int originalLen = allTime.length();
+			timeString = ofToString(time,  msPrecision) + timeUnit;
+			int originalLen = timeString.length();
 
 			int expectedLen = 8;
 			for(int i = 0; i < expectedLen - originalLen; i++){
-				allTime = " " + allTime;
+				timeString = " " + timeString;
 			}
 
 			if (over){
@@ -683,7 +692,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 			}
 		}
 
-		return allTime + percentChar + "%" ;
+		return timeString + percentChar + "%" ;
 	}
 }
 

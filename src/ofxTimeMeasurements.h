@@ -212,6 +212,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void loadSettings();
 		void saveSettings();
 
+		string formatTime(uint64_t microSeconds, int precision);
 		string getTimeStringForTM(TimeMeasurement* tm);
 
 		static ofxTimeMeasurements*				singleton;

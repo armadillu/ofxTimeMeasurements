@@ -638,7 +638,6 @@ string ofxTimeMeasurements::formatTime(uint64_t microSeconds, int precision){
 
 string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 
-	string timeUnit;
 	float time;
 	if (tm->measuring){
 		string anim;
@@ -677,7 +676,6 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 				percent = 100.0f;
 				over = true;
 			}
-			timeString = ofToString(time,  msPrecision) + timeUnit;
 			int originalLen = timeString.length();
 
 			int expectedLen = 8;

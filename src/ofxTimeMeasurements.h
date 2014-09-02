@@ -13,14 +13,8 @@
 #include "../lib/tree.hh"
 #include <map>
 
-#if __cplusplus>=200103L
+
 #include <unordered_map>
-	#include <unordered_map>
-#else
-#include <tr1/unordered_map>
-	#include <tr1/unordered_map>
-	using std::tr1::unordered_map;
-#endif
 
 /*
 if you want better resolution on windows, the use of ofxMsaTimer is recommended.

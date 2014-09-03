@@ -628,8 +628,13 @@ string ofxTimeMeasurements::formatTime(uint64_t microSeconds, int precision){
 		time /= 1000.0f;
 		timeUnit = "sec";
 		if(time > 60){ //if more than a minute
-			time /= 60.0f;
-			timeUnit = "min";
+			if(time > 3600){ //if more than a minute
+				time /= 3600.0f;
+				timeUnit = "hrs";
+			}else{
+				time /= 60.0f;
+				timeUnit = "min";
+			}
 		}
 	}
 	return ofToString(time,  precision) + timeUnit;
@@ -651,7 +656,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 		}
 		//return "   Running " + anim;
 		return string((ofGetFrameNum()% 6 < 3 ) ? " >  " : "    ") +
-				formatTime( ofGetElapsedTimeMicros() - tm->microsecondsStart, 1) +
+				formatTime( TM_GET_MICROS() - tm->microsecondsStart, 1) +
 				anim;
 	}else{
 

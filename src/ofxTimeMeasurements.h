@@ -106,7 +106,7 @@ enum ofxTMDrawLocation{	TIME_MEASUREMENTS_TOP_LEFT,
 };
 
 
-class ofxTimeMeasurements: public ofBaseDraws {
+class ofxTimeMeasurements {
 
 	public :
 
@@ -139,8 +139,9 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void setGlobalEnableDisableKey(unsigned int k){enableKey = k;} //to enable/disable widget interaction
 		void setEnableDisableSectionKey(unsigned int k){toggleSampleKey = k;} //to enable/disable the selected time measurement
 
-		virtual float getWidth(){ return (maxW + 1) * 8; }
-		virtual float getHeight(){ return ( drawLines.size() + 2 ) * TIME_MEASUREMENTS_LINE_HEIGHT - 8; };
+	
+		float getWidth() const{ return (maxW + 1) * 8; }
+		float getHeight() const{ return ( drawLines.size() + 2 ) * TIME_MEASUREMENTS_LINE_HEIGHT - 8; };
 
 		float getLastDurationFor(string ID); //ms
 		float getAvgDurationFor(string ID); //ms
@@ -211,8 +212,7 @@ class ofxTimeMeasurements: public ofBaseDraws {
 		void _appExited(ofEventArgs &e);
 		void _keyPressed(ofKeyEventArgs &e);
 
-		void draw(float x, float y);
-		void draw(float x, float y, float w , float h){ ofLogError() << "ofxTimeMeasurements: ignoring draw() call"; } //w and h ignored! just here to comply with ofBaseDraws
+		void draw(float x, float y) ;
 
 		void autoDraw();
 		void collapseExpand(string sel, bool colapse);

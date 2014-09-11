@@ -320,7 +320,7 @@ void ofxTimeMeasurements::updateLongestLabel(){
 }
 
 
-void ofxTimeMeasurements::draw(float x, float y){
+void ofxTimeMeasurements::draw(float x, float y) {
 
 	vector<string> hiddenKeys;
 

@@ -144,7 +144,6 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate){
 
 	if (threadIt == threadInfo.end()){ //new thread!
 
-		threadOrder[threadOrder.size()] = thread;
 		//string tName = isMainThread ? "mainThread" : string("Thread " + ofToString(threadCounter));
 		string tName = isMainThread ? "Main Thread" : string(Poco::Thread::current()->getName() +
 															 " Thread(" + ofToString(numThreads) + ")");
@@ -157,8 +156,6 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate){
 			threadInfo[thread].color = hilightColor;
 		}
 	}
-
-	
 
 //	if(thread){ //add thread name prefix to ID to minimize name conflicts
 //		ID = thread->getName() + " " + ID;
@@ -353,13 +350,21 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	unordered_map<Poco::Thread*, ThreadInfo>::iterator ii;
 	vector<Poco::Thread*> expiredThreads;
 
-	int c = 0;
+	//lets make sure the Main Thread is always on top
+	vector< pair<Poco::Thread*, ThreadInfo> > orderedThreadList;
 	for( ii = threadInfo.begin(); ii != threadInfo.end(); ++ii ){ //walk all thread trees
+		if (ii->first == NULL){ //main thread is NULL!
+			orderedThreadList.insert(orderedThreadList.begin(), *ii);
+		}else{
+			orderedThreadList.push_back(*ii);
+		}
+	}
 
-		Poco::Thread* thread = ii->first;
-		tree<string> &tr = ii->second.tree;
+	for( int k = 0; k < orderedThreadList.size(); k++ ){ //walk all thread trees
 
-		c++;
+		Poco::Thread* thread = orderedThreadList[k].first;
+		tree<string> &tr = orderedThreadList[k].second.tree;
+
 		tree<string>::iterator walker = tr.begin();
 
 		PrintedLine header;

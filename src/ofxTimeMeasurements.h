@@ -232,7 +232,6 @@ class ofxTimeMeasurements {
 		unordered_map<string, TimeMeasurementSettings>	settings; //visible/not at startup
 
 		unordered_map<Poco::Thread*, ThreadInfo >			threadInfo;
-		unordered_map<int, Poco::Thread*>					threadOrder;
 
 		vector<PrintedLine>						drawLines; //what's drawn line by line
 

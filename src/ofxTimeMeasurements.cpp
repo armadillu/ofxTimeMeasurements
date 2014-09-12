@@ -140,6 +140,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate){
 	mutex.lock();
 
 	unordered_map<Poco::Thread*, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
+	tree<string> &tr = threadInfo[thread].tree; //easier to read, tr is our tree from now on
 
 	if (threadIt == threadInfo.end()){ //new thread!
 
@@ -148,7 +149,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate){
 		string tName = isMainThread ? "Main Thread" : string(Poco::Thread::current()->getName() +
 															 " Thread(" + ofToString(numThreads) + ")");
 		//init the iterator
-		threadInfo[thread].tit = threadInfo[thread].tree.insert(threadInfo[thread].tree.begin(), tName);
+		threadInfo[thread].tit = tr.insert(tr.begin(), tName);
 		if (thread){
 			threadInfo[thread].color = threadColorTable[numThreads%(threadColorTable.size())];
 			numThreads++;
@@ -157,7 +158,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate){
 		}
 	}
 
-	tree<string> &tr = threadInfo[thread].tree; //easier to read, tr is our tree from now on
+	
 
 //	if(thread){ //add thread name prefix to ID to minimize name conflicts
 //		ID = thread->getName() + " " + ID;

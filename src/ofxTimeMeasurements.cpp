@@ -699,7 +699,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 			}
 
 			if (over){
-				sprintf(percentChar, int(ofGetFrameNum() * 0.8)%5 < 3  ? " *100": "  100");
+				sprintf(percentChar, int(ofGetFrameNum() * 0.8)%5 < 3  ? " $100": "  100");
 			}else{
 				sprintf(percentChar, "% 5.1f", percent);
 			}

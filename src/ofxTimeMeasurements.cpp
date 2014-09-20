@@ -20,6 +20,10 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	msPrecision = 1;
 	maxW = 27;
 
+	#if defined(USE_OFX_HISTORYPLOT)
+	plotHeight = 60;
+	#endif
+
 	bgColor = ofColor(15);
 	hilightColor = ofColor(44,77,255) * 1.5;
 	disabledTextColor = ofColor(255,0,255);
@@ -184,6 +188,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate){
 
 	if (tit == times.end()){ //not found, let alloc a new TimeMeasurement
 		times[ID] = new TimeMeasurement();
+
 		//keyOrder[ keyOrder.size() ] = ID;
 		unordered_map<string, TimeMeasurementSettings>::iterator it2 = settings.find(ID);
 		if (it2 != settings.end()){
@@ -226,8 +231,12 @@ float ofxTimeMeasurements::stopMeasuring(string ID, bool accumulate){
 
 	tree<string> &tr = threadInfo[thread].tree; //easier to read, tr is our tree from now on
 	tree<string>::iterator & tit = threadInfo[thread].tit;
-	tit = tr.parent(tit);
-	if(tit == NULL) tit = tr.begin();
+	if(tit != NULL){
+		tit = tr.parent(tit);
+		if(tit == NULL) tit = tr.begin();
+	}else{
+		tit = tr.begin();
+	}
 
 	unordered_map<string,TimeMeasurement*>::iterator it;
 	it = times.find(ID);
@@ -360,6 +369,9 @@ void ofxTimeMeasurements::draw(float x, float y) {
 		}
 	}
 
+	#if defined(USE_OFX_HISTORYPLOT)
+	vector<ofxHistoryPlot*> plotsToDraw;
+	#endif
 	for( int k = 0; k < orderedThreadList.size(); k++ ){ //walk all thread trees
 
 		Poco::Thread* thread = orderedThreadList[k].first;
@@ -385,6 +397,17 @@ void ofxTimeMeasurements::draw(float x, float y) {
 				string key = *sib;
 				TimeMeasurement * t = times[key];
 
+				#if defined(USE_OFX_HISTORYPLOT)
+				bool plotActive = false;
+				if(plots[key]){
+					if(t->settings.plotting){
+						plots[key]->update(t->avgDuration / 1000.0f);
+						plotsToDraw.push_back(plots[key]);
+						plotActive = true;
+					}
+				}
+				#endif
+
 				bool visible = t->settings.visible;
 				bool alive = t->life > 0.000001;
 				if(alive){
@@ -395,14 +418,20 @@ void ofxTimeMeasurements::draw(float x, float y) {
 					PrintedLine l;
 					l.key = key;
 					l.tm = t;
-					for(int i = 0; i < tr.depth(sib); ++i)
-						l.formattedKey += " ";
+
+					int depth = tr.depth(sib);
+					for(int i = 0; i < depth; ++i) l.formattedKey += " ";
+
 					if (sib.number_of_children() == 0){
 						l.formattedKey += "-";
 					}else{
 						l.formattedKey += "+";
 					}
 					l.formattedKey += key;
+					#if defined(USE_OFX_HISTORYPLOT)
+					if(plotActive) l.formattedKey += " [p]";
+					#endif
+
 					l.time = getTimeStringForTM(t);
 
 					//l.color = textColor * (0.35f + 0.65f * t->life);
@@ -458,6 +487,8 @@ void ofxTimeMeasurements::draw(float x, float y) {
 
 	updateLongestLabel();
 
+
+
 	//update max width, find headers
 	int tempMaxW = -1;
 	vector<int> headerLocations;
@@ -484,6 +515,20 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	ofSetupScreen(); //mmmm----
 
 	ofPushStyle();
+
+	#if defined(USE_OFX_HISTORYPLOT)
+	//int numCols = plotsToDraw.size()
+	for(int i = 0; i < plotsToDraw.size(); i++){
+		int y = ofGetHeight() - plotHeight * (i + 1);
+		plotsToDraw[i]->draw(0, y, ofGetWidth(), plotHeight);
+		ofSetColor(66);
+		if(i != plotsToDraw.size() -1){
+			ofLine(0, y, ofGetWidth(), y );
+		}
+	}
+	#endif
+
+
 	ofSetColor(bgColor, 245);
 	int barH = 1;
 	ofRect(x, y + 1, getWidth(), getHeight());
@@ -529,22 +574,34 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	ofSetColor(hilightColor);
 	ofDrawBitmapString( " '" + ofToString(char(activateKey)) + "'" + string(timeAveragePercent < 1.0 ? " avgd!" : ""),
 					   x, y + lastLine );
+
 	ofPopStyle();
 }
 
+#if defined(USE_OFX_HISTORYPLOT)
+ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
+
+	ofxHistoryPlot * plot = new ofxHistoryPlot( NULL, name, 1024, false);
+	plot->setColor( threadColorTable[plots.size()%(threadColorTable.size()-1)] );
+	plot->setBackgroundColor(ofColor(0,220));
+	plot->setShowNumericalInfo(true);
+	plot->setRespectBorders(true);
+	plot->setLineWidth(1);
+	plot->setLowerRange(0);
+	plot->setDrawGrid(true);
+	plot->setGridUnit(16);
+	plot->setGridColor(ofColor(40,255));
+	plot->setAutoRangeShrinksBack(true);
+	plot->setShowSmoothedCurve(true);
+	plot->setSmoothFilter(0.1);
+	return plot;
+}
+#endif
 
 void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
 	if (e.key == enableKey){
 		TIME_SAMPLE_SET_ENABLED(!TIME_SAMPLE_GET_ENABLED());
-		if (!TIME_SAMPLE_GET_ENABLED()){
-			for( unordered_map<string, TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
-				string key = ii->first;
-				settings[key].visible = times[key]->settings.visible;
-				settings[key].enabled = times[key]->settings.enabled;
-			}
-			//times.clear();
-		}
 	}
 
 	if (TIME_SAMPLE_GET_ENABLED()){
@@ -585,6 +642,18 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 						selection = drawLines[selIndex].key;
 					}break;
 
+					#if defined(USE_OFX_HISTORYPLOT)
+					case 'P':{
+						if (!plots[selection]){
+							ofxHistoryPlot * plot = makeNewPlot(selection);
+							plots[selection] = plot;
+							times[selection]->settings.plotting = true;
+						}else{
+							times[selection]->settings.plotting ^= true;
+						}
+					}break;
+					#endif
+
 					case OF_KEY_RETURN:{
 							//cant disable update() & draw()
 							if (selection != TIME_MEASUREMENTS_SETUP_KEY &&
@@ -592,7 +661,7 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 								selection != TIME_MEASUREMENTS_DRAW_KEY &&
 								drawLines[selIndex].tm
 								){
-									times[selection]->settings.enabled ^= 1;
+									times[selection]->settings.enabled ^= true;
 							}
 						}break;
 
@@ -715,14 +784,34 @@ void ofxTimeMeasurements::loadSettings(){
 	//todo this might get called before OF is setup, os ofToDataPath gives us weird results sometimes?
 	string f = ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME, true);
 	ifstream myfile(f.c_str());
-	string name, visible, enabled_;
-
+	string name, visible, enabled_, plotting;
+	bool fileHasPlotData = false;
 	if (myfile.is_open()){
 
+		int c = 0;
 		while( !myfile.eof() ){
+
+			if (c == 0){ //see if file has PlotData, 2 '|' per line if it does, only 1 if it doesnt
+				string wholeLine;
+				getline( myfile, wholeLine, '\n' );//see what version we are on
+				int numBars = 0;
+				for(int i = 0; i < wholeLine.size(); i++){
+					if (wholeLine[i] == '|') numBars++;
+				}
+				if(numBars == 2) fileHasPlotData = true;
+				myfile.clear();
+				myfile.seekg(0, ios::beg);
+				c++;
+			}
+
 			getline( myfile, name, '=' );//name
 			getline( myfile, visible, '|' ); //visible
-			getline( myfile, enabled_, '\n' ); //enabled
+			if(fileHasPlotData){
+				getline( myfile, enabled_, '|' ); //enabled
+				getline( myfile, plotting, '\n' ); //enabled
+			}else{
+				getline( myfile, enabled_, '\n' ); //enabled
+			}
 
 			if (name == TIME_MEASUREMENTS_SETUP_KEY ||
 				name == TIME_MEASUREMENTS_UPDATE_KEY ||
@@ -732,7 +821,13 @@ void ofxTimeMeasurements::loadSettings(){
 			if(name.length()){
 				settings[name].visible = bool(visible == "1" ? true : false);
 				settings[name].enabled = bool(enabled_ == "1" ? true : false);
-				//cout << name << " " << visible << " " << enabled << endl;
+				#if defined(USE_OFX_HISTORYPLOT)
+				settings[name].plotting = bool(plotting == "1" ? true : false);
+				if(settings[name].plotting){
+					ofxHistoryPlot * plot = makeNewPlot(name);
+					plots[name] = plot;
+				}
+				#endif
 			}
 		}
 		myfile.close();
@@ -754,6 +849,9 @@ void ofxTimeMeasurements::saveSettings(){
 	for( unordered_map<string, TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
 		bool visible = times[ii->first]->settings.visible;
 		bool enabled = times[ii->first]->settings.enabled;
+		#if defined(USE_OFX_HISTORYPLOT)
+		bool plotting = times[ii->first]->settings.plotting;
+		#endif
 
 		if (ii->first == TIME_MEASUREMENTS_SETUP_KEY ||
 			ii->first == TIME_MEASUREMENTS_UPDATE_KEY ||
@@ -761,8 +859,11 @@ void ofxTimeMeasurements::saveSettings(){
 			visible = enabled = true;
 		}
 
-		myfile << ii->first << "=" << string(visible ? "1" : "0") << "|" <<
-		string(enabled ? "1" : "0") << endl;
+		myfile << ii->first << "=" << string(visible ? "1" : "0") << "|" << string(enabled ? "1" : "0")
+		#if defined(USE_OFX_HISTORYPLOT)
+		<< "|" << string(plotting ? "1" : "0")
+		#endif
+		<< endl;
 	}
 	myfile.close();
 }

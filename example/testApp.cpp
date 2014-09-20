@@ -3,7 +3,7 @@
 
 void testApp::setup(){
 
-	ofBackground(0);
+	ofBackground(22);
 
 	TIME_SAMPLE_SET_FRAMERATE( 60.0f ); //set the app's target framerate (MANDATORY)
 
@@ -16,6 +16,7 @@ void testApp::setup(){
 										//use lower values to get steadier readings
 	TIME_SAMPLE_DISABLE_AVERAGE();	//disable averaging
 
+	TIME_SAMPLE_SET_REMOVE_EXPIRED_THREADS(true); //inactive threads will be dropped from the table
 	//customize color
 	//TIME_SAMPLE_GET_INSTANCE()->setHighlightColor(ofColor::yellow);
 
@@ -103,7 +104,7 @@ void testApp::draw(){
 					   "    press left/right arrow keys to collapse/expand\n"
 					   "    press 'RETURN' key to toggle the execution of the selected section\n",
 					   10,
-					   ofGetHeight() - 104);
+					   20);
 }
 
 

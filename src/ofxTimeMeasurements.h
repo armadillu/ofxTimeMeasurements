@@ -21,6 +21,12 @@
 	using std::tr1::unordered_map;
 #endif
 
+
+#ifdef USE_OFX_HISTORYPLOT
+	#include "ofxHistoryPlot.h"
+	//#pragma message "using ofxHistoryPlot"
+#endif
+
 /*
 if you want better resolution on windows, the use of ofxMsaTimer is recommended.
 Just include it in your project, and define USE_MSA_TIMER in your project preprocessor macros.
@@ -147,6 +153,9 @@ class ofxTimeMeasurements {
 		float getAvgDurationFor(string ID); //ms
 
 		void setRemoveExpiredThreads(bool b){removeExpiredThreads = b;}
+		#if defined(USE_OFX_HISTORYPLOT)
+		void setPlotHeight(int h){plotHeight = h;}
+		#endif
 
 	private:
 
@@ -155,6 +164,10 @@ class ofxTimeMeasurements {
 		struct TimeMeasurementSettings{
 			bool visible;
 			bool enabled;
+			#if defined(USE_OFX_HISTORYPLOT)
+			bool plotting;
+			TimeMeasurementSettings(){plotting = false;}
+			#endif
 		};
 
 		struct TimeMeasurement{
@@ -231,7 +244,7 @@ class ofxTimeMeasurements {
 		unordered_map<string, TimeMeasurement*>			times;
 		unordered_map<string, TimeMeasurementSettings>	settings; //visible/not at startup
 
-		unordered_map<Poco::Thread*, ThreadInfo >			threadInfo;
+		unordered_map<Poco::Thread*, ThreadInfo>		threadInfo;
 
 		vector<PrintedLine>						drawLines; //what's drawn line by line
 
@@ -274,5 +287,13 @@ class ofxTimeMeasurements {
 
 		bool									removeExpiredThreads;
 		bool 									settingsLoaded;
+
+		#if defined(USE_OFX_HISTORYPLOT)
+		unordered_map<string, ofxHistoryPlot*>	plots;
+		int plotHeight;
+
+		ofxHistoryPlot*							makeNewPlot(string name);
+		#endif
+
 };
 

@@ -289,8 +289,9 @@ class ofxTimeMeasurements {
 		bool 									settingsLoaded;
 
 		#if defined(USE_OFX_HISTORYPLOT)
-		unordered_map<string, ofxHistoryPlot*>	plots;
+		map<string, ofxHistoryPlot*>			plots;
 		int plotHeight;
+		int										numAllocatdPlots;
 
 		ofxHistoryPlot*							makeNewPlot(string name);
 		#endif

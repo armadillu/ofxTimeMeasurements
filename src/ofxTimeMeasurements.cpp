@@ -22,6 +22,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 	#if defined(USE_OFX_HISTORYPLOT)
 	plotHeight = 60;
+	numAllocatdPlots = 0;
 	#endif
 
 	bgColor = ofColor(15);
@@ -582,7 +583,9 @@ void ofxTimeMeasurements::draw(float x, float y) {
 ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 
 	ofxHistoryPlot * plot = new ofxHistoryPlot( NULL, name, 1024, false);
-	plot->setColor( threadColorTable[plots.size()%(threadColorTable.size()-1)] );
+	int colorID = numAllocatdPlots%(threadColorTable.size());
+	cout << "color id " << colorID << endl;
+	plot->setColor( threadColorTable[colorID] );
 	plot->setBackgroundColor(ofColor(0,220));
 	plot->setShowNumericalInfo(true);
 	plot->setRespectBorders(true);
@@ -594,6 +597,7 @@ ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 	plot->setAutoRangeShrinksBack(true);
 	plot->setShowSmoothedCurve(true);
 	plot->setSmoothFilter(0.1);
+	numAllocatdPlots++;
 	return plot;
 }
 #endif
@@ -645,8 +649,7 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 					#if defined(USE_OFX_HISTORYPLOT)
 					case 'P':{
 						if (!plots[selection]){
-							ofxHistoryPlot * plot = makeNewPlot(selection);
-							plots[selection] = plot;
+							plots[selection] = makeNewPlot(selection);
 							times[selection]->settings.plotting = true;
 						}else{
 							times[selection]->settings.plotting ^= true;

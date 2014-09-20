@@ -111,10 +111,12 @@ void testApp::draw(){
 void testApp::keyPressed( ofKeyEventArgs & key ){
 
 	TS_START("keyDown");
-	if(myThreads.size() < 6){
-		MyThread *t = new MyThread();
-		t->startThread();
-		myThreads.push_back(t);
+	if(key.key == ' '){
+		if(myThreads.size() < 6){
+			MyThread *t = new MyThread();
+			t->startThread();
+			myThreads.push_back(t);
+		}
 	}
 	TS_STOP("keyDown");
 }

@@ -584,7 +584,6 @@ ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 
 	ofxHistoryPlot * plot = new ofxHistoryPlot( NULL, name, 1024, false);
 	int colorID = numAllocatdPlots%(threadColorTable.size());
-	cout << "color id " << colorID << endl;
 	plot->setColor( threadColorTable[colorID] );
 	plot->setBackgroundColor(ofColor(0,220));
 	plot->setShowNumericalInfo(true);

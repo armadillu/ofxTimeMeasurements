@@ -139,6 +139,7 @@ class ofxTimeMeasurements {
 
 		//[0..1], 0.97 means that timeSample decreases 3% its life per frame
 		void setIdleTimeDecay(float decay){ idleTimeColorDecay = decay;}
+		void setDeadThreadTimeDecay(float decay); //when a thread is dead and to be removed from screen, extend a but its stay by using a slower decay
 
 		//set keyboard command activation keys
 		void setUIActivationKey(unsigned int k){activateKey = k;} //to show/hide the widget
@@ -264,6 +265,7 @@ class ofxTimeMeasurements {
 
 		float									idleTimeColorFadePercent;
 		float									idleTimeColorDecay;
+		float									deadThreadExtendedLifeDecSpeed;
 
 		vector<ofColor>							threadColorTable;
 		int										numThreads;

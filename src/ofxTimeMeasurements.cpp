@@ -348,7 +348,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 			if (t->life > 0.01){
 				t->life *= idleTimeColorDecay; //decrease life
 			}else{ //life decays very slow when very low
-				t->life *= 0.997; //decrease life very slowly
+				t->life *= 0.975; //decrease life very slowly
 			}
 		}
 		if (!t->updatedLastFrame && timeAveragePercent < 1.0f){ // if we didnt update that time, make it tend to zero slowly
@@ -410,7 +410,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 				#endif
 
 				bool visible = t->settings.visible;
-				bool alive = t->life > 0.000001;
+				bool alive = t->life > 0.00001;
 				if(alive){
 					numAlive++;
 				}

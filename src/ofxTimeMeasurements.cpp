@@ -410,7 +410,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 				#endif
 
 				bool visible = t->settings.visible;
-				bool alive = t->life > 0.00001;
+				bool alive = t->life > 0.0001;
 				if(alive){
 					numAlive++;
 				}

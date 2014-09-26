@@ -61,12 +61,13 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	settingsLoaded = false;
 
 #if (OF_VERSION_MINOR >= 8)
-		ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP);
-		ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP);
-		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP);
-		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP);
-		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP);
-		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP);
+		//-100 and +100 are to make sure we are always the first AND last at update and draw events, so we can sum everyone's times
+		ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
+		ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
+		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP - 100);
+		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP + 100);
+		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP - 100);
+		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP + 100);
 		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed);
 		ofAddListener(ofEvents().exit, this, &ofxTimeMeasurements::_appExited); //to save to xml
 #else
@@ -590,6 +591,7 @@ ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 	plot->setRespectBorders(true);
 	plot->setLineWidth(1);
 	plot->setLowerRange(0);
+	plot->addHorizontalGuide(1000.0f/desiredFrameRate, ofColor(0,255,0));
 	plot->setDrawGrid(true);
 	plot->setGridUnit(16);
 	plot->setGridColor(ofColor(40,255));

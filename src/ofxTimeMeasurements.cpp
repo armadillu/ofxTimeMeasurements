@@ -32,6 +32,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 	idleTimeColorFadePercent = 0.5;
 	idleTimeColorDecay = 0.96;
+	deadThreadExtendedLifeDecSpeed = 0.975;
 
 	longestLabel = 0;
 	selection = TIME_MEASUREMENTS_UPDATE_KEY;
@@ -99,6 +100,9 @@ ofxTimeMeasurements* ofxTimeMeasurements::instance(){
 	return singleton;
 }
 
+void ofxTimeMeasurements::setDeadThreadTimeDecay(float decay){
+	deadThreadExtendedLifeDecSpeed = ofClamp(decay, idleTimeColorDecay, 1.0);
+}
 
 float ofxTimeMeasurements::getLastDurationFor(string ID){
 
@@ -349,7 +353,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 			if (t->life > 0.01){
 				t->life *= idleTimeColorDecay; //decrease life
 			}else{ //life decays very slow when very low
-				t->life *= 0.997; //decrease life very slowly
+				t->life *= deadThreadExtendedLifeDecSpeed; //decrease life very slowly
 			}
 		}
 		if (!t->updatedLastFrame && timeAveragePercent < 1.0f){ // if we didnt update that time, make it tend to zero slowly
@@ -411,7 +415,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 				#endif
 
 				bool visible = t->settings.visible;
-				bool alive = t->life > 0.000001;
+				bool alive = t->life > 0.0001;
 				if(alive){
 					numAlive++;
 				}

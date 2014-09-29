@@ -345,6 +345,8 @@ void ofxTimeMeasurements::draw(float x, float y) {
 
 	mutex.lock();
 
+	vector<TimeMeasurement*> toResetUpdatedLastFrameFlag;
+
 	//update time stuff, build draw lists
 	for( unordered_map<string,TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
 		TimeMeasurement* t = ii->second;
@@ -359,7 +361,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 		if (!t->updatedLastFrame && timeAveragePercent < 1.0f){ // if we didnt update that time, make it tend to zero slowly
 			t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration;
 		}
-		t->updatedLastFrame = false;
+		toResetUpdatedLastFrameFlag.push_back(t);
 	}
 
 	unordered_map<Poco::Thread*, ThreadInfo>::iterator ii;
@@ -407,7 +409,9 @@ void ofxTimeMeasurements::draw(float x, float y) {
 				bool plotActive = false;
 				if(plots[key]){
 					if(t->settings.plotting){
-						plots[key]->update(t->avgDuration / 1000.0f);
+						if(t->updatedLastFrame){
+							plots[key]->update(t->avgDuration / 1000.0f);
+						}
 						plotsToDraw.push_back(plots[key]);
 						plotActive = true;
 					}
@@ -492,8 +496,6 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	mutex.unlock();
 
 	updateLongestLabel();
-
-
 
 	//update max width, find headers
 	int tempMaxW = -1;
@@ -582,6 +584,10 @@ void ofxTimeMeasurements::draw(float x, float y) {
 					   x, y + lastLine );
 
 	ofPopStyle();
+
+	for(int i = 0; i < toResetUpdatedLastFrameFlag.size(); i++){
+		toResetUpdatedLastFrameFlag[i]->updatedLastFrame = false;
+	}
 }
 
 #if defined(USE_OFX_HISTORYPLOT)

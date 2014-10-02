@@ -119,7 +119,7 @@ class ofxTimeMeasurements {
 
 		static ofxTimeMeasurements* instance();
 
-		void setConfigsDir(string d){configsDir = d;}
+		void setConfigsDir(string d);
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 											//affects the % busy indicator
 		bool startMeasuring(string ID, bool accumulate);

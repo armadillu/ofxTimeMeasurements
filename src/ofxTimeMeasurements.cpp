@@ -138,7 +138,7 @@ void ofxTimeMeasurements::setHighlightColor(ofColor c){
 }
 
 
-bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate){
+bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate, ofColor color){
 
 	if (!enabled) return true;
 	if (!settingsLoaded){
@@ -165,7 +165,11 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate){
 		//init the iterator
 		threadInfo[thread].tit = tr.insert(tr.begin(), tName);
 		if (thread){
-			threadInfo[thread].color = threadColorTable[numThreads%(threadColorTable.size())];
+			if(color.a == 0 && color.r == 0 && color.g == 0 && color.b == 0){
+				threadInfo[thread].color = threadColorTable[numThreads%(threadColorTable.size())];
+			}else{
+				threadInfo[thread].color = color;
+			}
 			numThreads++;
 		}else{
 			threadInfo[thread].color = hilightColor;

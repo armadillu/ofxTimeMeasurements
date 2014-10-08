@@ -59,16 +59,16 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_SAMPLE_SET_CONFIG_DIR(x) 	(ofxTimeMeasurements::instance()->setConfigsDir(x))
 #define TIME_SAMPLE_SET_FRAMERATE(x)	(ofxTimeMeasurements::instance()->setDesiredFrameRate(x))
 
-#define TIME_SAMPLE_START(x)			if(ofxTimeMeasurements::instance()->startMeasuring(x, false)){
+#define TIME_SAMPLE_START(x, ...)		if(ofxTimeMeasurements::instance()->startMeasuring(x, false, ##__VA_ARGS__)){
 #define TIME_SAMPLE_STOP(x)				}ofxTimeMeasurements::instance()->stopMeasuring(x, false)
 
-#define TIME_SAMPLE_START_ACC(x)		if(ofxTimeMeasurements::instance()->startMeasuring(x, true)){
+#define TIME_SAMPLE_START_ACC(x, ...)	if(ofxTimeMeasurements::instance()->startMeasuring(x, true, ##__VA_ARGS__)){
 #define TIME_SAMPLE_STOP_ACC(x)			}ofxTimeMeasurements::instance()->stopMeasuring(x, true)
 
-#define TIME_SAMPLE_START_NOIF(x)		ofxTimeMeasurements::instance()->startMeasuring(x, false)
+#define TIME_SAMPLE_START_NOIF(x, ...)	ofxTimeMeasurements::instance()->startMeasuring(x, false, ##__VA_ARGS__)
 #define TIME_SAMPLE_STOP_NOIF(x)		ofxTimeMeasurements::instance()->stopMeasuring(x, false)
 
-#define TIME_SAMPLE_START_ACC_NOIF(x)	ofxTimeMeasurements::instance()->startMeasuring(x, true)
+#define TIME_SAMPLE_START_ACC_NOIF(x, ...)	ofxTimeMeasurements::instance()->startMeasuring(x, true, ##__VA_ARGS__)
 #define TIME_SAMPLE_STOP_ACC_NOIF(x)	ofxTimeMeasurements::instance()->stopMeasuring(x, true)
 
 #define TIME_SAMPLE_SET_DRAW_LOCATION(x,...)(ofxTimeMeasurements::instance()->setDrawLocation(x,##__VA_ARGS__))
@@ -87,15 +87,16 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 //shortcuts!
 
 //includes if(){ } caluse for you
-#define TS_START(x)						TIME_SAMPLE_START(x)
+#define TS_START(x, ...)				TIME_SAMPLE_START(x, ##__VA_ARGS__)
 #define TS_STOP(x)						TIME_SAMPLE_STOP(x)
-#define TS_START_ACC(x)					TIME_SAMPLE_START_ACC(x)
+#define TS_START_ACC(x, ...	)			TIME_SAMPLE_START_ACC(x, ##__VA_ARGS__)
 #define TS_STOP_ACC(x)					TIME_SAMPLE_STOP_ACC(x)
 
+
 //no if clause, to be used in timings that are measured across several methods / frames
-#define TS_START_NIF(x)						TIME_SAMPLE_START_NOIF(x)
+#define TS_START_NIF(x, ...)				TIME_SAMPLE_START_NOIF(x, ##__VA_ARGS__)
 #define TS_STOP_NIF(x)						TIME_SAMPLE_STOP_NOIF(x)
-#define TS_START_ACC_NIF(x)					TIME_SAMPLE_START_ACC_NOIF(x)
+#define TS_START_ACC_NIF(x, ...)			TIME_SAMPLE_START_ACC_NOIF(x, ##__VA_ARGS__)
 #define TS_STOP_ACC_NIF(x)					TIME_SAMPLE_STOP_ACC_NOIF(x)
 
 
@@ -122,7 +123,7 @@ class ofxTimeMeasurements {
 		void setConfigsDir(string d);
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 											//affects the % busy indicator
-		bool startMeasuring(string ID, bool accumulate);
+		bool startMeasuring(string ID, bool accumulate, ofColor c = ofColor(0,0,0,0));
 		float stopMeasuring(string ID, bool accumulate);
 		void setEnabled( bool enable );
 		bool getEnabled();

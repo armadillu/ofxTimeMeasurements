@@ -538,7 +538,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	for(int i = 0; i < plotsToDraw.size(); i++){
 		int y = ofGetHeight() - plotHeight * (i + 1);
 		plotsToDraw[i]->draw(0, y, ofGetWidth(), plotHeight);
-		ofSetColor(66);
+		ofSetColor(99);
 		if(i != plotsToDraw.size() -1){
 			ofLine(0, y, ofGetWidth(), y );
 		}
@@ -613,7 +613,7 @@ ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 	plot->addHorizontalGuide(1000.0f/desiredFrameRate, ofColor(0,255,0));
 	plot->setDrawGrid(true);
 	plot->setGridUnit(16);
-	plot->setGridColor(ofColor(40,255));
+	plot->setGridColor(ofColor(20,255));
 	plot->setAutoRangeShrinksBack(true);
 	plot->setShowSmoothedCurve(true);
 	plot->setSmoothFilter(0.1);

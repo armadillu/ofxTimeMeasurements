@@ -164,6 +164,8 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate, ofColor col
 															 " Thread(" + ofToString(numThreads) + ")");
 		//init the iterator
 		threadInfo[thread].tit = tr.insert(tr.begin(), tName);
+		threadInfo[thread].order = numThreads;
+
 		if (thread){
 			if(color.a == 0 && color.r == 0 && color.g == 0 && color.b == 0){
 				threadInfo[thread].color = threadColorTable[numThreads%(threadColorTable.size())];
@@ -344,8 +346,6 @@ void ofxTimeMeasurements::updateLongestLabel(){
 
 void ofxTimeMeasurements::draw(float x, float y) {
 
-	vector<string> hiddenKeys;
-
 	if (!enabled) return;
 
 	drawLines.clear();
@@ -377,22 +377,26 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	vector<Poco::Thread*> expiredThreads;
 
 	//lets make sure the Main Thread is always on top
-	vector< pair<Poco::Thread*, ThreadInfo> > orderedThreadList;
+	vector< pair<Poco::Thread*, ThreadInfo> > sortedThreadList;
+
 	for( ii = threadInfo.begin(); ii != threadInfo.end(); ++ii ){ //walk all thread trees
 		if (ii->first == NULL){ //main thread is NULL!
-			orderedThreadList.insert(orderedThreadList.begin(), *ii);
+			sortedThreadList.insert(sortedThreadList.begin(), *ii);
 		}else{
-			orderedThreadList.push_back(*ii);
+			sortedThreadList.push_back(*ii);
 		}
 	}
+
+	std::sort(sortedThreadList.begin(), sortedThreadList.end(), compareThreadPairs);
 
 	#if defined(USE_OFX_HISTORYPLOT)
 	vector<ofxHistoryPlot*> plotsToDraw;
 	#endif
-	for( int k = 0; k < orderedThreadList.size(); k++ ){ //walk all thread trees
 
-		Poco::Thread* thread = orderedThreadList[k].first;
-		tree<string> &tr = orderedThreadList[k].second.tree;
+	for( int k = 0; k < sortedThreadList.size(); k++ ){ //walk all thread trees
+
+		Poco::Thread* thread = sortedThreadList[k].first;
+		tree<string> &tr = sortedThreadList[k].second.tree;
 
 		tree<string>::iterator walker = tr.begin();
 

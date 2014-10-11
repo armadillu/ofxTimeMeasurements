@@ -216,6 +216,7 @@ class ofxTimeMeasurements {
 			tree<string>::iterator		tit; //tree iterator, to keep track of which node are we measuring now
 			tree<string>				tree;
 			ofColor						color;
+			int order;
 		};
 
 		void _beforeSetup(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_SETUP_KEY, false);};
@@ -238,6 +239,11 @@ class ofxTimeMeasurements {
 
 		string formatTime(uint64_t microSeconds, int precision);
 		string getTimeStringForTM(TimeMeasurement* tm);
+
+
+		static bool compareThreadPairs(const pair<Poco::Thread*, ThreadInfo>& l, const pair<Poco::Thread*, ThreadInfo>& r){
+			return l.second.order < r.second.order;
+		}
 
 		static ofxTimeMeasurements*				singleton;
 

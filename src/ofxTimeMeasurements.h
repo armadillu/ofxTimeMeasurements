@@ -10,8 +10,9 @@
 #pragma once
 
 #include "ofMain.h"
-#include "../lib/tree.hh"
+#include "../lib/tree.h"
 #include <map>
+
 
 #if __cplusplus>=201103L || defined(_MSC_VER)
 	#include <unordered_map>
@@ -213,8 +214,8 @@ class ofxTimeMeasurements {
 		};
 
 		struct ThreadInfo{
-			tree<string>::iterator		tit; //tree iterator, to keep track of which node are we measuring now
-			tree<string>				tree;
+			core::tree<string>::iterator		tit; //tree iterator, to keep track of which node are we measuring now
+			core::tree<string>				tree;
 			ofColor						color;
 			int order;
 		};
@@ -305,6 +306,9 @@ class ofxTimeMeasurements {
 
 		ofxHistoryPlot*							makeNewPlot(string name);
 		#endif
+
+		void walkTree(core::tree<string>::iterator Arg, int levelArg, vector<string> &result);
+
 
 };
 

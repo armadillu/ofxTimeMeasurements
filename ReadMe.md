@@ -94,4 +94,4 @@ If you do so, when in interactive mode, you can press you can press 'P' to toggl
 ####LICENSE
 ofxTimeMeasurements is made available under the [MIT](http://opensource.org/licenses/MIT) license.
 
-ofxTimeMeasurements makes small use of [tree.hh](http://tree.phi-sci.com) which is licensed under the terms of the GNU General Public License [2](http://www.gnu.org/licenses/old-licenses/gpl-2.0.html) or [3](http://www.gnu.org/licenses/old-licenses/gpl-3.0.html).
+ofxTimeMeasurements makes small use of [tree.h](http://archive.gamedev.net/archive/reference/programming/features/coretree2/tree.h) by Justin Gottschlich which is licensed under the terms of the GNU Lesser General Public License 2.1 ([LGPL v2.1](http://choosealicense.com/licenses/lgpl-2.1/)).

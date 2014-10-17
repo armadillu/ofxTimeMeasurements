@@ -10,9 +10,31 @@
 #include "ofxTimeMeasurements.h"
 #include <float.h>
 
+
 ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
 
+
 ofxTimeMeasurements::ofxTimeMeasurements(){
+
+	core::tree<string>::iterator		mit; //tree iterator, to keep track of which node are we measuring now
+	core::tree<string>					mtree;
+
+	*mtree = "0";
+	mtree.insert("1");
+	mtree.insert("2");
+	mit = mtree.insert("3");
+	mit = mit.insert("4");
+	if(mit.next() == mit.end()){
+		int a = 1+1;
+	}else{
+		int a = 1+1;
+	}
+
+	mit = mtree.begin();
+	if (mit != mtree.begin()){
+		mit = mit.out();
+	}
+
 
 	desiredFrameRate = 60.0f;
 	enabled = true;
@@ -155,36 +177,33 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate, ofColor col
 	mutex.lock();
 
 	unordered_map<Poco::Thread*, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
-	tree<string> &tr = threadInfo[thread].tree; //easier to read, tr is our tree from now on
+	ThreadInfo & tinfo = threadInfo[thread];
+	core::tree<string> &tr = tinfo.tree; //easier to read, tr is our tree from now on
 
 	if (threadIt == threadInfo.end()){ //new thread!
 
 		//string tName = isMainThread ? "mainThread" : string("Thread " + ofToString(threadCounter));
 		string tName = isMainThread ? "Main Thread" : string(Poco::Thread::current()->getName() +
-															 " Thread(" + ofToString(numThreads) + ")");
+															 " (" + ofToString(numThreads) + ")");
 		//init the iterator
-		threadInfo[thread].tit = tr.insert(tr.begin(), tName);
-		threadInfo[thread].order = numThreads;
+		*tr = tName; //thread name is root
+		tinfo.tit = (core::tree<string>::iterator)tr;
+		tinfo.order = numThreads;
 
 		if (thread){
 			if(color.a == 0 && color.r == 0 && color.g == 0 && color.b == 0){
-				threadInfo[thread].color = threadColorTable[numThreads%(threadColorTable.size())];
+				tinfo.color = threadColorTable[numThreads%(threadColorTable.size())];
 			}else{
-				threadInfo[thread].color = color;
+				tinfo.color = color;
 			}
 			numThreads++;
 		}else{
-			threadInfo[thread].color = hilightColor;
+			tinfo.color = hilightColor;
 		}
 	}
 
-//	if(thread){ //add thread name prefix to ID to minimize name conflicts
-//		ID = thread->getName() + " " + ID;
-//	}
-
 	//see if the new measurement already was in tree
-	tree<string>::iterator current = threadInfo[thread].tit;
-	tree<string>::sibling_iterator searchIt = find(tr.begin(), tr.end(), ID);
+	core::tree<string>::iterator searchIt = tr.find(ID);
 
 	if(searchIt == tr.end()){ //if it wasnt in the tree, append it
 
@@ -192,12 +211,17 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate, ofColor col
 			ID == TIME_MEASUREMENTS_UPDATE_KEY ||
 			ID == TIME_MEASUREMENTS_DRAW_KEY
 			){ //setup update and draw are always at root level!
-			threadInfo[thread].tit = tr.append_child(tr.begin(), ID);
+			if (tr.size()){
+				tinfo.tit = tr.push_back(ID);
+			}else{
+				tinfo.tit = tr.insert(ID);
+			}
+
 		}else{
-			threadInfo[thread].tit = tr.append_child(current, ID);
+			tinfo.tit = tinfo.tit.push_back(ID);
 		}
 	}else{
-		threadInfo[thread].tit = searchIt;
+		tinfo.tit = searchIt;
 	}
 
 	//see if we had an actual measurement, or its a new one
@@ -246,13 +270,10 @@ float ofxTimeMeasurements::stopMeasuring(string ID, bool accumulate){
 
 	mutex.lock();
 
-	tree<string> &tr = threadInfo[thread].tree; //easier to read, tr is our tree from now on
-	tree<string>::iterator & tit = threadInfo[thread].tit;
-	if(tit != NULL){
-		tit = tr.parent(tit);
-		if(tit == NULL) tit = tr.begin();
-	}else{
-		tit = tr.begin();
+	core::tree<string> &tr = threadInfo[thread].tree; //easier to read, tr is our tree from now on
+	core::tree<string>::iterator & tit = threadInfo[thread].tit;
+	if (tit != tr.begin()){
+		tit = tit.out();
 	}
 
 	unordered_map<string,TimeMeasurement*>::iterator it;
@@ -396,91 +417,102 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	for( int k = 0; k < sortedThreadList.size(); k++ ){ //walk all thread trees
 
 		Poco::Thread* thread = sortedThreadList[k].first;
-		tree<string> &tr = sortedThreadList[k].second.tree;
+		core::tree<string> &tr = sortedThreadList[k].second.tree;
 
-		tree<string>::iterator walker = tr.begin();
 
 		PrintedLine header;
-		header.formattedKey = "+" + *walker;
+		header.formattedKey = "+" + *tr;
 		header.color = threadInfo[thread].color;
-		header.key = *walker; //key for selection, is thread name
+		header.key = *tr; //key for selection, is thread name
 		drawLines.push_back(header); //add header to drawLines
 
 		int numAlive = 0;
 		int numAdded = 0;
-		if( walker != tr.end()){
 
-			tree<string>::iterator sib = tr.begin(walker);
-			tree<string>::iterator end = tr.end(walker);
+		core::tree<string>::iterator wholeTreeWalker = tr.in();
+		bool finishedWalking = false;
 
-			while(sib != end) {
+		while( !finishedWalking ){
 
-				string key = *sib;
-				TimeMeasurement * t = times[key];
+			string key = *wholeTreeWalker;
+			TimeMeasurement * t = times[*wholeTreeWalker];
 
-				#if defined(USE_OFX_HISTORYPLOT)
-				bool plotActive = false;
-				if(plots[key]){
-					if(t->settings.plotting){
-						if(t->updatedLastFrame){
-							plots[key]->update(t->avgDuration / 1000.0f);
-						}
-						plotsToDraw.push_back(plots[key]);
-						plotActive = true;
+			#if defined(USE_OFX_HISTORYPLOT)
+			bool plotActive = false;
+			if(plots[key]){
+				if(t->settings.plotting){
+					if(t->updatedLastFrame){
+						plots[key]->update(t->avgDuration / 1000.0f);
 					}
+					plotsToDraw.push_back(plots[key]);
+					plotActive = true;
 				}
+			}
+			#endif
+
+			bool visible = t->settings.visible;
+			bool alive = t->life > 0.0001;
+			if(alive){
+				numAlive++;
+			}
+
+			if (visible){
+				PrintedLine l;
+				l.key = key;
+				l.tm = t;
+
+				int depth = wholeTreeWalker.level();
+				for(int i = 0; i < depth; ++i) l.formattedKey += " ";
+
+				if (wholeTreeWalker.size() == 0){
+					l.formattedKey += "-";
+				}else{
+					l.formattedKey += "+";
+				}
+				l.formattedKey += key;
+				#if defined(USE_OFX_HISTORYPLOT)
+				if(plotActive) l.formattedKey += " [p]";
 				#endif
 
-				bool visible = t->settings.visible;
-				bool alive = t->life > 0.0001;
-				if(alive){
-					numAlive++;
+				l.time = getTimeStringForTM(t);
+
+				l.color = threadInfo[thread].color * ((1.0 - idleTimeColorFadePercent) + idleTimeColorFadePercent * t->life);
+				if (!t->settings.enabled){
+					l.color = disabledTextColor;
 				}
+				if (t->key == selection && menuActive){
+					if(ofGetFrameNum()%5 < 4){
+						l.color.invert();
+					}
+				}
+				drawLines.push_back(l);
+				numAdded++;
+			}
 
-				if (visible){
-					PrintedLine l;
-					l.key = key;
-					l.tm = t;
+			//only update() and draw() count to the final %
+			if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
+				percentTotal += (t->avgDuration * 0.1f) / timePerFrame;
+			}
+			t->accumulating = false;
+			t->microsecondsAccum = 0;
 
-					int depth = tr.depth(sib);
-					for(int i = 0; i < depth; ++i) l.formattedKey += " ";
-
-					if (sib.number_of_children() == 0){
-						l.formattedKey += "-";
+			//control the iterator to walk the tree "recursivelly" without doing so.
+			if(wholeTreeWalker.size()){
+				wholeTreeWalker = wholeTreeWalker.in();
+			}else{
+				if ( wholeTreeWalker.next() == wholeTreeWalker.end() ){
+					wholeTreeWalker = wholeTreeWalker.out();
+					while( wholeTreeWalker.next() == wholeTreeWalker.end() && wholeTreeWalker != tr){
+						wholeTreeWalker = wholeTreeWalker.out();
+					}
+					if(wholeTreeWalker == tr){
+						finishedWalking = true;
 					}else{
-						l.formattedKey += "+";
+						wholeTreeWalker++;
 					}
-					l.formattedKey += key;
-					#if defined(USE_OFX_HISTORYPLOT)
-					if(plotActive) l.formattedKey += " [p]";
-					#endif
-
-					l.time = getTimeStringForTM(t);
-
-					//l.color = textColor * (0.35f + 0.65f * t->life);
-					l.color = threadInfo[thread].color * ((1.0 - idleTimeColorFadePercent) + idleTimeColorFadePercent * t->life);
-					if (!t->settings.enabled){
-						l.color = disabledTextColor;
-					}
-//					if (t->measuring){
-//						l.color = measuringColor;
-//					}
-					if (*sib == selection && menuActive){
-						if(ofGetFrameNum()%5 < 4){
-							l.color.invert();
-						}
-					}
-					drawLines.push_back(l);
-					numAdded++;
+				}else{
+					++wholeTreeWalker;
 				}
-
-				//only update() and draw() count to the final %
-				if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
-					percentTotal += (t->avgDuration * 0.1f) / timePerFrame;
-				}
-				t->accumulating = false;
-				t->microsecondsAccum = 0;
-				++sib;
 			}
 		}
 
@@ -712,15 +744,14 @@ void ofxTimeMeasurements::collapseExpand(string sel, bool collapse){
 
 	for( ii = threadInfo.begin(); ii != threadInfo.end(); ++ii ){
 
-		tree<string> &tr = ii->second.tree;
-		tree<string>::iterator loc = find(tr.begin(), tr.end(), sel);
+		core::tree<string> &tr = ii->second.tree;
+		core::tree<string>::iterator loc = tr.tree_find_depth(sel);
 
 		if( loc != tr.end()) {
-			tree<string>::iterator sib2 = tr.begin(loc);
-			tree<string>::iterator end2 = tr.end(loc);
-			while(sib2 != end2) {
-				times[*sib2]->settings.visible = !collapse;
-				++sib2;
+			vector<string> subTree;
+			walkTree(loc, 0, subTree);
+			for(int p = 0; p < subTree.size(); p++ ){
+				times[subTree[p]]->settings.visible = !collapse;
 			}
 		}
 	}
@@ -800,7 +831,6 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 				sprintf(percentChar, "% 5.1f", percent);
 			}
 		}
-
 		return timeString + percentChar + "%" ;
 	}
 }
@@ -893,6 +923,15 @@ void ofxTimeMeasurements::saveSettings(){
 		<< endl;
 	}
 	myfile.close();
+}
+
+
+void ofxTimeMeasurements::walkTree(core::tree<string>::iterator Arg, int levelArg, vector<string> &result){
+	levelArg++;
+	for(core::tree<string>::iterator x = Arg.begin(); x != Arg.end(); ++x){
+		result.push_back(x.data());
+		walkTree(x, levelArg, result);
+	}
 }
 
 

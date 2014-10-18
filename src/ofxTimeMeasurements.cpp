@@ -13,28 +13,7 @@
 
 ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
 
-
 ofxTimeMeasurements::ofxTimeMeasurements(){
-
-	core::tree<string>::iterator		mit; //tree iterator, to keep track of which node are we measuring now
-	core::tree<string>					mtree;
-
-	*mtree = "0";
-	mtree.insert("1");
-	mtree.insert("2");
-	mit = mtree.insert("3");
-	mit = mit.insert("4");
-	if(mit.next() == mit.end()){
-		int a = 1+1;
-	}else{
-		int a = 1+1;
-	}
-
-	mit = mtree.begin();
-	if (mit != mtree.begin()){
-		mit = mit.out();
-	}
-
 
 	desiredFrameRate = 60.0f;
 	enabled = true;
@@ -203,7 +182,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate, ofColor col
 	}
 
 	//see if the new measurement already was in tree
-	core::tree<string>::iterator searchIt = tr.find(ID);
+	core::tree<string>::iterator searchIt = tr.tree_find_depth(ID);
 
 	if(searchIt == tr.end()){ //if it wasnt in the tree, append it
 
@@ -218,7 +197,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate, ofColor col
 			}
 
 		}else{
-			tinfo.tit = tinfo.tit.push_back(ID);
+			tinfo.tit = tinfo.tit.insert(ID);
 		}
 	}else{
 		tinfo.tit = searchIt;
@@ -264,9 +243,6 @@ float ofxTimeMeasurements::stopMeasuring(string ID, bool accumulate){
 	//the measurement as much as possible
 
 	Poco::Thread * thread = Poco::Thread::current();
-//	if(thread){ //add thread name prefix to ID to minimize name conflicts
-//		ID = thread->getName() + " " + ID;
-//	}
 
 	mutex.lock();
 
@@ -407,7 +383,6 @@ void ofxTimeMeasurements::draw(float x, float y) {
 			sortedThreadList.push_back(*ii);
 		}
 	}
-
 	std::sort(sortedThreadList.begin(), sortedThreadList.end(), compareThreadPairs);
 
 	#if defined(USE_OFX_HISTORYPLOT)
@@ -418,7 +393,6 @@ void ofxTimeMeasurements::draw(float x, float y) {
 
 		Poco::Thread* thread = sortedThreadList[k].first;
 		core::tree<string> &tr = sortedThreadList[k].second.tree;
-
 
 		PrintedLine header;
 		header.formattedKey = "+" + *tr;

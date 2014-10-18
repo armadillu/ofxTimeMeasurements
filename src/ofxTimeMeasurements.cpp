@@ -197,7 +197,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate, ofColor col
 			}
 
 		}else{
-			tinfo.tit = tinfo.tit.insert(ID);
+			tinfo.tit = tinfo.tit.push_back(ID);
 		}
 	}else{
 		tinfo.tit = searchIt;

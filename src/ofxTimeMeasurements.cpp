@@ -15,6 +15,7 @@ ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
 
 ofxTimeMeasurements::ofxTimeMeasurements(){
 
+	uiScale = 1.0;
 	desiredFrameRate = 60.0f;
 	enabled = true;
 	timeAveragePercent = 1;
@@ -307,14 +308,14 @@ void ofxTimeMeasurements::autoDraw(){
 			draw(TIME_MEASUREMENTS_EDGE_GAP_H,TIME_MEASUREMENTS_EDGE_GAP_V);
 			break;
 		case TIME_MEASUREMENTS_TOP_RIGHT:
-			draw( ofGetWidth() - getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,TIME_MEASUREMENTS_EDGE_GAP_V);
+			draw( ofGetWidth() / uiScale - getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,TIME_MEASUREMENTS_EDGE_GAP_V);
 			break;
 		case TIME_MEASUREMENTS_BOTTOM_LEFT:
-			draw(TIME_MEASUREMENTS_EDGE_GAP_H,ofGetHeight() - getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V);
+			draw(TIME_MEASUREMENTS_EDGE_GAP_H, ofGetHeight() / uiScale - getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V);
 			break;
 		case TIME_MEASUREMENTS_BOTTOM_RIGHT:
-			draw( ofGetWidth() - getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,
-				 ofGetHeight() - getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V);
+			draw( ofGetWidth() / uiScale - getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,
+				 ofGetHeight() / uiScale - getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V);
 			break;
 		case TIME_MEASUREMENTS_CUSTOM_LOCATION:
 			draw(customDrawLocation.x, customDrawLocation.y);
@@ -345,6 +346,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 
 	if (!enabled) return;
 
+	
 	drawLines.clear();
 	float percentTotal = 0.0f;
 	float timePerFrame = 1000.0f / desiredFrameRate;
@@ -540,17 +542,22 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	maxW = tempMaxW;
 
 	ofSetupScreen(); //mmmm----
-
 	ofPushStyle();
+	ofPushMatrix();
+	ofScale(uiScale,uiScale);
+	ofSetDrawBitmapMode(OF_BITMAPMODE_SIMPLE);
+
+	ofFill();
+	ofEnableAlphaBlending();
 
 	#if defined(USE_OFX_HISTORYPLOT)
 	//int numCols = plotsToDraw.size()
 	for(int i = 0; i < plotsToDraw.size(); i++){
-		int y = ofGetHeight() - plotHeight * (i + 1);
-		plotsToDraw[i]->draw(0, y, ofGetWidth(), plotHeight);
+		int y = ofGetHeight() / uiScale - plotHeight * (i + 1);
+		plotsToDraw[i]->draw(0, y, ofGetWidth() / uiScale, plotHeight);
 		ofSetColor(99);
 		if(i != plotsToDraw.size() -1){
-			ofLine(0, y, ofGetWidth(), y );
+			ofLine(0, y, ofGetWidth() / uiScale, y );
 		}
 	}
 	#endif
@@ -602,11 +609,11 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	ofDrawBitmapString( " '" + ofToString(char(activateKey)) + "'" + string(timeAveragePercent < 1.0 ? " avgd!" : ""),
 					   x, y + lastLine );
 
-	ofPopStyle();
-
 	for(int i = 0; i < toResetUpdatedLastFrameFlag.size(); i++){
 		toResetUpdatedLastFrameFlag[i]->updatedLastFrame = false;
 	}
+	ofPopMatrix();
+	ofPopStyle();
 }
 
 #if defined(USE_OFX_HISTORYPLOT)

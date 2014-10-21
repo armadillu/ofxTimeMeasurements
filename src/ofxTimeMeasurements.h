@@ -41,9 +41,9 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #endif
 
 
-#define TIME_MEASUREMENTS_LINE_HEIGHT		14
-#define TIME_MEASUREMENTS_EDGE_GAP_H		5
-#define TIME_MEASUREMENTS_EDGE_GAP_V		5
+#define TIME_MEASUREMENTS_LINE_HEIGHT		(14)
+#define TIME_MEASUREMENTS_EDGE_GAP_H		(5 * uiScale)
+#define TIME_MEASUREMENTS_EDGE_GAP_V		(5 * uiScale)
 
 #define TIME_MEASUREMENTS_SETUP_KEY			"setup()"
 #define TIME_MEASUREMENTS_UPDATE_KEY		"update()"
@@ -150,11 +150,13 @@ class ofxTimeMeasurements {
 		void setEnableDisableSectionKey(unsigned int k){toggleSampleKey = k;} //to enable/disable the selected time measurement
 
 	
-		float getWidth() const{ return (maxW + 1) * 8; }
-		float getHeight() const{ return ( drawLines.size() + 2 ) * TIME_MEASUREMENTS_LINE_HEIGHT - 8; };
+		float getWidth() const{ return (maxW + 1) * 8;}
+		float getHeight() const{ return (drawLines.size() + 2 ) * TIME_MEASUREMENTS_LINE_HEIGHT - 8;}
 
 		float getLastDurationFor(string ID); //ms
 		float getAvgDurationFor(string ID); //ms
+
+		void setUiScale(float scale){uiScale = scale;};
 
 		void setRemoveExpiredThreads(bool b){removeExpiredThreads = b;}
 		#if defined(USE_OFX_HISTORYPLOT)
@@ -298,7 +300,7 @@ class ofxTimeMeasurements {
 
 		bool									removeExpiredThreads;
 		bool 									settingsLoaded;
-
+		float 									uiScale;
 		#if defined(USE_OFX_HISTORYPLOT)
 		map<string, ofxHistoryPlot*>			plots;
 		int plotHeight;

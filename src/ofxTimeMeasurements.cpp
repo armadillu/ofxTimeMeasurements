@@ -418,7 +418,11 @@ void ofxTimeMeasurements::draw(float x, float y) {
 			if(plots[key]){
 				if(t->settings.plotting){
 					if(t->updatedLastFrame){
-						plots[key]->update(t->avgDuration / 1000.0f);
+						if (t->accumulating){
+							plots[key]->update(t->microsecondsAccum / 1000.0f);
+						}else{
+							plots[key]->update(t->avgDuration / 1000.0f);
+						}
 					}
 					plotsToDraw.push_back(plots[key]);
 					plotActive = true;

@@ -62,6 +62,8 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	removeExpiredThreads = true;
 
 	settingsLoaded = false;
+	charW = 8;
+	charH = TIME_MEASUREMENTS_LINE_HEIGHT;
 
 #if (OF_VERSION_MINOR >= 8)
 		//-100 and +100 are to make sure we are always the first AND last at update and draw events, so we can sum everyone's times
@@ -566,31 +568,33 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	}
 	#endif
 
+	float totalW = getWidth();
+	float totalH = getHeight();
 
 	ofSetColor(bgColor, 245);
 	int barH = 1;
-	ofRect(x, y + 1, getWidth(), getHeight());
+	ofRect(x, y + 1, totalW, totalH);
 
 	//thread header bg highlight
 	for(int i = 0; i < headerLocations.size(); i++){
 		int loc = headerLocations[i];
 		//whole section
 		ofSetColor(drawLines[loc].color, 40);
-		int h = TIME_MEASUREMENTS_LINE_HEIGHT * ((i < headerLocations.size() - 1) ? headerLocations[i+1] - headerLocations[i] : drawLines.size() - loc );
-		ofRect(x, y + 2 + loc * TIME_MEASUREMENTS_LINE_HEIGHT, getWidth(), h);
+		int h = charH * ((i < headerLocations.size() - 1) ? headerLocations[i+1] - headerLocations[i] : drawLines.size() - loc );
+		ofRect(x, y + 2 + loc * charH, totalW, h);
 		//thread header
 		ofSetColor(drawLines[loc].color, 40);
-		ofRect(x, y + 2 + loc * TIME_MEASUREMENTS_LINE_HEIGHT, getWidth(), TIME_MEASUREMENTS_LINE_HEIGHT + 1);
+		ofRect(x, y + 2 + loc * charH, totalW, charH + 1);
 	}
 
 	ofSetColor(hilightColor);
-	ofRect(x, y + 1, getWidth(), barH);
-	ofRect(x, y + getHeight() - TIME_MEASUREMENTS_LINE_HEIGHT - 4 , getWidth(), barH);
-	ofRect(x, y + getHeight(), getWidth() - barH, barH);
+	ofRect(x, y + 1, totalW, barH);
+	ofRect(x, y + totalH - charH - 4 , totalW, barH);
+	ofRect(x, y + totalH, totalW - barH, barH);
 
 	for(int i = 0; i < drawLines.size(); i++){
 		ofSetColor(drawLines[i].color);
-		drawString(drawLines[i].fullLine, x , y + (i + 1) * TIME_MEASUREMENTS_LINE_HEIGHT);
+		drawString(drawLines[i].fullLine, x , y + (i + 1) * charH);
 	}
 
 	//print bottom line, fps and stuff
@@ -607,7 +611,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	string pad = " ";
 	int diff = (maxW - len) - 1;
 	for(int i = 0; i < diff; i++) pad += " ";
-	int lastLine = ( drawLines.size() + 1 ) * TIME_MEASUREMENTS_LINE_HEIGHT + 2;
+	int lastLine = ( drawLines.size() + 1 ) * charH + 2;
 	drawString( pad + msg, x, y + lastLine );
 	ofSetColor(hilightColor);
 	drawString( " '" + ofToString(char(activateKey)) + "'" + string(timeAveragePercent < 1.0 ? " avgd!" : ""),
@@ -811,7 +815,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 			}
 
 			if (over){
-				sprintf(percentChar, int(ofGetFrameNum() * 0.8)%5 < 3  ? " $100": "  100");
+				sprintf(percentChar, int(ofGetFrameNum() * 0.8)%5 < 3  ? " >100": "  100");
 			}else{
 				sprintf(percentChar, "% 5.1f", percent);
 			}
@@ -929,10 +933,15 @@ void ofxTimeMeasurements::drawUiWithFontStash(string fontPath, float fontSize_){
 	useFontStash = true;
 	fontSize = fontSize_;
 	font.setup(ofToDataPath(fontPath, true), 1.0, 512, false, 0, uiScale);
+	ofRectangle r = font.getBBox("M", fontSize, 0, 0);
+	charW = r.width;
+	charH = ceil(r.height * 1.55);
 }
 
 void ofxTimeMeasurements::drawUiWithBitmapFont(){
 	useFontStash = false;
+	charW = 8;
+	charH = TIME_MEASUREMENTS_LINE_HEIGHT;
 }
 #endif
 

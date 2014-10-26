@@ -154,8 +154,8 @@ class ofxTimeMeasurements {
 		void setEnableDisableSectionKey(unsigned int k){toggleSampleKey = k;} //to enable/disable the selected time measurement
 
 	
-		float getWidth() const{ return (maxW + 1) * 8;}
-		float getHeight() const{ return (drawLines.size() + 2 ) * TIME_MEASUREMENTS_LINE_HEIGHT - 8;}
+		float getWidth() const{ return (maxW + 1) * charW + float(useFontStash ? 4.0f: 0.0f);}
+		float getHeight() const{ return (drawLines.size() + 2 ) * charH - 8;}
 
 		float getLastDurationFor(string ID); //ms
 		float getAvgDurationFor(string ID); //ms
@@ -168,7 +168,7 @@ class ofxTimeMeasurements {
 		#endif
 
 		#ifdef USE_OFX_FONTSTASH
-		void drawUiWithFontStash(string fontPath, float fontSize = 13.7f /*good with VeraMono*/);
+		void drawUiWithFontStash(string fontPath, float fontSize = 13.0f /*good with VeraMono*/);
 		void drawUiWithBitmapFont();
 		#endif
 
@@ -325,6 +325,8 @@ class ofxTimeMeasurements {
 		ofxFontStash							font;
 		float									fontSize;
 		#endif
+		float									charW;
+		float									charH;
 
 		void walkTree(core::tree<string>::iterator Arg, int levelArg, vector<string> &result);
 

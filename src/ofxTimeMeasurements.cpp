@@ -590,7 +590,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 
 	for(int i = 0; i < drawLines.size(); i++){
 		ofSetColor(drawLines[i].color);
-		ofDrawBitmapString(drawLines[i].fullLine, x , y + (i + 1) * TIME_MEASUREMENTS_LINE_HEIGHT);
+		drawString(drawLines[i].fullLine, x , y + (i + 1) * TIME_MEASUREMENTS_LINE_HEIGHT);
 	}
 
 	//print bottom line, fps and stuff
@@ -608,9 +608,9 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	int diff = (maxW - len) - 1;
 	for(int i = 0; i < diff; i++) pad += " ";
 	int lastLine = ( drawLines.size() + 1 ) * TIME_MEASUREMENTS_LINE_HEIGHT + 2;
-	ofDrawBitmapString( pad + msg, x, y + lastLine );
+	drawString( pad + msg, x, y + lastLine );
 	ofSetColor(hilightColor);
-	ofDrawBitmapString( " '" + ofToString(char(activateKey)) + "'" + string(timeAveragePercent < 1.0 ? " avgd!" : ""),
+	drawString( " '" + ofToString(char(activateKey)) + "'" + string(timeAveragePercent < 1.0 ? " avgd!" : ""),
 					   x, y + lastLine );
 
 	for(int i = 0; i < toResetUpdatedLastFrameFlag.size(); i++){
@@ -924,6 +924,29 @@ void ofxTimeMeasurements::_appExited(ofEventArgs &e){
 	saveSettings();
 }
 
+#ifdef USE_OFX_FONTSTASH
+void ofxTimeMeasurements::drawUiWithFontStash(string fontPath, float fontSize_){
+	useFontStash = true;
+	fontSize = fontSize_;
+	font.setup(ofToDataPath(fontPath, true), 1.0, 512, false, 0, uiScale);
+}
+
+void ofxTimeMeasurements::drawUiWithBitmapFont(){
+	useFontStash = false;
+}
+#endif
+
+void ofxTimeMeasurements::drawString(const string & text, const float & x, const float & y){
+	#ifdef USE_OFX_FONTSTASH
+	if(useFontStash){
+		font.draw(text, fontSize, x + 2, y);
+	}else{
+		ofDrawBitmapString(text, x, y);
+	}
+	#else
+	ofDrawBitmapString(text, x, y);
+	#endif
+}
 
 
 float ofxTimeMeasurements::durationForID( string ID){

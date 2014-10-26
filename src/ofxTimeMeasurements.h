@@ -25,8 +25,12 @@
 
 #ifdef USE_OFX_HISTORYPLOT
 	#include "ofxHistoryPlot.h"
-	//#pragma message "using ofxHistoryPlot"
 #endif
+
+#ifdef USE_OFX_FONTSTASH
+	#include "ofxFontStash.h"
+#endif
+
 
 /*
 if you want better resolution on windows, the use of ofxMsaTimer is recommended.
@@ -163,6 +167,12 @@ class ofxTimeMeasurements {
 		void setPlotHeight(int h){plotHeight = h;}
 		#endif
 
+		#ifdef USE_OFX_FONTSTASH
+		void drawUiWithFontStash(string fontPath, float fontSize = 13.7f /*good with VeraMono*/);
+		void drawUiWithBitmapFont();
+		#endif
+
+
 	private:
 
 		ofxTimeMeasurements(); // use ofxTimeMeasurements::instance() instead!
@@ -242,6 +252,7 @@ class ofxTimeMeasurements {
 
 		string formatTime(uint64_t microSeconds, int precision);
 		string getTimeStringForTM(TimeMeasurement* tm);
+		void drawString(const string & text, const float & x, const float & y);
 
 
 		static bool compareThreadPairs(const pair<Poco::Thread*, ThreadInfo>& l, const pair<Poco::Thread*, ThreadInfo>& r){
@@ -307,6 +318,12 @@ class ofxTimeMeasurements {
 		int										numAllocatdPlots;
 
 		ofxHistoryPlot*							makeNewPlot(string name);
+		#endif
+
+		#ifdef USE_OFX_FONTSTASH
+		bool									useFontStash;
+		ofxFontStash							font;
+		float									fontSize;
 		#endif
 
 		void walkTree(core::tree<string>::iterator Arg, int levelArg, vector<string> &result);

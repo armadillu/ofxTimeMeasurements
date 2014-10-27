@@ -154,7 +154,7 @@ class ofxTimeMeasurements {
 		void setEnableDisableSectionKey(unsigned int k){toggleSampleKey = k;} //to enable/disable the selected time measurement
 
 	
-		float getWidth() const{ return (maxW + 1) * charW + float(useFontStash ? 4.0f: 0.0f);}
+		float getWidth() const;
 		float getHeight() const{ return (drawLines.size() + 2 ) * charH - 8;}
 
 		float getLastDurationFor(string ID); //ms

@@ -998,3 +998,12 @@ void ofxTimeMeasurements::setMsPrecision(int digits){
 	msPrecision = digits;
 }
 
+
+float ofxTimeMeasurements::getWidth() const{
+	#ifdef USE_OFX_FONTSTASH
+	return (maxW + 1) * charW + float(useFontStash ? 4.0f: 0.0f);
+	#else
+	return (maxW + 1) * charW;
+	#endif
+}
+

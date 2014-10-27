@@ -252,7 +252,9 @@ float ofxTimeMeasurements::stopMeasuring(string ID, bool accumulate){
 	core::tree<string> &tr = threadInfo[thread].tree; //easier to read, tr is our tree from now on
 	core::tree<string>::iterator & tit = threadInfo[thread].tit;
 	if (tit != tr.begin()){
-		tit = tit.out();
+		if( tit != tr.end()){
+			tit = tit.out();
+		}
 	}
 
 	unordered_map<string,TimeMeasurement*>::iterator it;
@@ -347,7 +349,6 @@ void ofxTimeMeasurements::updateLongestLabel(){
 void ofxTimeMeasurements::draw(float x, float y) {
 
 	if (!enabled) return;
-
 	
 	drawLines.clear();
 	float percentTotal = 0.0f;

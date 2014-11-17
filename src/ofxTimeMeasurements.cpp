@@ -200,7 +200,12 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate, ofColor col
 			}
 
 		}else{
-			tinfo.tit = tinfo.tit.push_back(ID);
+			if(tinfo.tit == tr.end()){
+				ofLogError() << "ofxTimeMeasurements error - unordered tree cant climb back up!"; //TODO handle this better!
+				tinfo.tit = tr.push_back(ID);
+			}else{
+				tinfo.tit = tinfo.tit.push_back(ID);
+			}
 		}
 	}else{
 		tinfo.tit = searchIt;

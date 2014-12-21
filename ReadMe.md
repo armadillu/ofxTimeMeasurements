@@ -17,6 +17,7 @@ Simple OpenFrameworks addon to easily measure execution times across any section
 *	setup(), update(), and draw() are automatically time sampled.
 *	Optionally use [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer) for higher precision (recommended windows)
 *	Optionally use [ofxHistoryPlot](https://github.com/armadillu/ofxHistoryPlot) to show timings over time
+*	Optionally use [ofxFontStash](https://github.com/armadillu/ofxFontStash) for rendering, which looks nicer and is much faster than the default ofDrawBitmapFont. (see drawUiWithFontStash())
 
 ## QUICK START
 
@@ -90,6 +91,9 @@ If you do so, when in interactive mode, you can press you can press 'P' to toggl
 
 ![img](https://farm4.staticflickr.com/3845/15302062085_163388a0ed_o_d.png)
 
+####USING ofxFontStash
+
+Define USE_OFX_FONTSTASH in your project's PreProcessor Macros, and call TIME_SAMPLE_GET_INSTANCE()->drawUiWithFontStash() supplying a monospaced ttf font and a font size. You can also set the font scale by calling setUiScale(), but make sure you set the UI Scale before you supply the font.
 
 ####LICENSE
 ofxTimeMeasurements is made available under the [MIT](http://opensource.org/licenses/MIT) license.

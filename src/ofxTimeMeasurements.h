@@ -165,6 +165,7 @@ class ofxTimeMeasurements {
 		void setRemoveExpiredThreads(bool b){removeExpiredThreads = b;}
 		#if defined(USE_OFX_HISTORYPLOT)
 		void setPlotHeight(int h){plotHeight = h;}
+		void setPlotBaseY(float y){plotBaseY = y;}
 		#endif
 
 		#ifdef USE_OFX_FONTSTASH
@@ -172,6 +173,8 @@ class ofxTimeMeasurements {
 		void drawUiWithBitmapFont();
 		#endif
 
+		void setAutoDraw(bool b){drawAuto = b;}
+		void draw(float x, float y) ;
 
 	private:
 
@@ -242,7 +245,6 @@ class ofxTimeMeasurements {
 		void _appExited(ofEventArgs &e);
 		void _keyPressed(ofKeyEventArgs &e);
 
-		void draw(float x, float y) ;
 
 		void autoDraw();
 		void collapseExpand(string sel, bool colapse);
@@ -314,7 +316,8 @@ class ofxTimeMeasurements {
 		float 									uiScale;
 		#if defined(USE_OFX_HISTORYPLOT)
 		map<string, ofxHistoryPlot*>			plots;
-		int plotHeight;
+		int										plotHeight;
+		int										plotBaseY;
 		int										numAllocatdPlots;
 
 		ofxHistoryPlot*							makeNewPlot(string name);
@@ -330,6 +333,7 @@ class ofxTimeMeasurements {
 
 		void walkTree(core::tree<string>::iterator Arg, int levelArg, vector<string> &result);
 
+		bool									drawAuto;
 
 };
 

@@ -21,10 +21,12 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	timeAveragePercent = 1;
 	msPrecision = 1;
 	maxW = 27;
+	drawAuto = true;
 
 	#if defined(USE_OFX_HISTORYPLOT)
 	plotHeight = 60;
 	numAllocatdPlots = 0;
+	plotBaseY = 0;
 	#endif
 
 	bgColor = ofColor(15);
@@ -305,7 +307,9 @@ void ofxTimeMeasurements::setDrawLocation(ofxTMDrawLocation l, ofVec2f p){
 
 void ofxTimeMeasurements::_afterDraw(ofEventArgs &d){
 	stopMeasuring(TIME_MEASUREMENTS_DRAW_KEY, false);
-	autoDraw();
+	if(drawAuto){
+		autoDraw();
+	}
 };
 
 
@@ -565,7 +569,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	#if defined(USE_OFX_HISTORYPLOT)
 	//int numCols = plotsToDraw.size()
 	for(int i = 0; i < plotsToDraw.size(); i++){
-		int y = ofGetHeight() / uiScale - plotHeight * (i + 1);
+		int y = (plotBaseY == 0 ? ofGetHeight() : plotBaseY) / uiScale - plotHeight * (i + 1);
 		plotsToDraw[i]->draw(0, y, ofGetWidth() / uiScale, plotHeight);
 		ofSetColor(99);
 		if(i != plotsToDraw.size() -1){

@@ -29,7 +29,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	plotBaseY = 0;
 	#endif
 
-	bgColor = ofColor(15);
+	bgColor = ofColor(0);
 	hilightColor = ofColor(44,77,255) * 1.5;
 	disabledTextColor = ofColor(255,0,255);
 	measuringColor = ofColor(0,130,0);
@@ -581,7 +581,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	float totalW = getWidth();
 	float totalH = getHeight();
 
-	ofSetColor(bgColor, 245);
+	ofSetColor(bgColor);
 	int barH = 1;
 	ofRect(x, y + 1, totalW, totalH);
 
@@ -603,7 +603,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	ofRect(x, y + totalH, totalW - barH, barH);
 
 	for(int i = 0; i < drawLines.size(); i++){
-		ofSetColor(drawLines[i].color);
+		ofSetColor(ofColor(drawLines[i].color,255));
 		drawString(drawLines[i].fullLine, x , y + (i + 1) * charH);
 	}
 

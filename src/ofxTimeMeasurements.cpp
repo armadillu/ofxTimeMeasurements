@@ -22,6 +22,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	msPrecision = 1;
 	maxW = 27;
 	drawAuto = true;
+	useFontStash = false;
 
 	#if defined(USE_OFX_HISTORYPLOT)
 	plotHeight = 60;

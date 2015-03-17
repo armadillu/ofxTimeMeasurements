@@ -22,9 +22,9 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	msPrecision = 1;
 	maxW = 27;
 	drawAuto = true;
-	useFontStash = false;
 
 	#if defined(USE_OFX_HISTORYPLOT)
+	useFontStash = false;
 	plotHeight = 60;
 	numAllocatdPlots = 0;
 	plotBaseY = 0;

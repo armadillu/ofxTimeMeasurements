@@ -245,6 +245,8 @@ class ofxTimeMeasurements {
 		void _appExited(ofEventArgs &e);
 		void _keyPressed(ofKeyEventArgs &e);
 
+		void _windowResized(ofResizeEventArgs &e);
+
 
 		void autoDraw();
 		void collapseExpand(string sel, bool colapse);
@@ -274,6 +276,7 @@ class ofxTimeMeasurements {
 		vector<PrintedLine>						drawLines; //what's drawn line by line
 
 		double									timeAveragePercent;
+		bool									averaging;
 		int										msPrecision; //number of decimals to show
 
 		ofxTMDrawLocation						drawLocation;
@@ -286,6 +289,8 @@ class ofxTimeMeasurements {
 		ofColor									textColor;
 		ofColor									disabledTextColor;
 		ofColor									measuringColor;
+		ofColor									plottingColor;
+
 
 		float									idleTimeColorFadePercent;
 		float									idleTimeColorDecay;

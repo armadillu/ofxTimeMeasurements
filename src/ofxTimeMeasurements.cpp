@@ -18,7 +18,8 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	uiScale = 1.0;
 	desiredFrameRate = 60.0f;
 	enabled = true;
-	timeAveragePercent = 1;
+	timeAveragePercent = 0.02;
+	averaging = false;
 	msPrecision = 1;
 	maxW = 27;
 	drawAuto = true;
@@ -34,6 +35,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	hilightColor = ofColor(44,77,255) * 1.5;
 	disabledTextColor = ofColor(255,0,255);
 	measuringColor = ofColor(0,130,0);
+	plottingColor = ofColor(255,0,0);
 
 	idleTimeColorFadePercent = 0.5;
 	idleTimeColorDecay = 0.96;
@@ -78,6 +80,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP + 100);
 		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed);
 		ofAddListener(ofEvents().exit, this, &ofxTimeMeasurements::_appExited); //to save to xml
+		ofAddListener(ofEvents().windowResized, this, &ofxTimeMeasurements::_windowResized); //to save to xml
 #else
 	#if (OF_VERSION == 7 && OF_VERSION_MINOR >= 2 )
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate);
@@ -93,6 +96,19 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 #endif
 }
 
+void ofxTimeMeasurements::_windowResized(ofResizeEventArgs &e){
+
+	#if defined(USE_OFX_HISTORYPLOT)
+	int hist = MAX(1024, e.width);
+	map<string, ofxHistoryPlot*>::iterator it = plots.begin();
+	while(it != plots.end()){
+		if(it->second != NULL){
+			it->second->setMaxHistory(hist);
+		}
+		++it;
+	}
+	#endif
+}
 
 void ofxTimeMeasurements::setThreadColors(vector<ofColor> tc){
 	threadColorTable.clear();
@@ -219,8 +235,6 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate, ofColor col
 
 	if (tit == times.end()){ //not found, let alloc a new TimeMeasurement
 		times[ID] = new TimeMeasurement();
-
-		//keyOrder[ keyOrder.size() ] = ID;
 		unordered_map<string, TimeMeasurementSettings>::iterator it2 = settings.find(ID);
 		if (it2 != settings.end()){
 			times[ID]->settings = settings[ID];
@@ -236,7 +250,6 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate, ofColor col
 	t->accumulating = accumulate;
 	t->error = false;
 	t->frame = ofGetFrameNum();
-	t->measuring = true;
 	t->updatedLastFrame = true;
 
 	mutex.unlock();
@@ -282,7 +295,12 @@ float ofxTimeMeasurements::stopMeasuring(string ID, bool accumulate){
 			t->acrossFrames = (t->frame != ofGetFrameNum() && thread == NULL); //we only care about across-frames in main thread
 			t->microsecondsStop = timeNow;
 			ret = t->duration = t->microsecondsStop - t->microsecondsStart;
-			t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration + t->duration * timeAveragePercent;
+			if(!averaging){
+				t->avgDuration = t->duration;
+			}else{
+				t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration + t->duration * timeAveragePercent;
+			}
+
 			if (accumulate){
 				t->microsecondsAccum += t->duration;
 			}
@@ -463,9 +481,6 @@ void ofxTimeMeasurements::draw(float x, float y) {
 					l.formattedKey += "+";
 				}
 				l.formattedKey += key;
-				#if defined(USE_OFX_HISTORYPLOT)
-				if(plotActive) l.formattedKey += " [p]";
-				#endif
 
 				l.time = getTimeStringForTM(t);
 
@@ -473,11 +488,20 @@ void ofxTimeMeasurements::draw(float x, float y) {
 				if (!t->settings.enabled){
 					l.color = disabledTextColor;
 				}
-				if (t->key == selection && menuActive){
+
+				#if defined(USE_OFX_HISTORYPLOT)
+				if(plotActive){
+					l.formattedKey += " [p]";
+					if(ofGetFrameNum()%20 < 15) l.color = plots[key]->getColor();
+				}
+				#endif
+
+				if (menuActive && t->key == selection){
 					if(ofGetFrameNum()%5 < 4){
 						l.color.invert();
 					}
 				}
+
 				drawLines.push_back(l);
 				numAdded++;
 			}
@@ -625,7 +649,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	int lastLine = ( drawLines.size() + 1 ) * charH + 2;
 	drawString( pad + msg, x, y + lastLine );
 	ofSetColor(hilightColor);
-	drawString( " '" + ofToString(char(activateKey)) + "'" + string(timeAveragePercent < 1.0 ? " avgd!" : ""),
+	drawString( " '" + ofToString(char(activateKey)) + "'" + string(averaging? " avgd!" : ""),
 					   x, y + lastLine );
 
 	for(int i = 0; i < toResetUpdatedLastFrameFlag.size(); i++){
@@ -638,7 +662,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 #if defined(USE_OFX_HISTORYPLOT)
 ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 
-	ofxHistoryPlot * plot = new ofxHistoryPlot( NULL, name, 1024, false);
+	ofxHistoryPlot * plot = new ofxHistoryPlot( NULL, name, 2048, false);
 	int colorID = numAllocatdPlots%(threadColorTable.size());
 	plot->setColor( threadColorTable[colorID] );
 	plot->setBackgroundColor(ofColor(0,220));
@@ -668,6 +692,8 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 		if (e.key == activateKey){
 			menuActive = !menuActive;
 		}
+
+		if(e.key == 'A') averaging ^= true;  //Average Toggle
 
 		if(menuActive){
 
@@ -896,27 +922,24 @@ void ofxTimeMeasurements::loadSettings(){
 
 void ofxTimeMeasurements::saveSettings(){
 
-	ofDirectory d;
-	d.open(configsDir);
-	if(!d.exists()){
-		d.create(true);
-	}
+	ofDirectory::createDirectory(configsDir, true, true);
 	ofstream myfile;
 	myfile.open(ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME,true).c_str());
 	for( unordered_map<string, TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){
-		bool visible = times[ii->first]->settings.visible;
-		bool enabled = times[ii->first]->settings.enabled;
+		string keyName = ii->first;
+		bool visible = times[keyName]->settings.visible;
+		bool enabled = times[keyName]->settings.enabled;
 		#if defined(USE_OFX_HISTORYPLOT)
-		bool plotting = times[ii->first]->settings.plotting;
+		bool plotting = times[keyName]->settings.plotting;
 		#endif
 
-		if (ii->first == TIME_MEASUREMENTS_SETUP_KEY ||
-			ii->first == TIME_MEASUREMENTS_UPDATE_KEY ||
-			ii->first == TIME_MEASUREMENTS_DRAW_KEY){
+		if (keyName == TIME_MEASUREMENTS_SETUP_KEY ||
+			keyName == TIME_MEASUREMENTS_UPDATE_KEY ||
+			keyName == TIME_MEASUREMENTS_DRAW_KEY){
 			visible = enabled = true;
 		}
 
-		myfile << ii->first << "=" << string(visible ? "1" : "0") << "|" << string(enabled ? "1" : "0")
+		myfile << keyName << "=" << string(visible ? "1" : "0") << "|" << string(enabled ? "1" : "0")
 		#if defined(USE_OFX_HISTORYPLOT)
 		<< "|" << string(plotting ? "1" : "0")
 		#endif
@@ -986,7 +1009,12 @@ float ofxTimeMeasurements::durationForID( string ID){
 void ofxTimeMeasurements::setTimeAveragePercent(double p){
 	if(p > 1.0) p = 1.0;
 	if(p < 0.0) p = 0.0;
-	timeAveragePercent = p;
+	if(p >= 0.99999f){
+		averaging = false;
+	}else{
+		averaging = true;
+		timeAveragePercent = p;
+	}
 }
 
 

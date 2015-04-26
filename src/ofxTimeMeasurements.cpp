@@ -397,9 +397,9 @@ void ofxTimeMeasurements::draw(float x, float y) {
 				t->life *= deadThreadExtendedLifeDecSpeed; //decrease life very slowly
 			}
 		}
-		if (!t->updatedLastFrame && timeAveragePercent < 1.0f){ // if we didnt update that time, make it tend to zero slowly
-			t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration;
-		}
+//		if (!t->updatedLastFrame && averaging){ // if we didnt update that time, make it tend to zero slowly
+//			t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration;
+//		}
 		toResetUpdatedLastFrameFlag.push_back(t);
 	}
 

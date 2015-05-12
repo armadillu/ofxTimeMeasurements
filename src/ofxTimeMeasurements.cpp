@@ -24,8 +24,11 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	maxW = 27;
 	drawAuto = true;
 
-	#if defined(USE_OFX_HISTORYPLOT)
+	#if defined(USE_OFX_FONTSTASH)
 	useFontStash = false;
+	#endif
+	
+	#if defined(USE_OFX_HISTORYPLOT)
 	plotHeight = 60;
 	numAllocatdPlots = 0;
 	plotBaseY = 0;

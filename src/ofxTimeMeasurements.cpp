@@ -248,6 +248,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate, ofColor col
 	t->microsecondsStart = timeNow;
 	t->microsecondsStop = 0;
 	t->accumulating = accumulate;
+	if(accumulate) t->numAccumulations++;
 	t->error = false;
 	t->frame = ofGetFrameNum();
 	t->updatedLastFrame = true;
@@ -480,7 +481,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 				}else{
 					l.formattedKey += "+";
 				}
-				l.formattedKey += key;
+				l.formattedKey += key + string(t->accumulating ? "[" + ofToString(t->numAccumulations)+ "]" : "" );
 
 				l.time = getTimeStringForTM(t);
 
@@ -511,6 +512,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 				percentTotal += (t->avgDuration * 0.1f) / timePerFrame;
 			}
 			t->accumulating = false;
+			t->numAccumulations = 0;
 			t->microsecondsAccum = 0;
 
 			//control the iterator to walk the tree "recursivelly" without doing so.
@@ -824,7 +826,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 	}else{
 
 		string timeString;
-		char percentChar[64];
+		static char percentChar[64];
 
 		if (!tm->settings.enabled){
 			return "   DISABLED!";
@@ -857,7 +859,8 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 				sprintf(percentChar, "% 5.1f", percent);
 			}
 		}
-		return timeString + percentChar + "%" ;
+
+		return timeString + percentChar + "%";
 	}
 }
 

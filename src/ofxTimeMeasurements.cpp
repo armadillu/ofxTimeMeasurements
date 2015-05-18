@@ -481,7 +481,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 				}else{
 					l.formattedKey += "+";
 				}
-				l.formattedKey += key + string(t->accumulating ? "{" + ofToString(t->numAccumulations)+ "}" : "" );
+				l.formattedKey += key + string(t->accumulating ? "[" + ofToString(t->numAccumulations)+ "]" : "" );
 
 				l.time = getTimeStringForTM(t);
 

@@ -72,8 +72,10 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 #if (OF_VERSION_MINOR >= 8)
 		//-100 and +100 are to make sure we are always the first AND last at update and draw events, so we can sum everyone's times
-		ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
-		ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
+		#if (OF_VERSION_MINOR < 9)
+			ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
+			ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
+		#endif
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP - 100);
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP + 100);
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP - 100);
@@ -94,6 +96,13 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 		ofAddListener(ofEvents.draw, this, &ofxTimeMeasurements::_beforeDraw);
 	#endif
 #endif
+}
+
+void ofxTimeMeasurements::addSetupHooks(){
+	#if (OF_VERSION_MINOR >= 9)
+	ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
+	ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
+	#endif
 }
 
 void ofxTimeMeasurements::_windowResized(ofResizeEventArgs &e){
@@ -925,7 +934,9 @@ void ofxTimeMeasurements::loadSettings(){
 
 void ofxTimeMeasurements::saveSettings(){
 
-	ofDirectory::createDirectory(configsDir, true, true);
+	if(!ofDirectory::doesDirectoryExist(configsDir)){
+		ofDirectory::createDirectory(configsDir, true, true);
+	}
 	ofstream myfile;
 	myfile.open(ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME,true).c_str());
 	for( unordered_map<string, TimeMeasurement*>::iterator ii = times.begin(); ii != times.end(); ++ii ){

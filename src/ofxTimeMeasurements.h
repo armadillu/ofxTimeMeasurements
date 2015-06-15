@@ -127,6 +127,8 @@ class ofxTimeMeasurements {
 		void setAutoDraw(bool b){drawAuto = b;}
 		void draw(float x, float y) ;
 
+		void addSetupHooks();
+
 	private:
 
 		ofxTimeMeasurements(); // use ofxTimeMeasurements::instance() instead!

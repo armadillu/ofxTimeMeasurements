@@ -38,6 +38,10 @@
 #define TIME_SAMPLE_SET_REMOVE_EXPIRED_THREADS(x) (ofxTimeMeasurements::instance()->setRemoveExpiredThreads(x))
 #define TIME_SAMPLE_GET_INSTANCE()		(ofxTimeMeasurements::instance())
 
+//this is to add auto measurements on setup()
+//only to be used in OF >0.9, and in this case, only to be called from main();
+#define TIME_SAMPLE_ADD_SETUP_HOOKS()	(ofxTimeMeasurements::instance()->addSetupHooks())
+
 //shortcuts!
 
 //includes if(){ } caluse for you

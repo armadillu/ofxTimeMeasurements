@@ -181,16 +181,17 @@ class ofxTimeMeasurements {
 			string time;
 			string fullLine;
 			ofColor color;
-			bool isInstructions;
+			ofColor lineBgColor;
+			ofColor plotColor;
 			TimeMeasurement * tm;
-			PrintedLine(){ tm = NULL; isInstructions = false; }
+			PrintedLine(){ tm = NULL; plotColor.a = 0; }
 		};
 
 		struct ThreadInfo{
-			core::tree<string>::iterator		tit; //tree iterator, to keep track of which node are we measuring now
+			core::tree<string>::iterator	tit; //tree iterator, to keep track of which node are we measuring now
 			core::tree<string>				tree;
-			ofColor						color;
-			int order;
+			ofColor							color;
+			int								order;
 		};
 
 		void _beforeSetup(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_SETUP_KEY, false);};
@@ -247,7 +248,6 @@ class ofxTimeMeasurements {
 		ofColor									textColor;
 		ofColor									disabledTextColor;
 		ofColor									measuringColor;
-		ofColor									plottingColor;
 
 
 		float									idleTimeColorFadePercent;
@@ -297,6 +297,7 @@ class ofxTimeMeasurements {
 		void walkTree(core::tree<string>::iterator Arg, int levelArg, vector<string> &result);
 
 		bool									drawAuto;
+		unsigned char							dimColorA;
 
 };
 

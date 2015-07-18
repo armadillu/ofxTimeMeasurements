@@ -34,11 +34,13 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	plotBaseY = 0;
 	#endif
 
+	mainThreadID = NULL;
+
 	bgColor = ofColor(0);
 	hilightColor = ofColor(44,77,255) * 1.5;
 	disabledTextColor = ofColor(255,0,255);
 	measuringColor = ofColor(0,130,0);
-	plottingColor = ofColor(255,0,0);
+	dimColorA = 40;
 
 	idleTimeColorFadePercent = 0.5;
 	idleTimeColorDecay = 0.96;
@@ -55,7 +57,6 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 	menuActive = false;
 
-	mainThreadID = Poco::Thread::current();
 
 	int v = 180;
 	threadColorTable.push_back(ofColor(v,0,0));
@@ -190,14 +191,14 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 	//the measurement as much as possible
 
 	mutex.lock();
+	//cout << "### START ### " << ID << endl;
 
 	unordered_map<Poco::Thread*, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
 	ThreadInfo & tinfo = threadInfo[thread];
 	core::tree<string> &tr = tinfo.tree; //easier to read, tr is our tree from now on
 
-	if (threadIt == threadInfo.end()){ //new thread!
+	if (threadIt == threadInfo.end() ){ //new thread!
 
-		//string tName = isMainThread ? "mainThread" : string("Thread " + ofToString(threadCounter));
 		string tName = isMainThread ? "Main Thread" : string(Poco::Thread::current()->getName() +
 															 " (" + ofToString(numThreads) + ")");
 		//init the iterator
@@ -205,14 +206,14 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 		tinfo.tit = (core::tree<string>::iterator)tr;
 		tinfo.order = numThreads;
 
-		if (thread){
-			if(color.a == 0 && color.r == 0 && color.g == 0 && color.b == 0){
+		if (!isMainThread){
+			if(color.a == 0 && color.r == 0 && color.g == 0 && color.b == 0){ //no custom color
 				tinfo.color = threadColorTable[numThreads%(threadColorTable.size())];
 			}else{
 				tinfo.color = color;
 			}
 			numThreads++;
-		}else{
+		}else{ //main thread
 			tinfo.color = hilightColor;
 		}
 	}
@@ -221,25 +222,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 	core::tree<string>::iterator searchIt = tr.tree_find_depth(ID);
 
 	if(searchIt == tr.end()){ //if it wasnt in the tree, append it
-
-		if (ID == TIME_MEASUREMENTS_SETUP_KEY ||
-			ID == TIME_MEASUREMENTS_UPDATE_KEY ||
-			ID == TIME_MEASUREMENTS_DRAW_KEY
-			){ //setup update and draw are always at root level!
-			if (tr.size()){
-				tinfo.tit = tr.push_back(ID);
-			}else{
-				tinfo.tit = tr.insert(ID);
-			}
-
-		}else{
-			if(tinfo.tit == tr.end()){
-				ofLogError() << "ofxTimeMeasurements error - unordered tree cant climb back up!"; //TODO handle this better!
-				tinfo.tit = tr.push_back(ID);
-			}else{
-				tinfo.tit = tinfo.tit.push_back(ID);
-			}
-		}
+		tinfo.tit = tinfo.tit.push_back(ID);
 	}else{
 		tinfo.tit = searchIt;
 	}
@@ -284,13 +267,15 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 	Poco::Thread * thread = Poco::Thread::current();
 
 	mutex.lock();
+	//cout << "### STOP ### " << ID << endl;
 
-	core::tree<string> &tr = threadInfo[thread].tree; //easier to read, tr is our tree from now on
-	core::tree<string>::iterator & tit = threadInfo[thread].tit;
-	if (tit != tr.begin()){
-		if( tit != tr.end()){
-			tit = tit.out();
-		}
+	ThreadInfo & tinfo = threadInfo[thread];
+	core::tree<string> & tr = tinfo.tree; //easier to read, tr is our tree from now on
+	core::tree<string>::iterator & tit = tinfo.tit;
+	if (tit.out() != tr.end()){
+		tit = tit.out();
+	}else{
+		ofLogError("ofxTimeMeasurements") << "tree climbing too high up!" << endl;
 	}
 
 	unordered_map<string,TimeMeasurement*>::iterator it;
@@ -443,9 +428,11 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		Poco::Thread* thread = sortedThreadList[k].first;
 		core::tree<string> &tr = sortedThreadList[k].second.tree;
 
+		ThreadInfo & tinfo = threadInfo[thread];
 		PrintedLine header;
-		header.formattedKey = "+" + *tr;
-		header.color = threadInfo[thread].color;
+		header.formattedKey = "+ " + *tr;
+		header.color = tinfo.color;
+		header.lineBgColor = ofColor(header.color, dimColorA * 2); //header twice as alpha
 		header.key = *tr; //key for selection, is thread name
 		drawLines.push_back(header); //add header to drawLines
 
@@ -462,16 +449,17 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 			#if defined(USE_OFX_HISTORYPLOT)
 			bool plotActive = false;
-			if(plots[key]){
+			ofxHistoryPlot* plot = plots[key];
+			if(plot){
 				if(t->settings.plotting){
 					if(t->updatedLastFrame){
 						if (t->accumulating){
-							plots[key]->update(t->microsecondsAccum / 1000.0f);
+							plot->update(t->microsecondsAccum / 1000.0f);
 						}else{
-							plots[key]->update(t->avgDuration / 1000.0f);
+							plot->update(t->avgDuration / 1000.0f);
 						}
 					}
-					plotsToDraw.push_back(plots[key]);
+					plotsToDraw.push_back(plot);
 					plotActive = true;
 				}
 			}
@@ -487,6 +475,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 				PrintedLine l;
 				l.key = key;
 				l.tm = t;
+				l.lineBgColor = ofColor(tinfo.color, dimColorA);
 
 				int depth = wholeTreeWalker.level();
 				for(int i = 0; i < depth; ++i) l.formattedKey += " ";
@@ -500,7 +489,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 				l.time = getTimeStringForTM(t);
 
-				l.color = threadInfo[thread].color * ((1.0 - idleTimeColorFadePercent) + idleTimeColorFadePercent * t->life);
+				l.color = tinfo.color * ((1.0 - idleTimeColorFadePercent) + idleTimeColorFadePercent * t->life);
 				if (!t->settings.enabled){
 					l.color = disabledTextColor;
 				}
@@ -508,7 +497,8 @@ void ofxTimeMeasurements::draw(int x, int y) {
 				#if defined(USE_OFX_HISTORYPLOT)
 				if(plotActive){
 					l.formattedKey += " [p]";
-					if(frameNum%20 < 15) l.color = plots[key]->getColor();
+					if(frameNum%20 < 13) l.color = plots[key]->getColor();
+					l.plotColor = ofColor(plots[key]->getColor(), 200);
 				}
 				#endif
 
@@ -576,7 +566,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 	updateLongestLabel();
 
-	//update max width, find headers
+	//find headers
 	int tempMaxW = -1;
 	vector<int> headerLocations;
 	for( int i = 0; i < drawLines.size(); i++ ){
@@ -601,21 +591,25 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	int numInstructionLines = 0;
 	if(menuActive){ //add instructions line if menu active
 		PrintedLine l;
+		//title line
 		l.color = hilightColor;
-		l.isInstructions = true;
+		l.lineBgColor = ofColor(hilightColor, dimColorA * 2);
 		l.fullLine = " KEYBOARD COMMANDS "; //len = 23
 		int numPad = 2 + ceil((getWidth() - charW * (23)) / charW);
 		for(int i = 0; i < floor(numPad/2.0); i++ ) l.fullLine = "#" + l.fullLine;
 		for(int i = 0; i < ceil(numPad/2.0); i++ ) l.fullLine += "#";
-
 		l.fullLine = " " + l.fullLine;
 		drawLines.push_back(l); numInstructionLines++;
-		l.fullLine = " 'L': change location"; drawLines.push_back(l); numInstructionLines++;
-		l.fullLine = " 'A': average measurements"; drawLines.push_back(l); numInstructionLines++;
-		l.fullLine = " 'UP/DOWN': select meas."; drawLines.push_back(l); numInstructionLines++;
-		l.fullLine = " 'RET': toggle code section"; drawLines.push_back(l); numInstructionLines++;
+		//key command lines
+		l.lineBgColor = ofColor(hilightColor, dimColorA);
+		l.fullLine = " 'UP/DOWN' select measur."; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'LFT/RGHT' expand/collaps"; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'RET' toggle code section"; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'A' average measurements"; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'L' change widg location"; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'PG_DWN' en/disable addon"; drawLines.push_back(l); numInstructionLines++;
 		#if defined USE_OFX_HISTORYPLOT
-		l.fullLine = " 'P': plot sel meas."; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'P' plot selectd measur."; drawLines.push_back(l); numInstructionLines++;
 		#endif
 	}
 
@@ -648,27 +642,14 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	ofSetColor(bgColor);
 	ofRect(x, y + 1, totalW, totalH);
 
-	//thread header bg highlight
-	for(int i = 0; i < headerLocations.size(); i++){
-		int loc = headerLocations[i];
-		//whole section
-		ofSetColor(drawLines[loc].color, 40);
-		int h = charH * ((i < headerLocations.size() - 1) ? headerLocations[i+1] - headerLocations[i] : drawLines.size() - loc );
-		ofRect(x, y + 2 + loc * charH, totalW, h);
-		//thread header
-		ofSetColor(drawLines[loc].color, 40);
-		ofRect(x, y + 2 + loc * charH, totalW, charH + 1);
-	}
-
 	for(int i = 0; i < drawLines.size(); i++){
-		if(drawLines[i].isInstructions){
-			ofSetColor(ofColor(drawLines[i].color,20));
-			ofRect(x, y + 2 + i * charH, totalW, charH + 1);
-			ofSetColor(ofColor(drawLines[i].color,255));
-			drawString(drawLines[i].fullLine, x , y + (i + 1) * charH);
-		}else{
-			ofSetColor(ofColor(drawLines[i].color,255));
-			drawString(drawLines[i].fullLine, x , y + (i + 1) * charH);
+		ofSetColor(drawLines[i].lineBgColor);
+		ofRect(x, y + 2 + i * charH, totalW, charH + (drawLines[i].tm ? 0 : 1));
+		ofSetColor(drawLines[i].color);
+		drawString(drawLines[i].fullLine, x , y + (i + 1) * charH);
+		if(drawLines[i].plotColor.a > 0){
+			ofSetColor(drawLines[i].plotColor);
+			ofRect(x, y + 4 + i * charH, 3, charH - 2 );
 		}
 	}
 
@@ -705,7 +686,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 	sprintf(msg, "%2.1f fps % 5.1f%%", fr, percentTotal );
 	if(missingFrames){
-		ofSetColor(170,33,33);
+		ofSetColor(170,33,33); //reddish fps below desired fps
 	}else{
 		ofSetColor(hilightColor);
 	}
@@ -764,9 +745,9 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 			menuActive = !menuActive;
 		}
 
-		if(e.key == 'A' && menuActive) averaging ^= true;  //Average Toggle
+		if(e.key == 'A') averaging ^= true;  //Average Toggle
 
-		if(e.key == 'L' && menuActive){
+		if(e.key == 'L'){
 			drawLocation = ofxTMDrawLocation(drawLocation+1);
 			if(drawLocation == TIME_MEASUREMENTS_NUM_DRAW_LOCATIONS) drawLocation = ofxTMDrawLocation(0);
 		}

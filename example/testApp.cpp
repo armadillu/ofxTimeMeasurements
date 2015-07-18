@@ -43,9 +43,20 @@ void testApp::threadedFunction(){
 
 void testApp::update(){
 
-	TS_START("some common method");
+	TS_START("simple measurement");
 		ofSleepMillis(1);
-	TS_STOP("some common method");
+	TS_STOP("simple measurement");
+
+	TS_START("nested measurement1");
+		TS_START("nested measurement11");
+			TS_START("nested measurement111");
+			ofSleepMillis(1);
+			TS_STOP("nested measurement111");
+		TS_STOP("nested measurement11");
+		TS_START("nested measurement12");
+			ofSleepMillis(1);
+		TS_STOP("nested measurement12");
+	TS_STOP("nested measurement1");
 
 
 	if (ofGetFrameNum()%60 == 1){

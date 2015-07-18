@@ -15,7 +15,7 @@ Simple OpenFrameworks addon to easily measure execution times across any section
 *	Measure cumulative times (TS_START_ACC) for shared code sections
 *	Highlight frequently used calls, slowly fade unused calls
 *	setup(), update(), and draw() are automatically time sampled.
-*	Optionally use [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer) for higher precision (recommended windows)
+*	Optionally use [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer) for higher precision (recommended on windows)
 *	Optionally use [ofxHistoryPlot](https://github.com/armadillu/ofxHistoryPlot) to show timings over time
 *	Optionally use [ofxFontStash](https://github.com/armadillu/ofxFontStash) for rendering, which looks nicer and is much faster than the default ofDrawBitmapFont. (see drawUiWithFontStash())
 
@@ -35,17 +35,20 @@ Simple OpenFrameworks addon to easily measure execution times across any section
 
 ##KEYBOARD COMMANDS
 *	OF_KEY_PAGE_DOWN to toggle all time measuring, and the drawing of the widget
-* 	'T' when widget is visible (enabled) to get into interactive mode. 
+* 	'T' when widget is visible (enabled) to get into interactive mode. This shows on-screen instructions.
 * 	When in interactive mode:
-	* Up / Down keys to select, Left / Right keys to expand/collapse the sample tree
-	* Return key to toggle the execution of the selected item. This allows to disable parts of your code on the fly
+	* "Up/Down" keys to select a measurement
+	* "Left/Right" keys to expand/collapse the measurements tree
+	* "Return" to toggle the execution of the selected item. This allows to disable parts of your code on the fly
 	* 'P' toggles plotting the selected item with ofxHistoryPlot (when enabled).
+	* 'A' toggles the averaging of the time measurements.
+	* 'L' to cycle through all the possible locations of the widget
 
 ## NOTES
 
 #####How does it work? Why am I getting compile errors?
 
-TS_START and TS_STOP create an if clause around the code between them; to allow the enabling/disabling of the code section on the fly. This means that if you define variables inside the timing section, it will not be visible outside of it, as it is only declared within the scope of the if() clause. To fix this, just declare the variables outside the TS_START() and TS_STOP() section.
+TS_START and TS_STOP create an if() clause around the code between them; to allow the enabling/disabling of the code section on the fly. This means that if you define variables inside the timing section, it will not be visible outside of it, as it is only declared within the scope of the if() clause. To fix this, just declare the variables outside the TS_START() and TS_STOP() section.
 
 If you want to time sections from different functions, or across several frames, then there's no way to make 
 TS_START TS_STOP work; as the if clause will be unbalanced. For those cases, you should use TS_START_NIF and TS_STOP_NIF, which don't include the if clause. Disabling that section from the GUI will not work though.

@@ -16,7 +16,7 @@ ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
 ofxTimeMeasurements::ofxTimeMeasurements(){
 
 	uiScale = 1.0;
-	desiredFrameRate = 60.0f;
+	desiredFrameRate = 60.0f; //assume 60
 	enabled = true;
 	timeAveragePercent = 0.02;
 	averaging = false;
@@ -122,7 +122,7 @@ void ofxTimeMeasurements::_windowResized(ofResizeEventArgs &e){
 	#endif
 }
 
-void ofxTimeMeasurements::setThreadColors(vector<ofColor> tc){
+void ofxTimeMeasurements::setThreadColors(const vector<ofColor> & tc){
 	threadColorTable.clear();
 	threadColorTable = tc;
 }
@@ -137,6 +137,8 @@ ofxTimeMeasurements* ofxTimeMeasurements::instance(){
 
 void ofxTimeMeasurements::setConfigsDir(string d){
 	configsDir = d;
+	loadSettings(); //as we load settings on construction time, lets try re-load settings
+					//a second time when a new configs location is given
 }
 
 
@@ -144,7 +146,7 @@ void ofxTimeMeasurements::setDeadThreadTimeDecay(float decay){
 	deadThreadExtendedLifeDecSpeed = ofClamp(decay, idleTimeColorDecay, 1.0);
 }
 
-float ofxTimeMeasurements::getLastDurationFor(string ID){
+float ofxTimeMeasurements::getLastDurationFor(const string & ID){
 
 	float r = 0.0f;
 	unordered_map<string,TimeMeasurement*>::iterator it;
@@ -156,7 +158,7 @@ float ofxTimeMeasurements::getLastDurationFor(string ID){
 }
 
 
-float ofxTimeMeasurements::getAvgDurationFor(string ID){
+float ofxTimeMeasurements::getAvgDurationFor(const string & ID){
 
 	float r = 0.0f;
 	unordered_map<string,TimeMeasurement*>::iterator it;
@@ -173,7 +175,7 @@ void ofxTimeMeasurements::setHighlightColor(ofColor c){
 }
 
 
-bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate, ofColor color){
+bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, const ofColor & color){
 
 	if (!enabled) return true;
 	if (!settingsLoaded){
@@ -271,7 +273,7 @@ bool ofxTimeMeasurements::startMeasuring(string ID, bool accumulate, ofColor col
 }
 
 
-float ofxTimeMeasurements::stopMeasuring(string ID, bool accumulate){
+float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 
 	float ret = 0.0f;
 	if (!enabled) return ret;
@@ -387,7 +389,7 @@ void ofxTimeMeasurements::updateLongestLabel(){
 }
 
 
-void ofxTimeMeasurements::draw(float x, float y) {
+void ofxTimeMeasurements::draw(int x, int y) {
 
 	if (!enabled) return;
 	
@@ -396,6 +398,7 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	float timePerFrame = 1000.0f / desiredFrameRate;
 
 	mutex.lock();
+	int frameNum = ofGetFrameNum();
 
 	vector<TimeMeasurement*> toResetUpdatedLastFrameFlag;
 
@@ -505,12 +508,12 @@ void ofxTimeMeasurements::draw(float x, float y) {
 				#if defined(USE_OFX_HISTORYPLOT)
 				if(plotActive){
 					l.formattedKey += " [p]";
-					if(ofGetFrameNum()%20 < 15) l.color = plots[key]->getColor();
+					if(frameNum%20 < 15) l.color = plots[key]->getColor();
 				}
 				#endif
 
 				if (menuActive && t->key == selection){
-					if(ofGetFrameNum()%5 < 4){
+					if(frameNum%5 < 4){
 						l.color.invert();
 					}
 				}
@@ -594,6 +597,28 @@ void ofxTimeMeasurements::draw(float x, float y) {
 			headerLocations.push_back(i);
 		}
 	}
+
+	int numInstructionLines = 0;
+	if(menuActive){ //add instructions line if menu active
+		PrintedLine l;
+		l.color = hilightColor;
+		l.isInstructions = true;
+		l.fullLine = " KEYBOARD COMMANDS "; //len = 23
+		int numPad = 2 + ceil((getWidth() - charW * (23)) / charW);
+		for(int i = 0; i < floor(numPad/2.0); i++ ) l.fullLine = "#" + l.fullLine;
+		for(int i = 0; i < ceil(numPad/2.0); i++ ) l.fullLine += "#";
+
+		l.fullLine = " " + l.fullLine;
+		drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'L': change location"; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'A': average measurements"; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'UP/DOWN': select meas."; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'RET': toggle code section"; drawLines.push_back(l); numInstructionLines++;
+		#if defined USE_OFX_HISTORYPLOT
+		l.fullLine = " 'P': plot sel meas."; drawLines.push_back(l); numInstructionLines++;
+		#endif
+	}
+
 	maxW = tempMaxW;
 
 	ofSetupScreen(); //mmmm----
@@ -621,7 +646,6 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	float totalH = getHeight();
 
 	ofSetColor(bgColor);
-	int barH = 1;
 	ofRect(x, y + 1, totalW, totalH);
 
 	//thread header bg highlight
@@ -636,21 +660,50 @@ void ofxTimeMeasurements::draw(float x, float y) {
 		ofRect(x, y + 2 + loc * charH, totalW, charH + 1);
 	}
 
-	ofSetColor(hilightColor);
-	ofRect(x, y + 1, totalW, barH);
-	ofRect(x, y + totalH - charH - 4 , totalW, barH);
-	ofRect(x, y + totalH, totalW - barH, barH);
-
 	for(int i = 0; i < drawLines.size(); i++){
-		ofSetColor(ofColor(drawLines[i].color,255));
-		drawString(drawLines[i].fullLine, x , y + (i + 1) * charH);
+		if(drawLines[i].isInstructions){
+			ofSetColor(ofColor(drawLines[i].color,20));
+			ofRect(x, y + 2 + i * charH, totalW, charH + 1);
+			ofSetColor(ofColor(drawLines[i].color,255));
+			drawString(drawLines[i].fullLine, x , y + (i + 1) * charH);
+		}else{
+			ofSetColor(ofColor(drawLines[i].color,255));
+			drawString(drawLines[i].fullLine, x , y + (i + 1) * charH);
+		}
 	}
 
+	{//lines
+		ofSetColor(hilightColor);
+		ofMesh lines;
+		ofSetLineWidth(0.1);
+		lines.setMode(OF_PRIMITIVE_LINES);
+		float fuzzyFix = 0.5;
+		float yy = y+1 + fuzzyFix;
+		lines.addVertex(ofVec2f(x, yy));
+		lines.addVertex(ofVec2f(x + totalW, yy));
+		yy = y + totalH - charH - 3 + fuzzyFix;
+		lines.addVertex(ofVec2f(x, yy));
+		lines.addVertex(ofVec2f(x + totalW, yy));
+		yy = y + totalH + fuzzyFix;
+		lines.addVertex(ofVec2f(x, yy));
+		lines.addVertex(ofVec2f(x + totalW, yy));
+		if(menuActive){
+			yy = y + totalH + fuzzyFix - (numInstructionLines + 1) * charH - 3;
+			lines.addVertex(ofVec2f(x, yy));
+			lines.addVertex(ofVec2f(x + totalW, yy));
+			yy = y + totalH + fuzzyFix - (numInstructionLines) * charH - 3;
+			lines.addVertex(ofVec2f(x, yy));
+			lines.addVertex(ofVec2f(x + totalW, yy));
+		}
+		lines.draw();
+	}//lines
+
 	//print bottom line, fps and stuff
-	bool missingFrames = ( ofGetFrameRate() < desiredFrameRate - 1.0 ); // tolerance of 1 fps TODO!
+	float fr = ofGetFrameRate();
+	bool missingFrames = ( fr < desiredFrameRate - 1.0 ); // tolerance of 1 fps TODO!
 	static char msg[128];
 
-	sprintf(msg, "%2.1f fps % 5.1f%%", ofGetFrameRate(), percentTotal );
+	sprintf(msg, "%2.1f fps % 5.1f%%", fr, percentTotal );
 	if(missingFrames){
 		ofSetColor(170,33,33);
 	}else{
@@ -663,8 +716,12 @@ void ofxTimeMeasurements::draw(float x, float y) {
 	int lastLine = ( drawLines.size() + 1 ) * charH + 2;
 	drawString( pad + msg, x, y + lastLine );
 	ofSetColor(hilightColor);
-	drawString( " '" + ofToString(char(activateKey)) + "'" + string(averaging? " avgd!" : ""),
-					   x, y + lastLine );
+	drawString( " '" + ofToString(char(activateKey)) + "'" + string(averaging ? " avg!"  : ""),
+			   x, y + lastLine );
+	if(menuActive && frameNum%20 < 10){
+		ofSetColor(hilightColor.getInverted());
+		drawString( " '" + ofToString(char(activateKey)) + "'", x, y + lastLine);
+	}
 
 	for(int i = 0; i < toResetUpdatedLastFrameFlag.size(); i++){
 		toResetUpdatedLastFrameFlag[i]->updatedLastFrame = false;
@@ -1014,7 +1071,7 @@ void ofxTimeMeasurements::drawString(const string & text, const float & x, const
 }
 
 
-float ofxTimeMeasurements::durationForID( string ID){
+float ofxTimeMeasurements::durationForID( const string & ID){
 
 	unordered_map<string,TimeMeasurement*>::iterator it;
 	it = times.find(ID);

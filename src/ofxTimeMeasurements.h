@@ -81,18 +81,18 @@ class ofxTimeMeasurements {
 		void setConfigsDir(string d);
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 											//affects the % busy indicator
-		bool startMeasuring(string ID, bool accumulate, ofColor c = ofColor(0,0,0,0));
-		float stopMeasuring(string ID, bool accumulate);
+		bool startMeasuring(const string & ID, bool accumulate, const ofColor & c = ofColor(0,0,0,0));
+		float stopMeasuring(const string & ID, bool accumulate);
 		void setEnabled( bool enable );
 		bool getEnabled();
 		void setDrawLocation(ofxTMDrawLocation loc, ofVec2f p = ofVec2f()); //p only relevant if using TIME_MEASUREMENTS_CUSTOM_LOCATION
 		void setMsPrecision(int digits);		//how many decimals for the ms units
 		void setTimeAveragePercent(double p);	//[0..1] >> if set to 1.0, 100% of every new sample contributes to the average.
 												//if set to 0.1, a new sample contributes 10% to the average
-		float durationForID( string ID);
+		float durationForID(const string & ID);
 		void setBgColor(ofColor c){bgColor = c;}
 		void setHighlightColor(ofColor c);
-		void setThreadColors(vector<ofColor> tc); //supply your own thread color list
+		void setThreadColors(const vector<ofColor> & tc); //supply your own thread color list
 
 		//[0..1], 0.5 means inactive times show 50% darker than active ones
 		void setIdleTimeColorFadePercent(float p){ idleTimeColorFadePercent = p;}
@@ -108,10 +108,10 @@ class ofxTimeMeasurements {
 
 	
 		float getWidth() const;
-		float getHeight() const{ return (drawLines.size() + 2 ) * charH - 8;}
+		float getHeight() const{ return (drawLines.size() + 2 ) * charH - 9;}
 
-		float getLastDurationFor(string ID); //ms
-		float getAvgDurationFor(string ID); //ms
+		float getLastDurationFor(const string & ID); //ms
+		float getAvgDurationFor(const string & ID); //ms
 
 		void setUiScale(float scale){uiScale = scale;};
 
@@ -127,7 +127,7 @@ class ofxTimeMeasurements {
 		#endif
 
 		void setAutoDraw(bool b){drawAuto = b;}
-		void draw(float x, float y) ;
+		void draw(int x, int y) ;
 
 		void addSetupHooks();
 
@@ -181,8 +181,9 @@ class ofxTimeMeasurements {
 			string time;
 			string fullLine;
 			ofColor color;
+			bool isInstructions;
 			TimeMeasurement * tm;
-			PrintedLine(){ tm = NULL; }
+			PrintedLine(){ tm = NULL; isInstructions = false; }
 		};
 
 		struct ThreadInfo{

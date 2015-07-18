@@ -707,7 +707,12 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 			menuActive = !menuActive;
 		}
 
-		if(e.key == 'A') averaging ^= true;  //Average Toggle
+		if(e.key == 'A' && menuActive) averaging ^= true;  //Average Toggle
+
+		if(e.key == 'L' && menuActive){
+			drawLocation = ofxTMDrawLocation(drawLocation+1);
+			if(drawLocation == TIME_MEASUREMENTS_NUM_DRAW_LOCATIONS) drawLocation = ofxTMDrawLocation(0);
+		}
 
 		if(menuActive){
 

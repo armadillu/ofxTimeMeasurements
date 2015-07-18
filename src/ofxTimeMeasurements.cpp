@@ -57,8 +57,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 	menuActive = false;
 
-
-	int v = 180;
+	int v = 220;
 	threadColorTable.push_back(ofColor(v,0,0));
 	threadColorTable.push_back(ofColor(0,v,0));
 	threadColorTable.push_back(ofColor(v,v,0));
@@ -496,7 +495,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 				#if defined(USE_OFX_HISTORYPLOT)
 				if(plotActive){
-					l.formattedKey += " [p]";
+					//l.formattedKey += " [p]";
 					if(frameNum%20 < 13) l.color = plots[key]->getColor();
 					l.plotColor = ofColor(plots[key]->getColor(), 200);
 				}
@@ -505,6 +504,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 				if (menuActive && t->key == selection){
 					if(frameNum%5 < 4){
 						l.color.invert();
+						l.lineBgColor = ofColor(tinfo.color, dimColorA * 1.5);
 					}
 				}
 
@@ -647,7 +647,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		ofRect(x, y + 2 + i * charH, totalW, charH + (drawLines[i].tm ? 0 : 1));
 		ofSetColor(drawLines[i].color);
 		drawString(drawLines[i].fullLine, x , y + (i + 1) * charH);
-		if(drawLines[i].plotColor.a > 0){
+		if(drawLines[i].plotColor.a > 0){ //plot highlight on the sides
 			ofSetColor(drawLines[i].plotColor);
 			ofRect(x, y + 4 + i * charH, 3, charH - 2 );
 		}
@@ -1042,7 +1042,7 @@ void ofxTimeMeasurements::drawUiWithBitmapFont(){
 void ofxTimeMeasurements::drawString(const string & text, const float & x, const float & y){
 	#ifdef USE_OFX_FONTSTASH
 	if(useFontStash){
-		font.draw(text, fontSize, x + 2, y);
+		font.draw(text, fontSize, x + 2, y - 1);
 	}else{
 		ofDrawBitmapString(text, x, y);
 	}

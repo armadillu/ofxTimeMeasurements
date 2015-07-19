@@ -291,7 +291,7 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 				t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration + t->duration * timeAveragePercent;
 			}
 			if (accumulate){
-				t->microsecondsAccum += t->duration;
+				t->microsecondsAccum += t->avgDuration;
 			}
 		}else{	//wrong use, start first, then stop
 			t->error = true;
@@ -472,7 +472,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 					l.formattedKey += "+";
 				}
 				l.formattedKey += key + string(t->accumulating ? "[" + ofToString(t->numAccumulations)+ "]" : "" );
-
+				l.isAccum = t->accumulating;
 				l.time = getTimeStringForTM(t);
 
 				l.color = tinfo.color * ((1.0 - idleTimeColorFadePercent) + idleTimeColorFadePercent * t->life);
@@ -482,8 +482,6 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 				#if defined(USE_OFX_HISTORYPLOT)
 				if(plotActive){
-					//l.formattedKey += " [p]";
-					if(frameNum%20 < 13) l.color = plots[key]->getColor();
 					l.plotColor = ofColor(plots[key]->getColor(), 200);
 				}
 				#endif
@@ -612,6 +610,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	ofFill();
 	ofEnableAlphaBlending();
 
+	//draw all plots
 	#if defined(USE_OFX_HISTORYPLOT)
 	//int numCols = plotsToDraw.size()
 	for(int i = 0; i < plotsToDraw.size(); i++){
@@ -633,6 +632,10 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	for(int i = 0; i < drawLines.size(); i++){
 		ofSetColor(drawLines[i].lineBgColor);
 		ofRect(x, y + 2 + i * charH, totalW, charH + (drawLines[i].tm ? 0 : 1));
+		if(drawLines[i].isAccum){
+			ofSetColor(drawLines[i].color, 64);
+			ofRect(x + totalW, y + 4 + i * charH, -5, charH - 2 );
+		}
 		ofSetColor(drawLines[i].color);
 		drawString(drawLines[i].fullLine, x , y + (i + 1) * charH);
 		if(drawLines[i].plotColor.a > 0){ //plot highlight on the sides
@@ -832,11 +835,11 @@ string ofxTimeMeasurements::formatTime(uint64_t microSeconds, int precision){
 
 	float time = microSeconds / 1000.0f; //to ms
 	string timeUnit = "ms";
-	if (time > 1000){ //if more than 1 sec
+	if (time > 1000.0f){ //if more than 1 sec
 		time /= 1000.0f;
 		timeUnit = "sec";
-		if(time > 60){ //if more than a minute
-			if(time > 3600){ //if more than a minute
+		if(time > 60.0f){ //if more than a minute
+			if(time > 3600.0f){ //if more than a minute
 				time /= 3600.0f;
 				timeUnit = "hrs";
 			}else{

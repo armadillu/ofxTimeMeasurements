@@ -180,9 +180,10 @@ class ofxTimeMeasurements {
 			string formattedKey;
 			string time;
 			string fullLine;
+			bool isAccum;
 			ofColor color;
 			ofColor lineBgColor;
-			ofColor plotColor;
+			ofColor plotColor; //if a > 0 , this measurement is being plotted
 			TimeMeasurement * tm;
 			PrintedLine(){ tm = NULL; plotColor.a = 0; }
 		};
@@ -229,7 +230,6 @@ class ofxTimeMeasurements {
 
 		unordered_map<string, TimeMeasurement*>			times;
 		unordered_map<string, TimeMeasurementSettings>	settings; //visible/not at startup
-
 		unordered_map<Poco::Thread*, ThreadInfo>		threadInfo;
 
 		vector<PrintedLine>						drawLines; //what's drawn line by line

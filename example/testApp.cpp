@@ -106,14 +106,11 @@ void testApp::draw(){
 	}
 
 	ofSetColor(255);
-	ofDrawBitmapString("Move mouse to the right to incrase draw complexity\n"
+	ofDrawBitmapString("Move mouse to the right to incrase drawing complexity\n"
 					   "Notice how drawing more cubes takes longer\n"
-					   "Press 'PAGE_DOWN' key to toggle time sampling\n"
-					   "Press 'T' key to toggle interactive mode\n"
-					   "When in interactive mode:\n"
-					   "    press up/down arrows keys to select\n"
-					   "    press left/right arrow keys to collapse/expand\n"
-					   "    press 'RETURN' key to toggle the execution of the selected section\n",
+					   "Press 'SPACE' to spawn a new thread\n"
+					   "Press 'T' to toggle interactive mode\n\n"
+					   "*instructions are show in the widget when active",
 					   10,
 					   20);
 }
@@ -123,7 +120,7 @@ void testApp::keyPressed( ofKeyEventArgs & key ){
 
 	TS_START("keyDown");
 	if(key.key == ' '){
-		if(myThreads.size() < 6){
+		if(myThreads.size() < 10){
 			MyThread *t = new MyThread();
 			t->startThread();
 			myThreads.push_back(t);

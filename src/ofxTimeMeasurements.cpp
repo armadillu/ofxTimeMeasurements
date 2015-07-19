@@ -57,9 +57,10 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 	menuActive = false;
 
-	int v = 220;
+	int v = 150;
 	threadColorTable.push_back(ofColor(v,0,0));
 	threadColorTable.push_back(ofColor(0,v,0));
+	threadColorTable.push_back(ofColor(0,0,v));
 	threadColorTable.push_back(ofColor(v,v,0));
 	threadColorTable.push_back(ofColor(0,v,v));
 	threadColorTable.push_back(ofColor(v,0,v));
@@ -267,7 +268,7 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 	if (tit.out() != tr.end()){
 		tit = tit.out();
 	}else{
-		ofLogError("ofxTimeMeasurements") << "tree climbing too high up!" << endl;
+		ofLogError("ofxTimeMeasurements") << "tree climbing too high up!";
 	}
 
 	unordered_map<string,TimeMeasurement*>::iterator it;
@@ -626,14 +627,16 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	float totalW = getWidth();
 	float totalH = getHeight();
 
+	//draw bg rect
 	ofSetColor(bgColor);
 	ofRect(x, y + 1, totalW, totalH);
 
+	//draw all lines
 	for(int i = 0; i < drawLines.size(); i++){
 		ofSetColor(drawLines[i].lineBgColor);
 		ofRect(x, y + 2 + i * charH, totalW, charH + (drawLines[i].tm ? 0 : 1));
 		if(drawLines[i].isAccum){
-			ofSetColor(drawLines[i].color, 64);
+			ofSetColor(drawLines[i].color, 128);
 			ofRect(x + totalW, y + 4 + i * charH, -5, charH - 2 );
 		}
 		ofSetColor(drawLines[i].color);
@@ -707,7 +710,7 @@ ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 
 	ofxHistoryPlot * plot = new ofxHistoryPlot( NULL, name, 2048, false);
 	int colorID = numAllocatdPlots%(threadColorTable.size());
-	plot->setColor( threadColorTable[colorID] );
+	plot->setColor( threadColorTable[colorID] * 1.7 );
 	plot->setBackgroundColor(ofColor(0,220));
 	plot->setShowNumericalInfo(true);
 	plot->setRespectBorders(true);
@@ -719,7 +722,7 @@ ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 	plot->setGridColor(ofColor(20,255));
 	plot->setAutoRangeShrinksBack(true);
 	plot->setShowSmoothedCurve(true);
-	plot->setSmoothFilter(0.1);
+	plot->setSmoothFilter(0.03);
 	numAllocatdPlots++;
 	return plot;
 }

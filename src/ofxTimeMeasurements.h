@@ -185,7 +185,7 @@ class ofxTimeMeasurements {
 			ofColor lineBgColor;
 			ofColor plotColor; //if a > 0 , this measurement is being plotted
 			TimeMeasurement * tm;
-			PrintedLine(){ tm = NULL; plotColor.a = 0; }
+			PrintedLine(){ tm = NULL; plotColor.a = 0; isAccum = false; }
 		};
 
 		struct ThreadInfo{

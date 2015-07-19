@@ -186,11 +186,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 	Poco::Thread * thread = Poco::Thread::current();
 	bool isMainThread = (mainThreadID == thread);
 
-	uint64_t timeNow = TM_GET_MICROS(); //get the time before the lock() to avoid affecting
-	//the measurement as much as possible
-
 	mutex.lock();
-	//cout << "### START ### " << ID << endl;
 
 	unordered_map<Poco::Thread*, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
 	ThreadInfo & tinfo = threadInfo[thread];
@@ -217,37 +213,36 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 		}
 	}
 
-	//see if the new measurement already was in tree
-	core::tree<string>::iterator searchIt = tr.tree_find_depth(ID);
-
-	if(searchIt == tr.end()){ //if it wasnt in the tree, append it
-		tinfo.tit = tinfo.tit.push_back(ID);
-	}else{
-		tinfo.tit = searchIt;
-	}
-
 	//see if we had an actual measurement, or its a new one
 	unordered_map<string, TimeMeasurement*>::iterator tit = times.find(ID);
+	TimeMeasurement* t;
+
+	if(tit == times.end()){ //if it wasnt in the tree, append it
+		tinfo.tit = tinfo.tit.push_back(ID);
+	}else{
+		tinfo.tit = tr.tree_find_depth(ID);
+	}
 
 	if (tit == times.end()){ //not found, let alloc a new TimeMeasurement
-		times[ID] = new TimeMeasurement();
+		times[ID] = t = new TimeMeasurement();
 		unordered_map<string, TimeMeasurementSettings>::iterator it2 = settings.find(ID);
 		if (it2 != settings.end()){
 			times[ID]->settings = settings[ID];
 		}
+	}else{
+		t = tit->second;
 	}
 
-	TimeMeasurement* t = times[ID];
 	t->key = ID;
 	t->life = 1.0f; //
 	t->measuring = true;
-	t->microsecondsStart = timeNow;
 	t->microsecondsStop = 0;
 	t->accumulating = accumulate;
 	if(accumulate) t->numAccumulations++;
 	t->error = false;
 	t->frame = ofGetFrameNum();
 	t->updatedLastFrame = true;
+	t->microsecondsStart = TM_GET_MICROS();
 
 	mutex.unlock();
 
@@ -257,16 +252,14 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 
 float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 
-	float ret = 0.0f;
-	if (!enabled) return ret;
-
 	uint64_t timeNow = TM_GET_MICROS(); //get the time before the lock() to avoid affecting
-	//the measurement as much as possible
+
+	if (!enabled) return 0.0f;
+	float ret = 0.0f;
 
 	Poco::Thread * thread = Poco::Thread::current();
 
 	mutex.lock();
-	//cout << "### STOP ### " << ID << endl;
 
 	ThreadInfo & tinfo = threadInfo[thread];
 	core::tree<string> & tr = tinfo.tree; //easier to read, tr is our tree from now on
@@ -285,13 +278,11 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 			  " startMeasuring with that ID first.", ID.c_str());
 	}else{
 		
-		TimeMeasurement* t = times[ID];
-
-		if ( times[ID]->measuring ){
-
+		TimeMeasurement* t = it->second;
+		if ( t->measuring ){
 			t->measuring = false;
 			t->error = false;
-			t->acrossFrames = (t->frame != ofGetFrameNum() && thread == NULL); //we only care about across-frames in main thread
+			t->acrossFrames = (thread == NULL && t->frame != ofGetFrameNum()); //we only care about across-frames in main thread
 			t->microsecondsStop = timeNow;
 			ret = t->duration = t->microsecondsStop - t->microsecondsStart;
 			if(!averaging){
@@ -299,21 +290,17 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 			}else{
 				t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration + t->duration * timeAveragePercent;
 			}
-
 			if (accumulate){
 				t->microsecondsAccum += t->duration;
 			}
-
 		}else{	//wrong use, start first, then stop
-
 			t->error = true;
 			ofLog( OF_LOG_WARNING, "Can't stopMeasuring(%s). Make sure you called startMeasuring"
 				  " with that ID first.", ID.c_str());
 		}
 	}
-	ret = ret / 1000.0f;
 	mutex.unlock();
-	return ret; //convert to ms
+	return ret / 1000.0f; //convert to ms
 }
 
 
@@ -516,6 +503,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 			if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
 				percentTotal += (t->avgDuration * 0.1f) / timePerFrame;
 			}
+			//reset accumulator
 			t->accumulating = false;
 			t->numAccumulations = 0;
 			t->microsecondsAccum = 0;

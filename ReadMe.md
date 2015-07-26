@@ -68,7 +68,7 @@ ofxTimeMeasurements wraps your code around an if(){} clause. It does so to be ab
 	TS_STOP_NIF("nif");
 	
 	a = 1; //notice how we can access the variable declared within the time measurement scope.
-	```
+```
 
 ### TS() Mode
 

@@ -28,8 +28,7 @@ That's all you need to get basic measurements of update() and draw();
 
 void setup(){	
 	TIME_SAMPLE_SET_FRAMERATE(60.0f); //specify a target framerate
-}
-```
+}```
 
 ## HOW TO MEASURE TIMES
 
@@ -40,8 +39,7 @@ You can measure times across any code section with TS_START() - TS_STOP()
 ```
 	TS_START("measurement1");
 	//my code here
-	TS_STOP("measurement1")
-	
+	TS_STOP("measurement1")	
 ```
 The ofxTimeMeasurements widget will list a line named "measurement1" showing how long it took for the section to execute.
 
@@ -54,8 +52,7 @@ You can accumulate the time spent across one frame over sections of your code. T
 		TS_START_ACC("acc measurement");
 		//do something here
 		TS_STOP_ACC("acc measurement")
-	}
-	
+	}	
 ```
 If we were to use TS_START/STOP on the example above, ofxTimeMeasurements would only report the time spent on the last iteration of the for loop. By using TS_START_ACC / TS_STOP_ACC, it accumulates the time spent on each iteration of the loop, reporting the total time spent.
 
@@ -69,8 +66,7 @@ ofxTimeMeasurements wraps your code around an if(){} clause. It does so to be ab
 		int a = 0;
 	TS_STOP_NIF("nif");
 	
-	a = 1; //notice how we can access the variable declared within the time measurement scope.
-```
+	a = 1; //notice how we can access the variable declared within the time measurement scope.```
 
 ### TS() Mode
 
@@ -79,7 +75,6 @@ TS() is a very convenient ultra-short macro to measure the time a single method 
 ```
 	TS(myMethod());
 ```
-
 
 ##KEYBOARD COMMANDS
 *	OF_KEY_PAGE_DOWN to toggle all time measuring, and the drawing of the widget

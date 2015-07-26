@@ -67,7 +67,7 @@ ofxTimeMeasurements wraps your code around an if(){} clause. It does so to be ab
 		int a = 0;
 	TS_STOP_NIF("nif");
 	
-	a = 1; //notice how we can access the variable declared within the time measurement scope.
+	a = 1; //we can now access the variable declared in the TM scope.
 ```
 
 ### TS() Mode
@@ -137,6 +137,7 @@ If you add [ofxHistoryPlot](https://github.com/armadillu/ofxHistoryPlot) to your
 If you do so, when in interactive mode, you can press 'P' to toggle the plotting of the timings of the selected section over time.
 
 ![img](https://farm1.staticflickr.com/510/19847290279_4b9761ff4d_o_d.png)
+
 Measurements that are being plotted will show a colored label on the left side, matching the color of the plot.
 
 ####USING ofxFontStash

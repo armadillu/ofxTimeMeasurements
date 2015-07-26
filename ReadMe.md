@@ -143,7 +143,9 @@ Measurements that are being plotted will show a colored label on the left side, 
 ####USING ofxFontStash
 
 If you include [ofxFontStash](https://github.com/armadillu/ofxFontStash) in your project, you can use it to draw the widget with any font of your liking. Define USE_OFX_FONTSTASH in your project's PreProcessor Macros, and call
-```TIME_SAMPLE_GET_INSTANCE()->drawUiWithFontStash()``` 
+```
+TIME_SAMPLE_GET_INSTANCE()->drawUiWithFontStash()
+```
 supplying a monospaced ttf font and a font size. 
 
 ![img](https://farm1.staticflickr.com/533/20034108485_fdaa20bd72_o_d.png)

@@ -635,7 +635,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	for(int i = 0; i < drawLines.size(); i++){
 		ofSetColor(drawLines[i].lineBgColor);
 		ofRect(x, y + 2 + i * charH, totalW, charH + (drawLines[i].tm ? 0 : 1));
-		if(drawLines[i].isAccum){
+		if(drawLines[i].isAccum && drawLines[i].tm != NULL){
 			ofSetColor(drawLines[i].color, 128);
 			ofRect(x + totalW, y + 4 + i * charH, -5, charH - 2 );
 		}

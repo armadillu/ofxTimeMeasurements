@@ -37,12 +37,9 @@ Simple OpenFrameworks addon to easily measure execution times across any section
 *	OF_KEY_PAGE_DOWN to toggle all time measuring, and the drawing of the widget
 * 	'T' when widget is visible (enabled) to get into interactive mode. This shows on-screen instructions.
 * 	When in interactive mode:
-	* "Up/Down" keys to select a measurement
-	* "Left/Right" keys to expand/collapse the measurements tree
-	* "Return" to toggle the execution of the selected item. This allows to disable parts of your code on the fly
+	* Up / Down keys to select, Left / Right keys to expand/collapse the sample tree
+	* Return key to toggle the execution of the selected item. This allows to disable parts of your code on the fly
 	* 'P' toggles plotting the selected item with ofxHistoryPlot (when enabled).
-	* 'A' toggles the averaging of the time measurements.
-	* 'L' to cycle through all the possible locations of the widget
 
 ## NOTES
 

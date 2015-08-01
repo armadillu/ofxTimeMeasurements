@@ -84,9 +84,11 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP + 100);
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP - 100);
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP + 100);
-		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed);
+		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed, OF_EVENT_ORDER_BEFORE_APP);
 		ofAddListener(ofEvents().exit, this, &ofxTimeMeasurements::_appExited); //to save to xml
+		#if defined(USE_OFX_HISTORYPLOT)
 		ofAddListener(ofEvents().windowResized, this, &ofxTimeMeasurements::_windowResized); //to save to xml
+		#endif
 #else
 	#if (OF_VERSION == 7 && OF_VERSION_MINOR >= 2 )
 		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate);
@@ -110,7 +112,6 @@ void ofxTimeMeasurements::addSetupHooks(){
 }
 
 void ofxTimeMeasurements::_windowResized(ofResizeEventArgs &e){
-
 	#if defined(USE_OFX_HISTORYPLOT)
 	int hist = MAX(1024, e.width);
 	map<string, ofxHistoryPlot*>::iterator it = plots.begin();
@@ -728,7 +729,7 @@ ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 }
 #endif
 
-void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
+bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
 	if (e.key == enableKey){
 		TIME_SAMPLE_SET_ENABLED(!TIME_SAMPLE_GET_ENABLED());
@@ -812,6 +813,7 @@ void ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 			}
 		}
 	}
+	return menuActive;
 }
 
 

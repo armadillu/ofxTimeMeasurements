@@ -203,7 +203,7 @@ class ofxTimeMeasurements {
 		void _afterDraw(ofEventArgs &d);
 
 		void _appExited(ofEventArgs &e);
-		void _keyPressed(ofKeyEventArgs &e);
+		bool _keyPressed(ofKeyEventArgs &e);
 
 		void _windowResized(ofResizeEventArgs &e);
 

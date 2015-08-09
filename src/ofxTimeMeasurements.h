@@ -299,5 +299,7 @@ class ofxTimeMeasurements {
 		bool									drawAuto;
 		unsigned char							dimColorA;
 
+		uint64_t								currentFrameNum;
+
 };
 

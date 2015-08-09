@@ -365,13 +365,14 @@ void ofxTimeMeasurements::updateLongestLabel(){
 void ofxTimeMeasurements::draw(int x, int y) {
 
 	if (!enabled) return;
-	
+
+	currentFrameNum = ofGetFrameNum();
+
 	drawLines.clear();
 	float percentTotal = 0.0f;
 	float timePerFrame = 1000.0f / desiredFrameRate;
 
 	mutex.lock();
-	int frameNum = ofGetFrameNum();
 
 	vector<TimeMeasurement*> toResetUpdatedLastFrameFlag;
 
@@ -489,7 +490,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 				#endif
 
 				if (menuActive && t->key == selection){
-					if(frameNum%5 < 4){
+					if(currentFrameNum%5 < 4){
 						l.color.invert();
 						l.lineBgColor = ofColor(tinfo.color, dimColorA * 1.5);
 					}
@@ -694,7 +695,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	ofSetColor(hilightColor);
 	drawString( " '" + ofToString(char(activateKey)) + "'" + string(averaging ? " avg!"  : ""),
 			   x, y + lastLine );
-	if(menuActive && frameNum%20 < 10){
+	if(menuActive && currentFrameNum%20 < 10){
 		ofSetColor(hilightColor.getInverted());
 		drawString( " '" + ofToString(char(activateKey)) + "'", x, y + lastLine);
 	}
@@ -862,7 +863,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 	float time;
 	if (tm->measuring){
 		string anim;
-		switch ((int(ofGetFrameNum() * 0.2f))%6) {
+		switch ((int(currentFrameNum * 0.2f))%6) {
 			case 0: anim = "   "; break;
 			case 1: anim = ".  "; break;
 			case 2: anim = ".. "; break;
@@ -871,7 +872,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 			case 5: anim = "  ."; break;
 		}
 		//return "   Running " + anim;
-		return string((ofGetFrameNum()% 6 < 3 ) ? " >  " : "    ") +
+		return string((currentFrameNum % 6 < 3 ) ? " >  " : "    ") +
 				formatTime( TM_GET_MICROS() - tm->microsecondsStart, 1) +
 				anim;
 	}else{
@@ -905,7 +906,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 			}
 
 			if (over){
-				sprintf(percentChar, int(ofGetFrameNum() * 0.8)%5 < 3  ? " >100": "  100");
+				sprintf(percentChar, int(currentFrameNum * 0.8)%5 < 3  ? " >100": "  100");
 			}else{
 				sprintf(percentChar, "% 5.1f", percent);
 			}

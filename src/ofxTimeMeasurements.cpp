@@ -254,10 +254,10 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 
 float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 
-	uint64_t timeNow = TM_GET_MICROS(); //get the time before the lock() to avoid affecting
-
 	if (!enabled) return 0.0f;
 	float ret = 0.0f;
+
+	uint64_t timeNow = TM_GET_MICROS(); //get the time before the lock() to avoid affecting
 
 	Poco::Thread * thread = Poco::Thread::current();
 

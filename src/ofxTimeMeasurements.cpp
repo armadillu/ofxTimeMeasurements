@@ -15,6 +15,7 @@ ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
 
 ofxTimeMeasurements::ofxTimeMeasurements(){
 
+	currentFrameNum = 0;
 	uiScale = 1.0;
 	desiredFrameRate = 60.0f; //assume 60
 	enabled = true;

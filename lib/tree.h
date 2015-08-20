@@ -1,26 +1,26 @@
 /////////////////////////////////////////////////////////////////////////////
 //
-// You may use this source code free of charge in any environment, pending 
-// you e-mail Justin (justin@nodeka.com) so he is aware of how the tree 
+// You may use this source code free of charge in any environment, pending
+// you e-mail Justin (justin@nodeka.com) so he is aware of how the tree
 // container is being used and send updates as they are made.
 //
 // (c) 1999-2005 Justin Gottschlich
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-// 
-// Bug fix assistance by: 
+//
+// Bug fix assistance by:
 //
 // Stefan Kluehspies (missing typenames, constructor member initialization order)
 // Wayne Vucenic (zero initialization of data_ for native types)
@@ -55,8 +55,8 @@ template <typename T> class tree
 {
 public:
 
-	typedef tree_iterator<T> iterator;
-	typedef const tree_iterator<T> const_iterator;
+	typedef core::tree_iterator<T> iterator;
+	typedef const core::tree_iterator<T> const_iterator;
 
 private:
 
@@ -125,7 +125,7 @@ private:
 		// Do NOT move this line beyond this point. The reason is because we must
 		// check to see if the node exists here because we may be removing the ONLY
 		// node in the tree. If it is then NULL == level->in_. DO NOT REMOVE THIS
-		//if (false == level->mDuplicates) 
+		//if (false == level->mDuplicates)
 
 		// never allow duplicate keys
 		level->remove(inTree->data());
@@ -190,7 +190,7 @@ private:
 	tree& i_push_back_no_remove(tree *inTree, tree *level)
 	{
 		// if there's no inner tree, make it
-		if (NULL == level->in_) 
+		if (NULL == level->in_)
       {
 			// Dummy node, create it -- if good memory do stuff, if NULL throw
 			if (tree *temp = new tree) {
@@ -200,7 +200,7 @@ private:
 			}
 			else throw "allocation failed";
 		}
-		else 
+		else
       {
 			tree *temp = level->in_->prev_;
 
@@ -227,7 +227,7 @@ private:
 		level->remove(inTree->data());
 
 		// if there's no inner tree, make it
-		if (NULL == level->in_) 
+		if (NULL == level->in_)
       {
 			// Dummy node, create it -- if good memory do stuff, if NULL throw
 			if (tree *temp = new tree) {
@@ -237,7 +237,7 @@ private:
 			}
 			else throw "allocation failed";
 		}
-		else 
+		else
       {
 			tree *temp = level->in_->prev_;
 
@@ -264,7 +264,7 @@ private:
 		level->remove(inTree->data());
 
 		// if there's no inner tree, make it
-		if (NULL == level->in_) 
+		if (NULL == level->in_)
       {
 			// Dummy node, create it -- if good memory do stuff, if NULL throw
 			if (tree *temp = new tree) {
@@ -274,7 +274,7 @@ private:
 			}
 			else throw "allocation failed";
 		}
-		else 
+		else
       {
 			tree *temp = level->in_->prev_;
 
@@ -305,7 +305,7 @@ private:
 		// Do NOT move this line beyond this point. The reason is because we must
 		// check to see if the node exists here because we may be removing the ONLY
 		// node in the tree. If it is then NULL == level->in_. DO NOT REMOVE THIS
-		//if (false == level->mDuplicates) 
+		//if (false == level->mDuplicates)
 		level->remove(inTree->data());
 
 		// if there's no inner tree, make it
@@ -380,7 +380,7 @@ protected:
 	//////////////////////////////////////////////////////////////////////////
 	// Notice that we're returning a const tree* here and not an iterator.
 	// This is because the iterator itself has a member to a pointer. Doing
-	// an iterator constructor here would be less efficient than just 
+	// an iterator constructor here would be less efficient than just
 	// returning a tree* which can be assigned internally inside the iterator
 	// operator--(). Also because no one can call prev from a tree itself
 	// (this is protected), we don't have to worry about safety issues except
@@ -391,7 +391,7 @@ protected:
 	//////////////////////////////////////////////////////////////////////////
 	// Notice that we're returning a const tree* here and not an iterator.
 	// This is because the iterator itself has a member to a pointer. Doing
-	// an iterator constructor here would be less efficient than just 
+	// an iterator constructor here would be less efficient than just
 	// returning a tree* which can be assigned internally inside the iterator
 	// operator++(). Also because no one can call prev from a tree itself
 	// (this is protected), we don't have to worry about safety issues except
@@ -446,7 +446,7 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// copy constructor - now visible
 	//////////////////////////////////////////////////////////////////////////
-	tree(const tree &in) : data_(in.data_), next_(0), prev_(0), in_(0), out_(0), 
+	tree(const tree &in) : data_(in.data_), next_(0), prev_(0), in_(0), out_(0),
 		level_(0), size_(0) { *this = in; }
 
 	//////////////////////////////////////////////////////////////////////////
@@ -561,7 +561,7 @@ public:
 	size_t size() const { return this->size_; }
 
 	//////////////////////////////////////////////////////////////////////////
-	size_t tree_size() const 
+	size_t tree_size() const
    {
       return i_tree_size() + 1;
    }
@@ -599,7 +599,7 @@ public:
 	{
 		tree *createdTree = new tree(i.data());
 		if (NULL == createdTree) throw "allocation failed";
-		
+
 		return iterator(i_insert(createdTree, this));
 	}
 
@@ -688,7 +688,7 @@ public:
    { return find(inT, iterator(*this->in_), obj); }
 
 	//////////////////////////////////////////////////////////////////////////
-   iterator tree_find_depth(const T &inT) const 
+   iterator tree_find_depth(const T &inT) const
    { return tree_find_depth(inT, iterator(*this->in_)); }
 
 	//////////////////////////////////////////////////////////////////////////
@@ -798,8 +798,8 @@ public:
 /////////////////////////////////////////////////////////////////////////////
 // Iterator for the tree
 //
-// Derived from tree<> only so iterator can access tree's protected 
-// methods directly and implement them in the way they make sense for the 
+// Derived from tree<> only so iterator can access tree's protected
+// methods directly and implement them in the way they make sense for the
 // iterator
 //
 // The actual tree base members are never used (nor could they be since they
@@ -840,7 +840,7 @@ public:
 	// Default constructor
 	//////////////////////////////////////////////////////////////////////////
 	tree_iterator() : current_(NULL) {}
-	
+
 	//////////////////////////////////////////////////////////////////////////
 	// Copy constructors for iterators
 	//////////////////////////////////////////////////////////////////////////
@@ -964,7 +964,7 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// Return the next guy
 	//////////////////////////////////////////////////////////////////////////
-	typename tree<T>::iterator next() const 
+	typename tree<T>::iterator next() const
 	{ return typename tree<T>::iterator (* const_cast< TreeType* >( this->TreeType::next( *current_ ) ) ); }
 
 	//////////////////////////////////////////////////////////////////////////

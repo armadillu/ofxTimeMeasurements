@@ -28,7 +28,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	#if defined(USE_OFX_FONTSTASH)
 	useFontStash = false;
 	#endif
-	
+
 	#if defined(USE_OFX_HISTORYPLOT)
 	plotHeight = 60;
 	numAllocatdPlots = 0;
@@ -131,7 +131,7 @@ void ofxTimeMeasurements::setThreadColors(const vector<ofColor> & tc){
 }
 
 
-ofxTimeMeasurements* ofxTimeMeasurements::instance(){	
+ofxTimeMeasurements* ofxTimeMeasurements::instance(){
 	if (!singleton){   // Only allow one instance of class to be generated.
 		singleton = new ofxTimeMeasurements();
 	}
@@ -275,12 +275,12 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 
 	unordered_map<string,TimeMeasurement*>::iterator it;
 	it = times.find(ID);
-	
+
 	if ( it == times.end() ){	//not found!
 		ofLog( OF_LOG_WARNING, "ID (%s)not found at stopMeasuring(). Make sure you called"
 			  " startMeasuring with that ID first.", ID.c_str());
 	}else{
-		
+
 		TimeMeasurement* t = it->second;
 		if ( t->measuring ){
 			t->measuring = false;
@@ -757,7 +757,7 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 					if (drawLines[i].key == selection) selIndex = i;
 				}
 				if(selIndex == -1){
-					return;
+					return false;
 				}
 
 				switch (e.key) {
@@ -1054,7 +1054,7 @@ float ofxTimeMeasurements::durationForID( const string & ID){
 
 	unordered_map<string,TimeMeasurement*>::iterator it;
 	it = times.find(ID);
-	
+
 	if ( it == times.end() ){	//not found!
 		if ( times[ID]->error ){
 			return times[ID]->duration / 1000.0; //to ms
@@ -1103,4 +1103,3 @@ float ofxTimeMeasurements::getWidth() const{
 	return (maxW + 1) * charW;
 	#endif
 }
-

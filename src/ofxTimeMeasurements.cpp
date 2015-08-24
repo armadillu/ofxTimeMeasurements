@@ -607,12 +607,14 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 	ofSetupScreen(); //mmmm----
 	ofPushStyle();
+	ofSetRectMode(OF_RECTMODE_CORNER);
+	ofSetDrawBitmapMode(OF_BITMAPMODE_SIMPLE);
+	ofEnableAlphaBlending();
+
 	ofPushMatrix();
 	ofScale(uiScale,uiScale);
-	ofSetDrawBitmapMode(OF_BITMAPMODE_SIMPLE);
 
 	ofFill();
-	ofEnableAlphaBlending();
 
 	//draw all plots
 	#if defined(USE_OFX_HISTORYPLOT)

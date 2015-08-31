@@ -270,7 +270,7 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 	if (tit.out() != tr.end()){
 		tit = tit.out();
 	}else{
-		ofLogError("ofxTimeMeasurements") << "tree climbing too high up!";
+		ofLogError("ofxTimeMeasurements") << "tree climbing too high up! (" << ID << ")";
 	}
 
 	unordered_map<string,TimeMeasurement*>::iterator it;

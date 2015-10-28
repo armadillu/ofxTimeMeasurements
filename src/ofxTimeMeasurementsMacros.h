@@ -45,7 +45,8 @@
 //shortcuts!
 
 //time sample a whole method - ie TS(drawMonkeys());
-#define TS(x)				if(ofxTimeMeasurements::instance()->startMeasuring(#x, false)){ x; }ofxTimeMeasurements::instance()->stopMeasuring(#x, false)
+#define TS(x)			if(ofxTimeMeasurements::instance()->startMeasuring(#x, false)){ x; }ofxTimeMeasurements::instance()->stopMeasuring(#x, false)
+#define TS_ACC(x)		if(ofxTimeMeasurements::instance()->startMeasuring(#x, true)){ x; }ofxTimeMeasurements::instance()->stopMeasuring(#x, true)
 
 //includes if(){ } caluse for you
 #define TS_START(x, ...)				TIME_SAMPLE_START(x, ##__VA_ARGS__)

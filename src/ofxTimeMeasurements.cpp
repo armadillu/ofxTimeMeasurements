@@ -33,6 +33,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	plotHeight = 60;
 	numAllocatdPlots = 0;
 	plotBaseY = 0;
+	plotResolution = 1;
 	#endif
 
 	mainThreadID = NULL;
@@ -114,7 +115,7 @@ void ofxTimeMeasurements::addSetupHooks(){
 
 void ofxTimeMeasurements::_windowResized(ofResizeEventArgs &e){
 	#if defined(USE_OFX_HISTORYPLOT)
-	int hist = MAX(1024, e.width);
+	int hist = plotResolution * e.width;
 	map<string, ofxHistoryPlot*>::iterator it = plots.begin();
 	while(it != plots.end()){
 		if(it->second != NULL){
@@ -431,6 +432,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 		core::tree<string>::iterator wholeTreeWalker = tr.in();
 		bool finishedWalking = false;
+		float winW = ofGetWidth();
 
 		while( !finishedWalking ){
 
@@ -443,6 +445,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 			if(plot){
 				if(t->settings.plotting){
 					if(t->updatedLastFrame){
+						if(currentFrameNum%120 == 1) plot->setMaxHistory(winW * plotResolution); //update plot res every now and then
 						if (t->accumulating){
 							plot->update(t->microsecondsAccum / 1000.0f);
 						}else{
@@ -713,7 +716,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 #if defined(USE_OFX_HISTORYPLOT)
 ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 
-	ofxHistoryPlot * plot = new ofxHistoryPlot( NULL, name, 2048, false);
+	ofxHistoryPlot * plot = new ofxHistoryPlot( NULL, name, ofGetWidth() * plotResolution, false);
 	int colorID = numAllocatdPlots%(threadColorTable.size());
 	plot->setColor( threadColorTable[colorID] * 1.7 );
 	plot->setBackgroundColor(ofColor(0,220));

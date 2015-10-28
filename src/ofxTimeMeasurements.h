@@ -119,6 +119,11 @@ class ofxTimeMeasurements {
 		#if defined(USE_OFX_HISTORYPLOT)
 		void setPlotHeight(int h){plotHeight = h;}
 		void setPlotBaseY(float y){plotBaseY = y;}
+
+		///plot resolution is a scaling factor for the ofxHistoryPlot number of samples.
+		///if r = 1.0, plot will have same # of samples as pixels wide the window is.
+		/// r = 0.5; plot will have half of that.
+		void setPlotResolution(float r){plotResolution = r;}
 		#endif
 
 		#ifdef USE_OFX_FONTSTASH
@@ -284,6 +289,7 @@ class ofxTimeMeasurements {
 		int										numAllocatdPlots;
 
 		ofxHistoryPlot*							makeNewPlot(string name);
+		float									plotResolution;
 		#endif
 
 		#ifdef USE_OFX_FONTSTASH

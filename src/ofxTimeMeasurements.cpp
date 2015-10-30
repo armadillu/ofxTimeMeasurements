@@ -217,7 +217,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 
 	if (threadIt == threadInfo.end() ){ //new thread!
 
-		string tName = bIsMainThread ? "Main Thread" : (threadName + " (" + ofToString(numThreads) + ")");
+		string tName = bIsMainThread ? "Main Thread" : (threadName + "(" + ofToString(numThreads) + ")");
 		//init the iterator
 		*tr = tName; //thread name is root
 		tinfo.tit = (core::tree<string>::iterator)tr;
@@ -891,7 +891,7 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 			}
 		}
 	}
-	return menuActive;
+	return menuActive && e.key != OF_KEY_ESC;
 }
 
 

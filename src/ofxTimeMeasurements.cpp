@@ -34,6 +34,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	numAllocatdPlots = 0;
 	plotBaseY = 0;
 	plotResolution = 1;
+	maxPlotSamples = 4096;
 	#endif
 
 	mainThreadID = getThreadID();
@@ -119,7 +120,7 @@ void ofxTimeMeasurements::_windowResized(ofResizeEventArgs &e){
 	map<string, ofxHistoryPlot*>::iterator it = plots.begin();
 	while(it != plots.end()){
 		if(it->second != NULL){
-			it->second->setMaxHistory(hist);
+			it->second->setMaxHistory(MIN(maxPlotSamples, hist));
 		}
 		++it;
 	}
@@ -456,7 +457,8 @@ void ofxTimeMeasurements::draw(int x, int y) {
 			if(plot){
 				if(t->settings.plotting){
 					if(t->updatedLastFrame){
-						if(currentFrameNum%120 == 1) plot->setMaxHistory(winW * plotResolution); //update plot res every now and then
+						//update plot res every now and then
+						if(currentFrameNum%120 == 1) plot->setMaxHistory(MIN(maxPlotSamples, winW * plotResolution));
 						if (t->accumulating){
 							plot->update(t->microsecondsAccum / 1000.0f);
 						}else{

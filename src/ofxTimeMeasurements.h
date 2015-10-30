@@ -124,6 +124,7 @@ class ofxTimeMeasurements {
 		///if r = 1.0, plot will have same # of samples as pixels wide the window is.
 		/// r = 0.5; plot will have half of that.
 		void setPlotResolution(float r){plotResolution = r;}
+		void setMaxNumSamples(int nSamples){maxPlotSamples = nSamples;}
 		#endif
 
 		#ifdef USE_OFX_FONTSTASH
@@ -303,6 +304,7 @@ class ofxTimeMeasurements {
 
 		ofxHistoryPlot*							makeNewPlot(string name);
 		float									plotResolution;
+		int										maxPlotSamples;
 		#endif
 
 		#ifdef USE_OFX_FONTSTASH

@@ -81,7 +81,7 @@ class ofxTimeMeasurements {
 		void setConfigsDir(string d);
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 											//affects the % busy indicator
-		bool startMeasuring(const string & ID, bool accumulate, const ofColor & c = ofColor(0,0,0,0));
+		bool startMeasuring(const string & ID, bool accumulate, const ofColor & c = ofColor(0,0));
 		float stopMeasuring(const string & ID, bool accumulate);
 		void setEnabled( bool enable );
 		bool getEnabled();
@@ -223,19 +223,33 @@ class ofxTimeMeasurements {
 		string getTimeStringForTM(TimeMeasurement* tm);
 		void drawString(const string & text, const float & x, const float & y);
 
+		typedef Poco::Thread::TID ThreadId;
 
-		static bool compareThreadPairs(const pair<Poco::Thread*, ThreadInfo>& l, const pair<Poco::Thread*, ThreadInfo>& r){
-			return l.second.order < r.second.order;
+		struct ThreadContainer{
+			ThreadId id;
+			ThreadInfo * info;
+		};
+
+		static bool compareThreadPairs(const ThreadContainer& l, const ThreadContainer& r){
+			return l.info->order < r.info->order;
 		}
 
-		static ofxTimeMeasurements*				singleton;
+		static ofxTimeMeasurements*						singleton;
 
-		float									desiredFrameRate;
-		bool									enabled;
+		float											desiredFrameRate;
+		bool											enabled;
 
 		unordered_map<string, TimeMeasurement*>			times;
 		unordered_map<string, TimeMeasurementSettings>	settings; //visible/not at startup
-		unordered_map<Poco::Thread*, ThreadInfo>		threadInfo;
+
+		unordered_map<ThreadId, ThreadInfo>		threadInfo;
+		ThreadId								mainThreadID; //usually NULL
+
+		bool isMainThread(ThreadId tid){return tid == mainThreadID;}
+
+		ThreadId getThreadID(){
+			return Poco::Thread::currentTid();
+		}
 
 		vector<PrintedLine>						drawLines; //what's drawn line by line
 
@@ -274,7 +288,6 @@ class ofxTimeMeasurements {
 		ofxMSATimer								timer;
 		#endif
 
-		Poco::Thread*							mainThreadID; //usually NULL
 		ofMutex									mutex;
 
 		string									configsDir;

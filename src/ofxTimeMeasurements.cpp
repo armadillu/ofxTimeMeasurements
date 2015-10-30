@@ -36,7 +36,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	plotResolution = 1;
 	#endif
 
-	mainThreadID = NULL;
+	mainThreadID = getThreadID();
 
 	bgColor = ofColor(0);
 	hilightColor = ofColor(44,77,255) * 1.5;
@@ -187,25 +187,31 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 		settingsLoaded = true;
 	}
 
-	Poco::Thread * thread = Poco::Thread::current();
-	bool isMainThread = (mainThreadID == thread);
+	string threadName = "Thread";
+	ThreadId thread = getThreadID();
+	bool bIsMainThread = isMainThread(thread);
+
+	if(!bIsMainThread){
+		if(Poco::Thread::current()){
+			threadName = Poco::Thread::current()->getName();
+		}
+	}
 
 	mutex.lock();
 
-	unordered_map<Poco::Thread*, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
+	unordered_map<ThreadId, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
 	ThreadInfo & tinfo = threadInfo[thread];
 	core::tree<string> &tr = tinfo.tree; //easier to read, tr is our tree from now on
 
 	if (threadIt == threadInfo.end() ){ //new thread!
 
-		string tName = isMainThread ? "Main Thread" : string(Poco::Thread::current()->getName() +
-															 " (" + ofToString(numThreads) + ")");
+		string tName = bIsMainThread ? "Main Thread" : (threadName + " (" + ofToString(numThreads) + ")");
 		//init the iterator
 		*tr = tName; //thread name is root
 		tinfo.tit = (core::tree<string>::iterator)tr;
 		tinfo.order = numThreads;
 
-		if (!isMainThread){
+		if (!bIsMainThread){
 			if(color.a == 0 && color.r == 0 && color.g == 0 && color.b == 0){ //no custom color
 				tinfo.color = threadColorTable[numThreads%(threadColorTable.size())];
 			}else{
@@ -261,7 +267,8 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 
 	uint64_t timeNow = TM_GET_MICROS(); //get the time before the lock() to avoid affecting
 
-	Poco::Thread * thread = Poco::Thread::current();
+	ThreadId thread = getThreadID();
+	bool bIsMainThread = isMainThread(thread);
 
 	mutex.lock();
 
@@ -286,7 +293,7 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 		if ( t->measuring ){
 			t->measuring = false;
 			t->error = false;
-			t->acrossFrames = (thread == NULL && t->frame != ofGetFrameNum()); //we only care about across-frames in main thread
+			t->acrossFrames = (bIsMainThread && t->frame != ofGetFrameNum()); //we only care about across-frames in main thread
 			t->microsecondsStop = timeNow;
 			ret = t->duration = t->microsecondsStop - t->microsecondsStart;
 			if(!averaging){
@@ -395,17 +402,21 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		toResetUpdatedLastFrameFlag.push_back(t);
 	}
 
-	unordered_map<Poco::Thread*, ThreadInfo>::iterator ii;
-	vector<Poco::Thread*> expiredThreads;
+	unordered_map<ThreadId, ThreadInfo>::iterator ii;
+	vector<ThreadId> expiredThreads;
 
 	//lets make sure the Main Thread is always on top
-	vector< pair<Poco::Thread*, ThreadInfo> > sortedThreadList;
+
+	vector< ThreadContainer > sortedThreadList;
 
 	for( ii = threadInfo.begin(); ii != threadInfo.end(); ++ii ){ //walk all thread trees
-		if (ii->first == NULL){ //main thread is NULL!
-			sortedThreadList.insert(sortedThreadList.begin(), *ii);
+		ThreadContainer cont;
+		cont.id = ii->first;
+		cont.info = &ii->second;
+		if (isMainThread(ii->first)){ //is main thread
+			sortedThreadList.insert(sortedThreadList.begin(), cont);
 		}else{
-			sortedThreadList.push_back(*ii);
+			sortedThreadList.push_back(cont);
 		}
 	}
 	std::sort(sortedThreadList.begin(), sortedThreadList.end(), compareThreadPairs);
@@ -416,8 +427,8 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 	for( int k = 0; k < sortedThreadList.size(); k++ ){ //walk all thread trees
 
-		Poco::Thread* thread = sortedThreadList[k].first;
-		core::tree<string> &tr = sortedThreadList[k].second.tree;
+		ThreadId thread = sortedThreadList[k].id;
+		core::tree<string> &tr = sortedThreadList[k].info->tree;
 
 		ThreadInfo & tinfo = threadInfo[thread];
 		PrintedLine header;
@@ -551,7 +562,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 	//delete expired threads
 	for(int i = 0; i < expiredThreads.size(); i++){
-		unordered_map<Poco::Thread*, ThreadInfo>::iterator treeIt = threadInfo.find(expiredThreads[i]);
+		unordered_map<ThreadId, ThreadInfo>::iterator treeIt = threadInfo.find(expiredThreads[i]);
 		if (treeIt != threadInfo.end()) threadInfo.erase(treeIt);
 	}
 
@@ -826,7 +837,7 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
 void ofxTimeMeasurements::collapseExpand(string sel, bool collapse){
 
-	unordered_map<Poco::Thread*, ThreadInfo>::iterator ii;
+	unordered_map<ThreadId, ThreadInfo>::iterator ii;
 
 	for( ii = threadInfo.begin(); ii != threadInfo.end(); ++ii ){
 

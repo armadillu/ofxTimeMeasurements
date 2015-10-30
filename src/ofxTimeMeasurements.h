@@ -132,6 +132,8 @@ class ofxTimeMeasurements {
 		void drawUiWithBitmapFont();
 		#endif
 
+		void enableInternalBenchmark(bool bench){internalBenchmark = bench;}
+
 		void setAutoDraw(bool b){drawAuto = b;}
 		void draw(int x, int y) ;
 
@@ -301,6 +303,7 @@ class ofxTimeMeasurements {
 		int										plotHeight;
 		int										plotBaseY;
 		int										numAllocatdPlots;
+		int										numActivePlots;
 
 		ofxHistoryPlot*							makeNewPlot(string name);
 		float									plotResolution;
@@ -321,6 +324,13 @@ class ofxTimeMeasurements {
 		unsigned char							dimColorA;
 
 		uint64_t								currentFrameNum;
+
+		//internal performance testing
+		bool									internalBenchmark;
+		uint64_t								wastedTimeThisFrame;
+		uint64_t								wastedTimeDrawingThisFrame;
+		uint64_t								wastedTimeAvg;
+		uint64_t								wastedTimeDrawingAvg;
 
 };
 

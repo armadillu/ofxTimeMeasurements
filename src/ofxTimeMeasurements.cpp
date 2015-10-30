@@ -24,6 +24,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	msPrecision = 1;
 	maxW = 27;
 	drawAuto = true;
+	internalBenchmark = false;
 
 	#if defined(USE_OFX_FONTSTASH)
 	useFontStash = false;
@@ -35,6 +36,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	plotBaseY = 0;
 	plotResolution = 1;
 	maxPlotSamples = 4096;
+	numActivePlots = 0;
 	#endif
 
 	mainThreadID = getThreadID();
@@ -76,6 +78,9 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	settingsLoaded = false;
 	charW = 8;
 	charH = TIME_MEASUREMENTS_LINE_HEIGHT;
+
+	wastedTimeThisFrame = wastedTimeAvg = 0;
+	wastedTimeDrawingThisFrame = wastedTimeDrawingAvg = 0;
 
 #if (OF_VERSION_MINOR >= 8)
 		//-100 and +100 are to make sure we are always the first AND last at update and draw events, so we can sum everyone's times
@@ -183,6 +188,12 @@ void ofxTimeMeasurements::setHighlightColor(ofColor c){
 bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, const ofColor & color){
 
 	if (!enabled) return true;
+
+	uint64_t wastedTime;
+	if(internalBenchmark){
+		wastedTime = TM_GET_MICROS();
+	}
+
 	if (!settingsLoaded){
 		loadSettings();
 		settingsLoaded = true;
@@ -257,6 +268,10 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 
 	mutex.unlock();
 
+	if(internalBenchmark){
+		wastedTimeThisFrame += t->microsecondsStart - wastedTime;
+	}
+
 	return t->settings.enabled;
 }
 
@@ -311,7 +326,13 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 				  " with that ID first.", ID.c_str());
 		}
 	}
+
 	mutex.unlock();
+
+	if(internalBenchmark){
+		wastedTimeThisFrame += TM_GET_MICROS() - timeNow;
+	}
+
 	return ret / 1000.0f; //convert to ms
 }
 
@@ -332,20 +353,27 @@ void ofxTimeMeasurements::_afterDraw(ofEventArgs &d){
 
 void ofxTimeMeasurements::autoDraw(){
 
+	float yy = 0;
+	#ifdef USE_OFX_HISTORYPLOT
+	yy = numActivePlots * plotHeight;
+	#endif
+
 	switch(drawLocation){
 
 		case TIME_MEASUREMENTS_TOP_LEFT:
 			draw(TIME_MEASUREMENTS_EDGE_GAP_H,TIME_MEASUREMENTS_EDGE_GAP_V);
 			break;
 		case TIME_MEASUREMENTS_TOP_RIGHT:
-			draw( ofGetWidth() / uiScale - getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,TIME_MEASUREMENTS_EDGE_GAP_V);
+			draw( ofGetWidth() / uiScale - getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,
+				 TIME_MEASUREMENTS_EDGE_GAP_V);
 			break;
 		case TIME_MEASUREMENTS_BOTTOM_LEFT:
-			draw(TIME_MEASUREMENTS_EDGE_GAP_H, ofGetHeight() / uiScale - getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V);
+			draw(TIME_MEASUREMENTS_EDGE_GAP_H,
+				 ofGetHeight() / uiScale - getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V - yy);
 			break;
 		case TIME_MEASUREMENTS_BOTTOM_RIGHT:
 			draw( ofGetWidth() / uiScale - getWidth() - TIME_MEASUREMENTS_EDGE_GAP_H,
-				 ofGetHeight() / uiScale - getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V);
+				 ofGetHeight() / uiScale - getHeight() - TIME_MEASUREMENTS_EDGE_GAP_V - yy);
 			break;
 		case TIME_MEASUREMENTS_CUSTOM_LOCATION:
 			draw(customDrawLocation.x, customDrawLocation.y);
@@ -376,6 +404,10 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 	if (!enabled) return;
 
+	uint64_t timeNow;
+	if(internalBenchmark){
+		timeNow = TM_GET_MICROS();
+	}
 	currentFrameNum = ofGetFrameNum();
 
 	drawLines.clear();
@@ -546,6 +578,8 @@ void ofxTimeMeasurements::draw(int x, int y) {
 			}
 		}
 
+		numActivePlots = plotsToDraw.size();
+
 		if (numAlive == 0 && removeExpiredThreads){
 			//drop that whole section if all entries in it are not alive
 			for(int i = 0; i < numAdded + 1; i++){
@@ -668,6 +702,21 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		}
 	}
 
+	if(internalBenchmark){
+		float offset = 0;
+		if(drawLocation == TIME_MEASUREMENTS_TOP_LEFT ||
+		   drawLocation == TIME_MEASUREMENTS_TOP_RIGHT ||
+		   drawLocation == TIME_MEASUREMENTS_CUSTOM_LOCATION ){
+			offset = (drawLines.size() + 2.5) * charH;
+		}
+		ofSetColor(0);
+		ofRect(x, offset + y - charH, totalW, charH);
+		ofSetColor(currentFrameNum%3 ? 255 : 64);
+		drawString(" Meas: " + ofToString(wastedTimeAvg / 1000.f, 2) + "ms " +
+				   " Draw: " + ofToString(wastedTimeDrawingAvg / 1000.f, 2) + "ms ",
+				   x, offset + y - charH * 0.12);
+	}
+
 	{//lines
 		ofSetColor(hilightColor);
 		ofMesh lines;
@@ -724,6 +773,13 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	}
 	ofPopMatrix();
 	ofPopStyle();
+
+	if(internalBenchmark){
+		wastedTimeDrawingThisFrame += TM_GET_MICROS() - timeNow;
+		wastedTimeAvg = wastedTimeThisFrame * 0.025f + 0.975f * wastedTimeAvg;
+		wastedTimeDrawingAvg = wastedTimeDrawingThisFrame * 0.025f + 0.975f * wastedTimeDrawingAvg;
+		wastedTimeThisFrame = wastedTimeDrawingThisFrame = 0;
+	}
 }
 
 #if defined(USE_OFX_HISTORYPLOT)
@@ -761,6 +817,7 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 		}
 
 		if(e.key == 'A') averaging ^= true;  //Average Toggle
+		if(e.key == 'B') internalBenchmark ^= true;  //internalBenchmark Toggle
 
 		if(e.key == 'L'){
 			drawLocation = ofxTMDrawLocation(drawLocation+1);

@@ -212,27 +212,38 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 	mutex.lock();
 
 	unordered_map<ThreadId, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
-	ThreadInfo & tinfo = threadInfo[thread];
-	core::tree<string> &tr = tinfo.tree; //easier to read, tr is our tree from now on
+	ThreadInfo * tinfo = NULL;
+	core::tree<string> *tr = NULL;
 
-	if (threadIt == threadInfo.end() ){ //new thread!
+	bool newThread = threadIt == threadInfo.end();
+
+	if (newThread){ //new thread!
+
+		//cout << "NewThread! " << ID << " " << &thread << endl;
+		threadInfo[thread] = ThreadInfo();
+		tinfo = &threadInfo[thread];
+		tr = &tinfo->tree; //easier to read, tr is our tree from now on
 
 		string tName = bIsMainThread ? "Main Thread" : (threadName + "(" + ofToString(numThreads) + ")");
 		//init the iterator
 		*tr = tName; //thread name is root
-		tinfo.tit = (core::tree<string>::iterator)tr;
-		tinfo.order = numThreads;
+		tinfo->tit = (core::tree<string>::iterator)*tr;
+		tinfo->order = numThreads;
 
 		if (!bIsMainThread){
 			if(color.a == 0 && color.r == 0 && color.g == 0 && color.b == 0){ //no custom color
-				tinfo.color = threadColorTable[numThreads%(threadColorTable.size())];
+				tinfo->color = threadColorTable[numThreads%(threadColorTable.size())];
 			}else{
-				tinfo.color = color;
+				tinfo->color = color;
 			}
 			numThreads++;
 		}else{ //main thread
-			tinfo.color = hilightColor;
+			tinfo->color = hilightColor;
 		}
+
+	}else{
+		tinfo = &threadInfo[thread];
+		tr = &(tinfo->tree); //easier to read, tr is our tree from now on
 	}
 
 	//see if we had an actual measurement, or its a new one
@@ -240,9 +251,18 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 	TimeMeasurement* t;
 
 	if(tit == times.end()){ //if it wasnt in the tree, append it
-		tinfo.tit = tinfo.tit.push_back(ID);
+		tinfo->tit = tinfo->tit.push_back(ID);
 	}else{
-		tinfo.tit = tr.tree_find_depth(ID);
+		core::tree<string>::iterator temptit = tr->tree_find_depth(ID);
+		if(temptit != tr->end()){
+			tinfo->tit = temptit;
+		}else{
+			//cout << "gotcha!" << endl;
+			//this is the rare case where we already had a measurement for this ID,
+			//but it must be assigned to another old thread bc we cant find it!
+			//so we re-add that ID for this thread and update the tree iterator
+			tinfo->tit = tinfo->tit.push_back(ID);
+		}
 	}
 
 	if (tit == times.end()){ //not found, let alloc a new TimeMeasurement
@@ -287,6 +307,8 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 	bool bIsMainThread = isMainThread(thread);
 
 	mutex.lock();
+
+	unordered_map<ThreadId, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
 
 	ThreadInfo & tinfo = threadInfo[thread];
 	core::tree<string> & tr = tinfo.tree; //easier to read, tr is our tree from now on

@@ -600,7 +600,9 @@ void ofxTimeMeasurements::draw(int x, int y) {
 			}
 		}
 
+		#if defined(USE_OFX_HISTORYPLOT)
 		numActivePlots = plotsToDraw.size();
+		#endif
 
 		if (numAlive == 0 && removeExpiredThreads){
 			//drop that whole section if all entries in it are not alive

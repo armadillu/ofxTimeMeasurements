@@ -270,6 +270,7 @@ class ofxTimeMeasurements {
 		ofColor									textColor;
 		ofColor									disabledTextColor;
 		ofColor									measuringColor;
+		ofColor									frozenColor;
 
 
 		float									idleTimeColorFadePercent;
@@ -286,6 +287,7 @@ class ofxTimeMeasurements {
 		unsigned int							activateKey;
 		unsigned int							toggleSampleKey;  //selected time sample
 
+		bool									freeze; //if enabled, ignore current timings and show the last one we had b4 freezing
 		bool									menuActive;
 		#ifdef USE_MSA_TIMER
 		ofxMSATimer								timer;

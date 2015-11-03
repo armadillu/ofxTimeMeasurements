@@ -45,7 +45,11 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	hilightColor = ofColor(44,77,255) * 1.5;
 	disabledTextColor = ofColor(255,0,255);
 	measuringColor = ofColor(0,130,0);
+	frozenColor = hilightColor * 1.5;
+
 	dimColorA = 40;
+
+	freeze = false;
 
 	idleTimeColorFadePercent = 0.5;
 	idleTimeColorDecay = 0.96;
@@ -62,23 +66,23 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 	menuActive = false;
 
-	int v = 150;
-	threadColorTable.push_back(ofColor(v,0,0));
-	threadColorTable.push_back(ofColor(0,v,0));
-	threadColorTable.push_back(ofColor(0,0,v));
-	threadColorTable.push_back(ofColor(v,v,0));
-	threadColorTable.push_back(ofColor(0,v,v));
-	threadColorTable.push_back(ofColor(v,0,v));
-	threadColorTable.push_back(ofColor(v,v/2,0));
-	numThreads = 0;
+	int numHues = 9;
+	float brightness = 190.0f;
+	for (int i = 0; i < numHues; i++) {
+		float hue = fmod( i * (255.0f / float(numHues)), 255.0f);
+		ofColor c = ofColor::fromHsb(hue, 255.0f, brightness, 255.0f);
+		threadColorTable.push_back(c);
+	}
 
+	numThreads = 0;
 	configsDir = ".";
 	removeExpiredThreads = true;
-
 	settingsLoaded = false;
-	charW = 8;
+
+	charW = 8; //ofBitmap font char w
 	charH = TIME_MEASUREMENTS_LINE_HEIGHT;
 
+	//used for internal benchmark ('B')
 	wastedTimeThisFrame = wastedTimeAvg = 0;
 	wastedTimeDrawingThisFrame = wastedTimeDrawingAvg = 0;
 
@@ -112,12 +116,14 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 #endif
 }
 
+
 void ofxTimeMeasurements::addSetupHooks(){
 	#if (OF_VERSION_MINOR >= 9)
 	ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
 	ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
 	#endif
 }
+
 
 void ofxTimeMeasurements::_windowResized(ofResizeEventArgs &e){
 	#if defined(USE_OFX_HISTORYPLOT)
@@ -132,6 +138,7 @@ void ofxTimeMeasurements::_windowResized(ofResizeEventArgs &e){
 	#endif
 }
 
+
 void ofxTimeMeasurements::setThreadColors(const vector<ofColor> & tc){
 	threadColorTable.clear();
 	threadColorTable = tc;
@@ -145,6 +152,7 @@ ofxTimeMeasurements* ofxTimeMeasurements::instance(){
 	return singleton;
 }
 
+
 void ofxTimeMeasurements::setConfigsDir(string d){
 	configsDir = d;
 	loadSettings(); //as we load settings on construction time, lets try re-load settings
@@ -155,6 +163,7 @@ void ofxTimeMeasurements::setConfigsDir(string d){
 void ofxTimeMeasurements::setDeadThreadTimeDecay(float decay){
 	deadThreadExtendedLifeDecSpeed = ofClamp(decay, idleTimeColorDecay, 1.0);
 }
+
 
 float ofxTimeMeasurements::getLastDurationFor(const string & ID){
 
@@ -334,12 +343,15 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 			t->acrossFrames = (bIsMainThread && t->frame != ofGetFrameNum()); //we only care about across-frames in main thread
 			t->microsecondsStop = timeNow;
 			ret = t->duration = t->microsecondsStop - t->microsecondsStart;
-			if(!averaging){
-				t->avgDuration = t->duration;
-			}else{
-				t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration + t->duration * timeAveragePercent;
+			if (!freeze) {
+				if (!averaging) {
+					t->avgDuration = t->duration;
+				}
+				else {
+					t->avgDuration = (1.0f - timeAveragePercent) * t->avgDuration + t->duration * timeAveragePercent;
+				}
 			}
-			if (accumulate){
+			if (accumulate && !freeze){
 				t->microsecondsAccum += t->avgDuration;
 			}
 		}else{	//wrong use, start first, then stop
@@ -461,7 +473,6 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	vector<ThreadId> expiredThreads;
 
 	//lets make sure the Main Thread is always on top
-
 	vector< ThreadContainer > sortedThreadList;
 
 	for( ii = threadInfo.begin(); ii != threadInfo.end(); ++ii ){ //walk all thread trees
@@ -513,10 +524,13 @@ void ofxTimeMeasurements::draw(int x, int y) {
 					if(t->updatedLastFrame){
 						//update plot res every now and then
 						if(currentFrameNum%120 == 1) plot->setMaxHistory(MIN(maxPlotSamples, winW * plotResolution));
-						if (t->accumulating){
-							plot->update(t->microsecondsAccum / 1000.0f);
-						}else{
-							plot->update(t->avgDuration / 1000.0f);
+						if (!freeze) {
+							if (t->accumulating) {
+								plot->update(t->microsecondsAccum / 1000.0f);
+							}
+							else {
+								plot->update(t->avgDuration / 1000.0f);
+							}
 						}
 					}
 					plotsToDraw.push_back(plot);
@@ -670,8 +684,10 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		l.fullLine = " 'LFT/RGHT' expand/collaps"; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'RET' toggle code section"; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'A' average measurements"; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'F' freeze measurements"; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'L' change widg location"; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'PG_DWN' en/disable addon"; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'B' internal benchmark"; drawLines.push_back(l); numInstructionLines++;
 		#if defined USE_OFX_HISTORYPLOT
 		l.fullLine = " 'P' plot selectd measur."; drawLines.push_back(l); numInstructionLines++;
 		#endif
@@ -722,7 +738,10 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		drawString(drawLines[i].fullLine, x , y + (i + 1) * charH);
 		if(drawLines[i].plotColor.a > 0){ //plot highlight on the sides
 			ofSetColor(drawLines[i].plotColor);
-			ofRect(x, y + 4 + i * charH, 3, charH - 2 );
+			float y1 = y + 2.4f + i * charH;
+			ofDrawTriangle(	x, y1, 
+							x, y1 + charH, 
+							x + charW * 0.7f, y1 + charH * 0.5f);
 		}
 	}
 
@@ -739,6 +758,12 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		drawString(" Meas: " + ofToString(wastedTimeAvg / 1000.f, 2) + "ms " +
 				   " Draw: " + ofToString(wastedTimeDrawingAvg / 1000.f, 2) + "ms ",
 				   x, offset + y - charH * 0.12);
+	}
+
+	if (freeze) {
+		if(currentFrameNum%5 < 4) ofSetColor(frozenColor);
+		else ofSetColor(ofColor::white);
+		drawString("Frozen! 'F'", x + totalW - 13 * charW, y + charH );
 	}
 
 	{//lines
@@ -784,12 +809,17 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	for(int i = 0; i < diff; i++) pad += " ";
 	int lastLine = ( drawLines.size() + 1 ) * charH + 2;
 	drawString( pad + msg, x, y + lastLine );
-	ofSetColor(hilightColor);
-	drawString( " '" + ofToString(char(activateKey)) + "'" + string(averaging ? " avg!"  : ""),
-			   x, y + lastLine );
-	if(menuActive && currentFrameNum%20 < 10){
-		ofSetColor(hilightColor.getInverted());
-		drawString( " '" + ofToString(char(activateKey)) + "'", x, y + lastLine);
+	
+	//show activate menu key
+	if(menuActive ) ofSetColor(hilightColor.getInverted());
+	else ofSetColor(hilightColor);
+	drawString(" '" + ofToString(char(activateKey)) + "'", x, y + lastLine);
+
+	//show averaging warning
+	if (averaging) {
+		if (currentFrameNum % 5 < 2) ofSetColor(hilightColor);
+		else ofSetColor(ofColor::limeGreen);
+		drawString(" avg!", x + charW * 3.5, y + lastLine);
 	}
 
 	for(int i = 0; i < toResetUpdatedLastFrameFlag.size(); i++){
@@ -843,6 +873,8 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
 		if(e.key == 'A') averaging ^= true;  //Average Toggle
 		if(e.key == 'B') internalBenchmark ^= true;  //internalBenchmark Toggle
+		if (e.key == 'F') freeze ^= true;  //free measurements
+		
 
 		if(e.key == 'L'){
 			drawLocation = ofxTMDrawLocation(drawLocation+1);
@@ -972,7 +1004,6 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 			case 4: anim = " .."; break;
 			case 5: anim = "  ."; break;
 		}
-		//return "   Running " + anim;
 		return string((currentFrameNum % 6 < 3 ) ? " >  " : "    ") +
 				formatTime( TM_GET_MICROS() - tm->microsecondsStart, 1) +
 				anim;
@@ -1012,7 +1043,6 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 				sprintf(percentChar, "% 5.1f", percent);
 			}
 		}
-
 		return timeString + percentChar + "%";
 	}
 }

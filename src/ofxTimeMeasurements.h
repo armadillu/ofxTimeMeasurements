@@ -152,6 +152,8 @@ class ofxTimeMeasurements {
 			#endif
 		};
 
+		typedef Poco::Thread::TID ThreadId;
+
 		struct TimeMeasurement{
 			uint64_t microsecondsStart;
 			uint64_t microsecondsStop;
@@ -166,12 +168,11 @@ class ofxTimeMeasurements {
 			int frame; //used to compare start-stop calls frame, and see if its an across-frames measurement
 			bool acrossFrames;
 			string key;
-			Poco::Thread* thread;
+			ThreadId thread;
 			float life;
 			TimeMeasurementSettings settings;
 
 			TimeMeasurement(){
-				thread = NULL;
 				microsecondsAccum = 0;
 				numAccumulations = 0;
 				settings.visible = true;
@@ -226,7 +227,6 @@ class ofxTimeMeasurements {
 		string getTimeStringForTM(TimeMeasurement* tm);
 		void drawString(const string & text, const float & x, const float & y);
 
-		typedef Poco::Thread::TID ThreadId;
 
 		struct ThreadContainer{
 			ThreadId id;

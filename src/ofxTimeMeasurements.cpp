@@ -294,6 +294,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 	t->frame = ofGetFrameNum();
 	t->updatedLastFrame = true;
 	t->microsecondsStart = TM_GET_MICROS();
+	t->thread = thread;
 
 	mutex.unlock();
 
@@ -339,6 +340,7 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 		TimeMeasurement* t = it->second;
 		if ( t->measuring ){
 			t->measuring = false;
+			t->thread = thread;
 			t->error = false;
 			t->acrossFrames = (bIsMainThread && t->frame != ofGetFrameNum()); //we only care about across-frames in main thread
 			t->microsecondsStop = timeNow;
@@ -515,86 +517,88 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 			string key = *wholeTreeWalker;
 			TimeMeasurement * t = times[*wholeTreeWalker];
-
-			#if defined(USE_OFX_HISTORYPLOT)
-			bool plotActive = false;
-			ofxHistoryPlot* plot = plots[key];
-			if(plot){
-				if(t->settings.plotting){
-					if(t->updatedLastFrame){
-						//update plot res every now and then
-						if(currentFrameNum%120 == 1) plot->setMaxHistory(MIN(maxPlotSamples, winW * plotResolution));
-						if (!freeze) {
-							if (t->accumulating) {
-								plot->update(t->microsecondsAccum / 1000.0f);
-							}
-							else {
-								plot->update(t->avgDuration / 1000.0f);
-							}
-						}
-					}
-					plotsToDraw.push_back(plot);
-					plotActive = true;
-				}
-			}
-			#endif
-
-			bool visible = t->settings.visible;
-			bool alive = t->life > 0.0001;
-			if(alive){
-				numAlive++;
-			}
-
-			if (visible){
-				PrintedLine l;
-				l.key = key;
-				l.tm = t;
-				l.lineBgColor = ofColor(tinfo.color, dimColorA);
-
-				int depth = wholeTreeWalker.level();
-				for(int i = 0; i < depth; ++i) l.formattedKey += " ";
-
-				if (wholeTreeWalker.size() == 0){
-					l.formattedKey += "-";
-				}else{
-					l.formattedKey += "+";
-				}
-				l.formattedKey += key + string(t->accumulating ? "[" + ofToString(t->numAccumulations)+ "]" : "" );
-				l.isAccum = t->accumulating;
-				l.time = getTimeStringForTM(t);
-
-				l.color = tinfo.color * ((1.0 - idleTimeColorFadePercent) + idleTimeColorFadePercent * t->life);
-				if (!t->settings.enabled){
-					l.color = disabledTextColor;
-				}
+			if(t->thread == thread){
 
 				#if defined(USE_OFX_HISTORYPLOT)
-				if(plotActive){
-					l.plotColor = ofColor(plots[key]->getColor(), 200);
+				bool plotActive = false;
+				ofxHistoryPlot* plot = plots[key];
+				if(plot){
+					if(t->settings.plotting){
+						if(t->updatedLastFrame){
+							//update plot res every now and then
+							if(currentFrameNum%120 == 1) plot->setMaxHistory(MIN(maxPlotSamples, winW * plotResolution));
+							if (!freeze) {
+								if (t->accumulating) {
+									plot->update(t->microsecondsAccum / 1000.0f);
+								}
+								else {
+									plot->update(t->avgDuration / 1000.0f);
+								}
+							}
+						}
+						plotsToDraw.push_back(plot);
+						plotActive = true;
+					}
 				}
 				#endif
 
-				if (menuActive && t->key == selection){
-					if(currentFrameNum%5 < 4){
-						l.color.invert();
-						l.lineBgColor = ofColor(tinfo.color, dimColorA * 1.5);
-					}
+				bool visible = t->settings.visible;
+				bool alive = t->life > 0.0001;
+				if(alive){
+					numAlive++;
 				}
 
-				drawLines.push_back(l);
-				numAdded++;
+				if (visible){
+					PrintedLine l;
+					l.key = key;
+					l.tm = t;
+					l.lineBgColor = ofColor(tinfo.color, dimColorA);
+
+					int depth = wholeTreeWalker.level();
+					for(int i = 0; i < depth; ++i) l.formattedKey += " ";
+
+					if (wholeTreeWalker.size() == 0){
+						l.formattedKey += "-";
+					}else{
+						l.formattedKey += "+";
+					}
+					l.formattedKey += key + string(t->accumulating ? "[" + ofToString(t->numAccumulations)+ "]" : "" );
+					l.isAccum = t->accumulating;
+					l.time = getTimeStringForTM(t);
+
+					l.color = tinfo.color * ((1.0 - idleTimeColorFadePercent) + idleTimeColorFadePercent * t->life);
+					if (!t->settings.enabled){
+						l.color = disabledTextColor;
+					}
+
+					#if defined(USE_OFX_HISTORYPLOT)
+					if(plotActive){
+						l.plotColor = ofColor(plots[key]->getColor(), 200);
+					}
+					#endif
+
+					if (menuActive && t->key == selection){
+						if(currentFrameNum%5 < 4){
+							l.color.invert();
+							l.lineBgColor = ofColor(tinfo.color, dimColorA * 1.5);
+						}
+					}
+
+					drawLines.push_back(l);
+					numAdded++;
+				}
+
+				//only update() and draw() count to the final %
+				if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
+					percentTotal += (t->avgDuration * 0.1f) / timePerFrame;
+				}
+				//reset accumulator
+				t->accumulating = false;
+				t->numAccumulations = 0;
+				t->microsecondsAccum = 0;
 			}
 
-			//only update() and draw() count to the final %
-			if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
-				percentTotal += (t->avgDuration * 0.1f) / timePerFrame;
-			}
-			//reset accumulator
-			t->accumulating = false;
-			t->numAccumulations = 0;
-			t->microsecondsAccum = 0;
-
-			//control the iterator to walk the tree "recursivelly" without doing so.
+			//control the iterator to walk the tree "recursively" without doing so.
 			if(wholeTreeWalker.size()){
 				wholeTreeWalker = wholeTreeWalker.in();
 			}else{

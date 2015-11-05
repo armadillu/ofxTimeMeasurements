@@ -689,7 +689,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		l.fullLine = " 'RET' toggle code section"; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'A' average measurements"; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'F' freeze measurements"; drawLines.push_back(l); numInstructionLines++;
-		l.fullLine = " 'L' change widg location"; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'L' cycle widget location"; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'PG_DWN' en/disable addon"; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'B' internal benchmark"; drawLines.push_back(l); numInstructionLines++;
 		#if defined USE_OFX_HISTORYPLOT

@@ -52,6 +52,8 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 #define TIME_MEASUREMENTS_SETUP_KEY			"setup()"
 #define TIME_MEASUREMENTS_UPDATE_KEY		"update()"
 #define TIME_MEASUREMENTS_DRAW_KEY			"draw()"
+#define TIME_MEASUREMENTS_KEYPRESSED_KEY	"keyPressed()"
+#define TIME_MEASUREMENTS_KEYRELEASED_KEY	"keyReleased()"
 
 #define TIME_MEASUREMENTS_GLOBAL_TOGGLE_KEY		(OF_KEY_PAGE_DOWN)
 #define TIME_MEASUREMENTS_INTERACT_KEY			'T'
@@ -210,12 +212,15 @@ class ofxTimeMeasurements {
 		void _afterUpdate(ofEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_UPDATE_KEY, false);};
 		void _beforeDraw(ofEventArgs &d){startMeasuring(TIME_MEASUREMENTS_DRAW_KEY, false);};
 		void _afterDraw(ofEventArgs &d);
+		void _beforeKeyPressed(ofKeyEventArgs &d){startMeasuring(TIME_MEASUREMENTS_KEYPRESSED_KEY, false);};
+		void _afterKeyPressed(ofKeyEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_KEYPRESSED_KEY, false);};
+		void _beforeKeyReleased(ofKeyEventArgs &d){startMeasuring(TIME_MEASUREMENTS_KEYRELEASED_KEY, false);};
+		void _afterKeyReleased(ofKeyEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_KEYRELEASED_KEY, false);};
 
 		void _appExited(ofEventArgs &e);
 		bool _keyPressed(ofKeyEventArgs &e);
 
 		void _windowResized(ofResizeEventArgs &e);
-
 
 		void autoDraw();
 		void collapseExpand(string sel, bool colapse);

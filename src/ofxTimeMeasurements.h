@@ -83,8 +83,11 @@ class ofxTimeMeasurements {
 		void setConfigsDir(string d);
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 											//affects the % busy indicator
-		bool startMeasuring(const string & ID, bool accumulate, const ofColor & c = ofColor(0,0));
+
+		//ifEnabled  > if true, it means that measurement is wrapped aroun with an if() caluse
+		bool startMeasuring(const string & ID, bool accumulate, bool ifEnabled = true);
 		float stopMeasuring(const string & ID, bool accumulate);
+
 		void setEnabled( bool enable );
 		bool getEnabled();
 		void setDrawLocation(ofxTMDrawLocation loc, ofVec2f p = ofVec2f()); //p only relevant if using TIME_MEASUREMENTS_CUSTOM_LOCATION
@@ -165,6 +168,7 @@ class ofxTimeMeasurements {
 			bool measuring;
 			bool error;
 			bool updatedLastFrame;
+			bool ifClause; //is this measurement under an if() clause or not? (TS_START vs TS_START_NIF)
 			bool accumulating; //start stop doesnt reset the timing, unless you call stop with accum=true
 			int numAccumulations;
 			int frame; //used to compare start-stop calls frame, and see if its an across-frames measurement
@@ -214,8 +218,8 @@ class ofxTimeMeasurements {
 		void _afterDraw(ofEventArgs &d);
 		void _beforeKeyPressed(ofKeyEventArgs &d){startMeasuring(TIME_MEASUREMENTS_KEYPRESSED_KEY, false);};
 		void _afterKeyPressed(ofKeyEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_KEYPRESSED_KEY, false);};
-		void _beforeKeyReleased(ofKeyEventArgs &d){startMeasuring(TIME_MEASUREMENTS_KEYRELEASED_KEY, false);};
-		void _afterKeyReleased(ofKeyEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_KEYRELEASED_KEY, false);};
+//		void _beforeKeyReleased(ofKeyEventArgs &d){startMeasuring(TIME_MEASUREMENTS_KEYRELEASED_KEY, false);};
+//		void _afterKeyReleased(ofKeyEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_KEYRELEASED_KEY, false);};
 
 		void _appExited(ofEventArgs &e);
 		bool _keyPressed(ofKeyEventArgs &e);

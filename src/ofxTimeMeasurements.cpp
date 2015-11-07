@@ -43,7 +43,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 	bgColor = ofColor(0);
 	hilightColor = ofColor(44,77,255) * 1.5;
-	disabledTextColor = ofColor(255,0,255);
+	disabledTextColor = ofColor(255,0,128);
 	measuringColor = ofColor(0,130,0);
 	frozenColor = hilightColor * 1.5;
 
@@ -98,10 +98,10 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP + 100);
 		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_beforeKeyPressed, OF_EVENT_ORDER_BEFORE_APP - 100);
 		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_afterKeyPressed, OF_EVENT_ORDER_AFTER_APP + 100);
-		ofAddListener(ofEvents().keyReleased, this, &ofxTimeMeasurements::_beforeKeyReleased, OF_EVENT_ORDER_BEFORE_APP - 100);
-		ofAddListener(ofEvents().keyReleased, this, &ofxTimeMeasurements::_afterKeyReleased, OF_EVENT_ORDER_AFTER_APP + 100);
+//		ofAddListener(ofEvents().keyReleased, this, &ofxTimeMeasurements::_beforeKeyReleased, OF_EVENT_ORDER_BEFORE_APP - 100);
+//		ofAddListener(ofEvents().keyReleased, this, &ofxTimeMeasurements::_afterKeyReleased, OF_EVENT_ORDER_AFTER_APP + 100);
 
-		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed, OF_EVENT_ORDER_BEFORE_APP);
+		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed, OF_EVENT_ORDER_BEFORE_APP - 200);
 		ofAddListener(ofEvents().exit, this, &ofxTimeMeasurements::_appExited); //to save to xml
 		#if defined(USE_OFX_HISTORYPLOT)
 		ofAddListener(ofEvents().windowResized, this, &ofxTimeMeasurements::_windowResized); //to save to xml
@@ -199,7 +199,7 @@ void ofxTimeMeasurements::setHighlightColor(ofColor c){
 }
 
 
-bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, const ofColor & color){
+bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, bool ifClause){
 
 	if (!enabled) return true;
 
@@ -245,11 +245,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 		tinfo->order = numThreads;
 
 		if (!bIsMainThread){
-			if(color.a == 0 && color.r == 0 && color.g == 0 && color.b == 0){ //no custom color
-				tinfo->color = threadColorTable[numThreads%(threadColorTable.size())];
-			}else{
-				tinfo->color = color;
-			}
+			tinfo->color = threadColorTable[numThreads%(threadColorTable.size())];
 			numThreads++;
 		}else{ //main thread
 			tinfo->color = hilightColor;
@@ -292,6 +288,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, con
 	t->key = ID;
 	t->life = 1.0f; //
 	t->measuring = true;
+	t->ifClause = ifClause;
 	t->microsecondsStop = 0;
 	t->accumulating = accumulate;
 	if(accumulate) t->numAccumulations++;
@@ -573,7 +570,11 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 					l.color = tinfo.color * ((1.0 - idleTimeColorFadePercent) + idleTimeColorFadePercent * t->life);
 					if (!t->settings.enabled){
-						l.color = disabledTextColor;
+						if(t->ifClause){
+							l.color = disabledTextColor;
+						}else{
+							l.color = disabledTextColor.getInverted();
+						}
 					}
 
 					#if defined(USE_OFX_HISTORYPLOT)
@@ -897,66 +898,72 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 				for(int i = 0; i < drawLines.size(); i++){
 					if (drawLines[i].key == selection) selIndex = i;
 				}
-				if(selIndex == -1){
-					return false;
-				}
+				if(selIndex != -1){
+					switch (e.key) {
 
-				switch (e.key) {
-
-					case OF_KEY_DOWN:{
-						selIndex ++;
-						if(selIndex >= drawLines.size()) selIndex = 0;
-						while(drawLines[selIndex].tm == NULL){
+						case OF_KEY_DOWN:{
 							selIndex ++;
 							if(selIndex >= drawLines.size()) selIndex = 0;
-						}
-						selection = drawLines[selIndex].key;
-					}break;
-
-					case OF_KEY_UP:{
-						selIndex --;
-						if(selIndex < 0 ) selIndex = drawLines.size() - 1;
-						while(drawLines[selIndex].tm == NULL){
-							selIndex --;
-							if(selIndex < 0 ) selIndex = drawLines.size() - 1;
-						}
-						selection = drawLines[selIndex].key;
-					}break;
-
-					#if defined(USE_OFX_HISTORYPLOT)
-					case 'P':{
-						if (!plots[selection]){
-							plots[selection] = makeNewPlot(selection);
-							times[selection]->settings.plotting = true;
-						}else{
-							times[selection]->settings.plotting ^= true;
-						}
-					}break;
-					#endif
-
-					case OF_KEY_RETURN:{
-							//cant disable update() & draw()
-							if (selection != TIME_MEASUREMENTS_SETUP_KEY &&
-								selection != TIME_MEASUREMENTS_UPDATE_KEY &&
-								selection != TIME_MEASUREMENTS_DRAW_KEY &&
-								drawLines[selIndex].tm
-								){
-									times[selection]->settings.enabled ^= true;
+							while(drawLines[selIndex].tm == NULL){
+								selIndex ++;
+								if(selIndex >= drawLines.size()) selIndex = 0;
 							}
+							selection = drawLines[selIndex].key;
 						}break;
 
-					case OF_KEY_RIGHT:
-						collapseExpand(selection, false); //expand
-					break;
+						case OF_KEY_UP:{
+							selIndex --;
+							if(selIndex < 0 ) selIndex = drawLines.size() - 1;
+							while(drawLines[selIndex].tm == NULL){
+								selIndex --;
+								if(selIndex < 0 ) selIndex = drawLines.size() - 1;
+							}
+							selection = drawLines[selIndex].key;
+						}break;
 
-					case OF_KEY_LEFT:
-						collapseExpand(selection, true ); //collapse
+						#if defined(USE_OFX_HISTORYPLOT)
+						case 'P':{
+							if (!plots[selection]){
+								plots[selection] = makeNewPlot(selection);
+								times[selection]->settings.plotting = true;
+							}else{
+								times[selection]->settings.plotting ^= true;
+							}
+						}break;
+						#endif
+
+						case OF_KEY_RETURN:{
+								//cant disable update() & draw()
+								if (selection != TIME_MEASUREMENTS_SETUP_KEY &&
+									selection != TIME_MEASUREMENTS_UPDATE_KEY &&
+									selection != TIME_MEASUREMENTS_DRAW_KEY &&
+									drawLines[selIndex].tm
+									){
+										times[selection]->settings.enabled ^= true;
+								}
+							}break;
+
+						case OF_KEY_RIGHT:
+							collapseExpand(selection, false); //expand
 						break;
+
+						case OF_KEY_LEFT:
+							collapseExpand(selection, true ); //collapse
+							break;
+					}
 				}
 			}
 		}
+		bool ret = menuActive && e.key != OF_KEY_ESC; //return true or false; if returning false, it stops the event chain
+		//so, next listerners will not get notified
+		if(ret == true){
+			stopMeasuring(TIME_MEASUREMENTS_KEYPRESSED_KEY, false); //if enabling the menu, we interrupt the following events,
+																	//so we manually stop the timing as otherwise its never stopped
+																	//bc the "after" kepressed event is never reached.
+		}
+		return ret;
 	}
-	return menuActive && e.key != OF_KEY_ESC;
+	return true; //if TM is disabled, dont interrtup event chain
 }
 
 
@@ -1022,7 +1029,11 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 		static char percentChar[64];
 
 		if (!tm->settings.enabled){
-			return "   DISABLED!";
+			if(tm->ifClause){
+				return "   DISABLED!";
+			}else{
+				return "  CANT DISABLE!";
+			}
 		}else{
 
 			if(tm->accumulating){
@@ -1237,7 +1248,7 @@ void ofxTimeMeasurements::setMsPrecision(int digits){
 
 float ofxTimeMeasurements::getWidth() const{
 	#ifdef USE_OFX_FONTSTASH
-	return (maxW + 1) * charW + float(useFontStash ? 4.0f: 0.0f);
+	return (maxW ) * charW + float(useFontStash ? 4.0f: 0.0f);
 	#else
 	return (maxW + 1) * charW;
 	#endif

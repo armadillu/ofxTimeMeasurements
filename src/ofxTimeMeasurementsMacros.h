@@ -13,19 +13,19 @@
 #define TIME_SAMPLE_SET_CONFIG_DIR(x) 	(ofxTimeMeasurements::instance()->setConfigsDir(x))
 #define TIME_SAMPLE_SET_FRAMERATE(x)	(ofxTimeMeasurements::instance()->setDesiredFrameRate(x))
 
-#define TIME_SAMPLE_START(x, ...)		if(ofxTimeMeasurements::instance()->startMeasuring(x, false, ##__VA_ARGS__)){
+#define TIME_SAMPLE_START(x, ...)		if(ofxTimeMeasurements::instance()->startMeasuring(x, false, true)){
 #define TIME_SAMPLE_STOP(x)				}ofxTimeMeasurements::instance()->stopMeasuring(x, false)
 
-#define TIME_SAMPLE_START_ACC(x, ...)	if(ofxTimeMeasurements::instance()->startMeasuring(x, true, ##__VA_ARGS__)){
+#define TIME_SAMPLE_START_ACC(x, ...)	if(ofxTimeMeasurements::instance()->startMeasuring(x, true, true)){
 #define TIME_SAMPLE_STOP_ACC(x)			}ofxTimeMeasurements::instance()->stopMeasuring(x, true)
 
-#define TIME_SAMPLE_START_NOIF(x, ...)	ofxTimeMeasurements::instance()->startMeasuring(x, false, ##__VA_ARGS__)
+#define TIME_SAMPLE_START_NOIF(x, ...)	ofxTimeMeasurements::instance()->startMeasuring(x, false, false)
 #define TIME_SAMPLE_STOP_NOIF(x)		ofxTimeMeasurements::instance()->stopMeasuring(x, false)
 
-#define TIME_SAMPLE_START_ACC_NOIF(x, ...)	ofxTimeMeasurements::instance()->startMeasuring(x, true, ##__VA_ARGS__)
+#define TIME_SAMPLE_START_ACC_NOIF(x, ...)	ofxTimeMeasurements::instance()->startMeasuring(x, true, false)
 #define TIME_SAMPLE_STOP_ACC_NOIF(x)	ofxTimeMeasurements::instance()->stopMeasuring(x, true)
 
-#define TIME_SAMPLE_SET_DRAW_LOCATION(x,...)(ofxTimeMeasurements::instance()->setDrawLocation(x,##__VA_ARGS__))
+#define TIME_SAMPLE_SET_DRAW_LOCATION(x,...)(ofxTimeMeasurements::instance()->setDrawLocation(x, ##__VA_ARGS__))
 #define TIME_SAMPLE_GET_ENABLED()		(ofxTimeMeasurements::instance()->getEnabled())
 #define TIME_SAMPLE_SET_ENABLED(e)		(ofxTimeMeasurements::instance()->setEnabled(e))
 #define TIME_SAMPLE_ENABLE()			(ofxTimeMeasurements::instance()->setEnabled(true))

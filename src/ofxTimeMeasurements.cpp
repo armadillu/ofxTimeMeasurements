@@ -963,7 +963,7 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 		}
 		return ret;
 	}
-	return true; //if TM is disabled, dont interrtup event chain
+	return false; //if TM is disabled, dont interrtup event chain
 }
 
 

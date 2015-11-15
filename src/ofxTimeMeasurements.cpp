@@ -86,46 +86,82 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	wastedTimeThisFrame = wastedTimeAvg = 0;
 	wastedTimeDrawingThisFrame = wastedTimeDrawingAvg = 0;
 
-#if (OF_VERSION_MINOR >= 8)
-		//-100 and +100 are to make sure we are always the first AND last at update and draw events, so we can sum everyone's times
-		#if (OF_VERSION_MINOR < 9)
-			ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
-			ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
-		#endif
-		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP - 100);
-		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP + 100);
-		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP - 100);
-		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP + 100);
-		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_beforeKeyPressed, OF_EVENT_ORDER_BEFORE_APP - 100);
-		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_afterKeyPressed, OF_EVENT_ORDER_AFTER_APP + 100);
-//		ofAddListener(ofEvents().keyReleased, this, &ofxTimeMeasurements::_beforeKeyReleased, OF_EVENT_ORDER_BEFORE_APP - 100);
-//		ofAddListener(ofEvents().keyReleased, this, &ofxTimeMeasurements::_afterKeyReleased, OF_EVENT_ORDER_AFTER_APP + 100);
+  addEventHooks();
+}
 
-		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed, OF_EVENT_ORDER_BEFORE_APP - 200);
-		ofAddListener(ofEvents().exit, this, &ofxTimeMeasurements::_appExited); //to save to xml
-		#if defined(USE_OFX_HISTORYPLOT)
-		ofAddListener(ofEvents().windowResized, this, &ofxTimeMeasurements::_windowResized); //to save to xml
-		#endif
+void ofxTimeMeasurements::addEventHooks(ofCoreEvents* eventHooks /*= nullptr*/) {
+
+  if ( eventHooks == nullptr ) eventHooks = &ofEvents();
+
+#if (OF_VERSION_MINOR >= 8)
+  //-100 and +100 are to make sure we are always the first AND last at update and draw events, so we can sum everyone's times
+#if (OF_VERSION_MINOR < 9)
+  ofRemoveListener(eventHooks->setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
+  ofRemoveListener(eventHooks->setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
+
+  ofAddListener(eventHooks->setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
+  ofAddListener(eventHooks->setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
+#endif
+  ofRemoveListener(eventHooks->update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP - 100);
+  ofRemoveListener(eventHooks->update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP + 100);
+  ofRemoveListener(eventHooks->draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP - 100);
+  ofRemoveListener(eventHooks->draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP + 100);
+  ofRemoveListener(eventHooks->keyPressed, this, &ofxTimeMeasurements::_beforeKeyPressed, OF_EVENT_ORDER_BEFORE_APP - 100);
+  ofRemoveListener(eventHooks->keyPressed, this, &ofxTimeMeasurements::_afterKeyPressed, OF_EVENT_ORDER_AFTER_APP + 100);
+  //		ofRemoveListener(eventHooks->.keyReleased, this, &ofxTimeMeasurements::_beforeKeyReleased, OF_EVENT_ORDER_BEFORE_APP - 100);
+  //		ofRemoveListener(eventHooks->.keyReleased, this, &ofxTimeMeasurements::_afterKeyReleased, OF_EVENT_ORDER_AFTER_APP + 100);
+
+  ofAddListener(eventHooks->update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP - 100);
+  ofAddListener(eventHooks->update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP + 100);
+  ofAddListener(eventHooks->draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP - 100);
+  ofAddListener(eventHooks->draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP + 100);
+  ofAddListener(eventHooks->keyPressed, this, &ofxTimeMeasurements::_beforeKeyPressed, OF_EVENT_ORDER_BEFORE_APP - 100);
+  ofAddListener(eventHooks->keyPressed, this, &ofxTimeMeasurements::_afterKeyPressed, OF_EVENT_ORDER_AFTER_APP + 100);
+  //		ofAddListener(eventHooks->.keyReleased, this, &ofxTimeMeasurements::_beforeKeyReleased, OF_EVENT_ORDER_BEFORE_APP - 100);
+  //		ofAddListener(eventHooks->.keyReleased, this, &ofxTimeMeasurements::_afterKeyReleased, OF_EVENT_ORDER_AFTER_APP + 100);
+
+  ofRemoveListener(eventHooks->keyPressed, this, &ofxTimeMeasurements::_keyPressed, OF_EVENT_ORDER_BEFORE_APP - 200);
+  ofRemoveListener(eventHooks->exit, this, &ofxTimeMeasurements::_appExited); //to save to xml
+
+  ofAddListener(eventHooks->keyPressed, this, &ofxTimeMeasurements::_keyPressed, OF_EVENT_ORDER_BEFORE_APP - 200);
+  ofAddListener(eventHooks->exit, this, &ofxTimeMeasurements::_appExited); //to save to xml
+#if defined(USE_OFX_HISTORYPLOT)
+  ofRemoveListener(eventHooks->windowResized, this, &ofxTimeMeasurements::_windowResized); //to save to xml
+  ofAddListener(eventHooks->windowResized, this, &ofxTimeMeasurements::_windowResized); //to save to xml
+#endif
 #else
-	#if (OF_VERSION == 7 && OF_VERSION_MINOR >= 2 )
-		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate);
-		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate);
-		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw);
-		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw);
-	#else
-		ofAddListener(ofEvents.update, this, &ofxTimeMeasurements::_afterUpdate);
-		ofAddListener(ofEvents.update, this, &ofxTimeMeasurements::_beforeUpdate);
-		ofAddListener(ofEvents.draw, this, &ofxTimeMeasurements::_afterDraw);
-		ofAddListener(ofEvents.draw, this, &ofxTimeMeasurements::_beforeDraw);
-	#endif
+#if (OF_VERSION == 7 && OF_VERSION_MINOR >= 2 )
+  ofRemoveListener(eventHooks->update, this, &ofxTimeMeasurements::_beforeUpdate);
+  ofRemoveListener(eventHooks->update, this, &ofxTimeMeasurements::_afterUpdate);
+  ofRemoveListener(eventHooks->draw, this, &ofxTimeMeasurements::_afterDraw);
+  ofRemoveListener(eventHooks->draw, this, &ofxTimeMeasurements::_beforeDraw);
+
+  ofAddListener(eventHooks->update, this, &ofxTimeMeasurements::_beforeUpdate);
+  ofAddListener(eventHooks->update, this, &ofxTimeMeasurements::_afterUpdate);
+  ofAddListener(eventHooks->draw, this, &ofxTimeMeasurements::_afterDraw);
+  ofAddListener(eventHooks->draw, this, &ofxTimeMeasurements::_beforeDraw);
+#else
+  ofRemoveListener(eventHooks->update, this, &ofxTimeMeasurements::_afterUpdate);
+  ofRemoveListener(eventHooks->update, this, &ofxTimeMeasurements::_beforeUpdate);
+  ofRemoveListener(eventHooks->draw, this, &ofxTimeMeasurements::_afterDraw);
+  ofRemoveListener(eventHooks->draw, this, &ofxTimeMeasurements::_beforeDraw);
+
+  ofAddListener(eventHooks->update, this, &ofxTimeMeasurements::_afterUpdate);
+  ofAddListener(eventHooks->update, this, &ofxTimeMeasurements::_beforeUpdate);
+  ofAddListener(eventHooks->draw, this, &ofxTimeMeasurements::_afterDraw);
+  ofAddListener(eventHooks->draw, this, &ofxTimeMeasurements::_beforeDraw);
+#endif
 #endif
 }
 
-
-void ofxTimeMeasurements::addSetupHooks(){
+void ofxTimeMeasurements::addSetupHooks(ofCoreEvents* eventHooks /*= nullptr*/)
+{
+  if ( eventHooks == nullptr ) eventHooks = &ofEvents();
 	#if (OF_VERSION_MINOR >= 9)
-	ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
-	ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
+	ofRemoveListener(eventHooks->setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
+	ofRemoveListener(eventHooks->setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
+  ofAddListener(eventHooks->setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
+  ofAddListener(eventHooks->setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
 	#endif
 }
 

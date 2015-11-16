@@ -144,6 +144,8 @@ class ofxTimeMeasurements {
 
     void addEventHooks(ofCoreEvents* eventHooks = nullptr);
 		void addSetupHooks(ofCoreEvents* eventHooks = nullptr);
+    void removeEventHooks(ofCoreEvents* eventHooks);
+    void removeSetupHooks(ofCoreEvents* eventHooks);
 
 	private:
 

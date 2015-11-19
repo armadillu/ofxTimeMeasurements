@@ -222,6 +222,7 @@ class ofxTimeMeasurements {
 		void _afterDraw(ofEventArgs &d);
 		void _beforeKeyPressed(ofKeyEventArgs &d){startMeasuring(TIME_MEASUREMENTS_KEYPRESSED_KEY, false);};
 		void _afterKeyPressed(ofKeyEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_KEYPRESSED_KEY, false);};
+	
 //		void _beforeKeyReleased(ofKeyEventArgs &d){startMeasuring(TIME_MEASUREMENTS_KEYRELEASED_KEY, false);};
 //		void _afterKeyReleased(ofKeyEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_KEYRELEASED_KEY, false);};
 

@@ -101,7 +101,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 //		ofAddListener(ofEvents().keyReleased, this, &ofxTimeMeasurements::_beforeKeyReleased, OF_EVENT_ORDER_BEFORE_APP - 100);
 //		ofAddListener(ofEvents().keyReleased, this, &ofxTimeMeasurements::_afterKeyReleased, OF_EVENT_ORDER_AFTER_APP + 100);
 
-		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed, OF_EVENT_ORDER_BEFORE_APP - 200);
+		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed, OF_EVENT_ORDER_BEFORE_APP);
 		ofAddListener(ofEvents().exit, this, &ofxTimeMeasurements::_appExited); //to save to xml
 		#if defined(USE_OFX_HISTORYPLOT)
 		ofAddListener(ofEvents().windowResized, this, &ofxTimeMeasurements::_windowResized); //to save to xml
@@ -895,6 +895,7 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 			if(drawLocation == TIME_MEASUREMENTS_NUM_DRAW_LOCATIONS) drawLocation = ofxTMDrawLocation(0);
 		}
 
+		bool ret = false;
 		if(menuActive){
 
 			if (drawLines.size()){
@@ -957,13 +958,13 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 					}
 				}
 			}
-		}
-		bool ret = menuActive && e.key != OF_KEY_ESC; //return true or false; if returning false, it stops the event chain
-		//so, next listerners will not get notified
-		if(ret == true){
-			stopMeasuring(TIME_MEASUREMENTS_KEYPRESSED_KEY, false); //if enabling the menu, we interrupt the following events,
-																	//so we manually stop the timing as otherwise its never stopped
-																	//bc the "after" kepressed event is never reached.
+			ret = e.key != OF_KEY_ESC; //return true or false; if returning true, it stops the event chain
+			//so, next listerners will not get notified
+			if(ret == true && times[TIME_MEASUREMENTS_KEYPRESSED_KEY]->measuring){
+				stopMeasuring(TIME_MEASUREMENTS_KEYPRESSED_KEY, false); //if enabling the menu, we interrupt the following events,
+																		//so we manually stop the timing as otherwise its never stopped
+																		//bc the "after" kepressed event is never reached.
+			}
 		}
 		return ret;
 	}

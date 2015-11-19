@@ -169,6 +169,10 @@ void ofxTimeMeasurements::setDeadThreadTimeDecay(float decay){
 	deadThreadExtendedLifeDecSpeed = ofClamp(decay, idleTimeColorDecay, 1.0);
 }
 
+float ofxTimeMeasurements::getHeight() const{
+	if (!enabled) return 0;
+	return (drawLines.size() + 2 ) * charH - 9;
+}
 
 float ofxTimeMeasurements::getLastDurationFor(const string & ID){
 

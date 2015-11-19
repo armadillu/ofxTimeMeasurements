@@ -100,22 +100,22 @@ void ofxTimeMeasurements::addEventHooks(ofCoreEvents* eventHooks /*= nullptr*/) 
 
 		//-100 and +100 are to make sure we are always the first AND last at update and draw events, so we can sum everyone's times
 		#if (OF_VERSION_MINOR < 9)
-			ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
-			ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
+			ofAddListener(eventHooks->setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
+			ofAddListener(eventHooks->setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
 		#endif
-		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP - 100);
-		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP + 100);
-		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP - 100);
-		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP + 100);
-		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_beforeKeyPressed, OF_EVENT_ORDER_BEFORE_APP - 100);
-		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_afterKeyPressed, OF_EVENT_ORDER_AFTER_APP + 100);
-//		ofAddListener(ofEvents().keyReleased, this, &ofxTimeMeasurements::_beforeKeyReleased, OF_EVENT_ORDER_BEFORE_APP - 100);
-//		ofAddListener(ofEvents().keyReleased, this, &ofxTimeMeasurements::_afterKeyReleased, OF_EVENT_ORDER_AFTER_APP + 100);
+		ofAddListener(eventHooks->update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP - 100);
+		ofAddListener(eventHooks->update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP + 100);
+		ofAddListener(eventHooks->draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP - 100);
+		ofAddListener(eventHooks->draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP + 100);
+		ofAddListener(eventHooks->keyPressed, this, &ofxTimeMeasurements::_beforeKeyPressed, OF_EVENT_ORDER_BEFORE_APP - 100);
+		ofAddListener(eventHooks->keyPressed, this, &ofxTimeMeasurements::_afterKeyPressed, OF_EVENT_ORDER_AFTER_APP + 100);
+//		ofAddListener(eventHooks->keyReleased, this, &ofxTimeMeasurements::_beforeKeyReleased, OF_EVENT_ORDER_BEFORE_APP - 100);
+//		ofAddListener(eventHooks->keyReleased, this, &ofxTimeMeasurements::_afterKeyReleased, OF_EVENT_ORDER_AFTER_APP + 100);
 
-		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed, OF_EVENT_ORDER_BEFORE_APP);
-		ofAddListener(ofEvents().exit, this, &ofxTimeMeasurements::_appExited); //to save to xml
+		ofAddListener(eventHooks->keyPressed, this, &ofxTimeMeasurements::_keyPressed, OF_EVENT_ORDER_BEFORE_APP);
+		ofAddListener(eventHooks->exit, this, &ofxTimeMeasurements::_appExited); //to save to xml
 		#if defined(USE_OFX_HISTORYPLOT)
-		ofAddListener(ofEvents().windowResized, this, &ofxTimeMeasurements::_windowResized); //to save to xml
+		ofAddListener(eventHooks->windowResized, this, &ofxTimeMeasurements::_windowResized); //to save to xml
 		#endif
 
 #else

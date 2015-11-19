@@ -97,26 +97,27 @@ void ofxTimeMeasurements::addEventHooks(ofCoreEvents* eventHooks /*= nullptr*/) 
     removeEventHooks(&ofEvents());
 
 #if (OF_VERSION_MINOR >= 8)
-  //-100 and +100 are to make sure we are always the first AND last at update and draw events, so we can sum everyone's times
-#if (OF_VERSION_MINOR < 9)
-  ofAddListener(eventHooks->setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
-  ofAddListener(eventHooks->setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
-#endif
 
-  ofAddListener(eventHooks->update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP - 100);
-  ofAddListener(eventHooks->update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP + 100);
-  ofAddListener(eventHooks->draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP - 100);
-  ofAddListener(eventHooks->draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP + 100);
-  ofAddListener(eventHooks->keyPressed, this, &ofxTimeMeasurements::_beforeKeyPressed, OF_EVENT_ORDER_BEFORE_APP - 100);
-  ofAddListener(eventHooks->keyPressed, this, &ofxTimeMeasurements::_afterKeyPressed, OF_EVENT_ORDER_AFTER_APP + 100);
-  //		ofAddListener(eventHooks->.keyReleased, this, &ofxTimeMeasurements::_beforeKeyReleased, OF_EVENT_ORDER_BEFORE_APP - 100);
-  //		ofAddListener(eventHooks->.keyReleased, this, &ofxTimeMeasurements::_afterKeyReleased, OF_EVENT_ORDER_AFTER_APP + 100);
+		//-100 and +100 are to make sure we are always the first AND last at update and draw events, so we can sum everyone's times
+		#if (OF_VERSION_MINOR < 9)
+			ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_beforeSetup, OF_EVENT_ORDER_BEFORE_APP - 100);
+			ofAddListener(ofEvents().setup, this, &ofxTimeMeasurements::_afterSetup, OF_EVENT_ORDER_AFTER_APP + 100);
+		#endif
+		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_beforeUpdate, OF_EVENT_ORDER_BEFORE_APP - 100);
+		ofAddListener(ofEvents().update, this, &ofxTimeMeasurements::_afterUpdate, OF_EVENT_ORDER_AFTER_APP + 100);
+		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_beforeDraw, OF_EVENT_ORDER_BEFORE_APP - 100);
+		ofAddListener(ofEvents().draw, this, &ofxTimeMeasurements::_afterDraw, OF_EVENT_ORDER_AFTER_APP + 100);
+		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_beforeKeyPressed, OF_EVENT_ORDER_BEFORE_APP - 100);
+		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_afterKeyPressed, OF_EVENT_ORDER_AFTER_APP + 100);
+//		ofAddListener(ofEvents().keyReleased, this, &ofxTimeMeasurements::_beforeKeyReleased, OF_EVENT_ORDER_BEFORE_APP - 100);
+//		ofAddListener(ofEvents().keyReleased, this, &ofxTimeMeasurements::_afterKeyReleased, OF_EVENT_ORDER_AFTER_APP + 100);
 
-  ofAddListener(eventHooks->keyPressed, this, &ofxTimeMeasurements::_keyPressed, OF_EVENT_ORDER_BEFORE_APP - 200);
-  ofAddListener(eventHooks->exit, this, &ofxTimeMeasurements::_appExited); //to save to xml
-#if defined(USE_OFX_HISTORYPLOT)
-  ofAddListener(eventHooks->windowResized, this, &ofxTimeMeasurements::_windowResized); //to save to xml
-#endif
+		ofAddListener(ofEvents().keyPressed, this, &ofxTimeMeasurements::_keyPressed, OF_EVENT_ORDER_BEFORE_APP);
+		ofAddListener(ofEvents().exit, this, &ofxTimeMeasurements::_appExited); //to save to xml
+		#if defined(USE_OFX_HISTORYPLOT)
+		ofAddListener(ofEvents().windowResized, this, &ofxTimeMeasurements::_windowResized); //to save to xml
+		#endif
+
 #else
 #if (OF_VERSION == 7 && OF_VERSION_MINOR >= 2 )
   ofAddListener(eventHooks->update, this, &ofxTimeMeasurements::_beforeUpdate);
@@ -227,6 +228,10 @@ void ofxTimeMeasurements::setDeadThreadTimeDecay(float decay){
 	deadThreadExtendedLifeDecSpeed = ofClamp(decay, idleTimeColorDecay, 1.0);
 }
 
+float ofxTimeMeasurements::getHeight() const{
+	if (!enabled) return 0;
+	return (drawLines.size() + 2 ) * charH - 9;
+}
 
 float ofxTimeMeasurements::getLastDurationFor(const string & ID){
 
@@ -949,6 +954,7 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 			if(drawLocation == TIME_MEASUREMENTS_NUM_DRAW_LOCATIONS) drawLocation = ofxTMDrawLocation(0);
 		}
 
+		bool ret = false;
 		if(menuActive){
 
 			if (drawLines.size()){
@@ -1011,13 +1017,13 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 					}
 				}
 			}
-		}
-		bool ret = menuActive && e.key != OF_KEY_ESC; //return true or false; if returning false, it stops the event chain
-		//so, next listerners will not get notified
-		if(ret == true){
-			stopMeasuring(TIME_MEASUREMENTS_KEYPRESSED_KEY, false); //if enabling the menu, we interrupt the following events,
-																	//so we manually stop the timing as otherwise its never stopped
-																	//bc the "after" kepressed event is never reached.
+			ret = e.key != OF_KEY_ESC; //return true or false; if returning true, it stops the event chain
+			//so, next listerners will not get notified
+			if(ret == true && times[TIME_MEASUREMENTS_KEYPRESSED_KEY]->measuring){
+				stopMeasuring(TIME_MEASUREMENTS_KEYPRESSED_KEY, false); //if enabling the menu, we interrupt the following events,
+																		//so we manually stop the timing as otherwise its never stopped
+																		//bc the "after" kepressed event is never reached.
+			}
 		}
 		return ret;
 	}

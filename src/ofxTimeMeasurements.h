@@ -23,8 +23,11 @@
 #endif
 
 
-#ifdef USE_OFX_HISTORYPLOT
+#if defined(__has_include)
+#if __has_include("ofxHistoryPlot.h")
+	#define USE_OFX_HISTORYPLOT
 	#include "ofxHistoryPlot.h"
+#endif
 #endif
 
 #ifdef USE_OFX_FONTSTASH
@@ -91,6 +94,7 @@ class ofxTimeMeasurements {
 		void setEnabled( bool enable );
 		bool getEnabled();
 		void setDrawLocation(ofxTMDrawLocation loc, ofVec2f p = ofVec2f()); //p only relevant if using TIME_MEASUREMENTS_CUSTOM_LOCATION
+		ofxTMDrawLocation getDrawLocation(){return drawLocation;}
 		void setMsPrecision(int digits);		//how many decimals for the ms units
 		void setTimeAveragePercent(double p);	//[0..1] >> if set to 1.0, 100% of every new sample contributes to the average.
 												//if set to 0.1, a new sample contributes 10% to the average
@@ -113,7 +117,7 @@ class ofxTimeMeasurements {
 
 	
 		float getWidth() const;
-		float getHeight() const{ return (drawLines.size() + 2 ) * charH - 9;}
+		float getHeight() const;
 
 		float getLastDurationFor(const string & ID); //ms
 		float getAvgDurationFor(const string & ID); //ms
@@ -221,6 +225,7 @@ class ofxTimeMeasurements {
 		void _afterDraw(ofEventArgs &d);
 		void _beforeKeyPressed(ofKeyEventArgs &d){startMeasuring(TIME_MEASUREMENTS_KEYPRESSED_KEY, false);};
 		void _afterKeyPressed(ofKeyEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_KEYPRESSED_KEY, false);};
+	
 //		void _beforeKeyReleased(ofKeyEventArgs &d){startMeasuring(TIME_MEASUREMENTS_KEYRELEASED_KEY, false);};
 //		void _afterKeyReleased(ofKeyEventArgs &d){stopMeasuring(TIME_MEASUREMENTS_KEYRELEASED_KEY, false);};
 

@@ -26,8 +26,11 @@
 #if defined(__has_include)
 #if __has_include("ofxHistoryPlot.h")
 	#define USE_OFX_HISTORYPLOT
-	#include "ofxHistoryPlot.h"
 #endif
+#endif
+
+#ifdef USE_OFX_HISTORYPLOT
+#include "ofxHistoryPlot.h"
 #endif
 
 #ifdef USE_OFX_FONTSTASH

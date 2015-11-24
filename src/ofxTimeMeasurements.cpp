@@ -1312,7 +1312,10 @@ void ofxTimeMeasurements::setMsPrecision(int digits){
 
 float ofxTimeMeasurements::getWidth() const{
 	#ifdef USE_OFX_FONTSTASH
-	return (maxW ) * charW + float(useFontStash ? 4.0f: 0.0f);
+	if(useFontStash)
+		return (maxW ) * charW + float(useFontStash ? 4.0f: 0.0f);
+	else
+		return (maxW + 1) * charW;
 	#else
 	return (maxW + 1) * charW;
 	#endif

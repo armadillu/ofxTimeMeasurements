@@ -15,7 +15,7 @@ ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
 
 ofxTimeMeasurements::ofxTimeMeasurements(){
 
-	currentFrameNum = 0;
+	TM_RESET_TIME(currentFrameNum);
 	uiScale = 1.0;
 	desiredFrameRate = 60.0f; //assume 60
 	enabled = true;
@@ -83,8 +83,10 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	charH = TIME_MEASUREMENTS_LINE_HEIGHT;
 
 	//used for internal benchmark ('B')
-	wastedTimeThisFrame = wastedTimeAvg = 0;
-	wastedTimeDrawingThisFrame = wastedTimeDrawingAvg = 0;
+	TM_RESET_TIME(wastedTimeThisFrame);
+	TM_RESET_TIME(wastedTimeAvg);
+	TM_RESET_TIME(wastedTimeDrawingThisFrame);
+	TM_RESET_TIME(wastedTimeDrawingAvg);
 
 #if (OF_VERSION_MINOR >= 8)
 		//-100 and +100 are to make sure we are always the first AND last at update and draw events, so we can sum everyone's times
@@ -180,7 +182,7 @@ float ofxTimeMeasurements::getLastDurationFor(const string & ID){
 	unordered_map<string,TimeMeasurement*>::iterator it;
 	it = times.find(ID);
 	if ( it != times.end() ){	//not found!
-		r = times[ID]->duration / 1000.0f; //to ms
+		r = TM_CONVERT_TO_MS(times[ID]->duration);
 	}
 	return r;
 }
@@ -207,7 +209,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 
 	if (!enabled) return true;
 
-	uint64_t wastedTime;
+	TM_TIME_UNIT wastedTime;
 	if(internalBenchmark){
 		wastedTime = TM_GET_MICROS();
 	}
@@ -293,7 +295,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 	t->life = 1.0f; //
 	t->measuring = true;
 	t->ifClause = ifClause;
-	t->microsecondsStop = 0;
+	TM_RESET_TIME(t->microsecondsStop);
 	t->accumulating = accumulate;
 	if(accumulate) t->numAccumulations++;
 	t->error = false;
@@ -317,7 +319,7 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 	if (!enabled) return 0.0f;
 	float ret = 0.0f;
 
-	uint64_t timeNow = TM_GET_MICROS(); //get the time before the lock() to avoid affecting
+	TM_TIME_UNIT timeNow = TM_GET_MICROS(); //get the time before the lock() to avoid affecting
 
 	ThreadId thread = getThreadID();
 	bool bIsMainThread = isMainThread(thread);
@@ -446,7 +448,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 	if (!enabled) return;
 
-	uint64_t timeNow;
+	TM_TIME_UNIT timeNow;
 	if(internalBenchmark){
 		timeNow = TM_GET_MICROS();
 	}
@@ -605,7 +607,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 				//reset accumulator
 				t->accumulating = false;
 				t->numAccumulations = 0;
-				t->microsecondsAccum = 0;
+				TM_RESET_TIME(t->microsecondsAccum);
 			}
 
 			//control the iterator to walk the tree "recursively" without doing so.
@@ -991,7 +993,7 @@ void ofxTimeMeasurements::collapseExpand(string sel, bool collapse){
 	}
 }
 
-string ofxTimeMeasurements::formatTime(uint64_t microSeconds, int precision){
+string ofxTimeMeasurements::formatTime(TM_TIME_UNIT microSeconds, int precision){
 
 	float time = microSeconds / 1000.0f; //to ms
 	string timeUnit = "ms";

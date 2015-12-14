@@ -43,13 +43,28 @@ if you want better resolution on windows, the use of ofxMsaTimer is recommended.
 Just include it in your project, and define USE_MSA_TIMER in your project preprocessor macros.
 */
 
-#ifdef USE_MSA_TIMER 
-	#include "ofxMSATimer.h"
-	#define TM_GET_MICROS() timer.getElapsedMicros()
-#else
-	#define TM_GET_MICROS() ofGetElapsedTimeMicros()
-#endif
+//clang-format off
+#if __cplusplus>=201103L /* c++11? */
 
+	#include <chrono>
+	#define TM_TIME_UNIT 				std::chrono::high_resolution_clock::time_point
+	#define TM_GET_MICROS() 			std::chrono::high_resolution_clock::now()
+	#define TM_CONVERT_TO_MS(t)			std::chrono::duration_cast<chrono::microseconds>(t).count()
+	#define TM_SUBTRACT_TIMES(t1,t2) 	t1 - t2;
+	#define TM_RESET_TIME(t)			;
+#else
+	#define TM_TIME_UNIT 				uint64_t
+	#ifdef USE_MSA_TIMER
+		#include "ofxMSATimer.h"
+		#define TM_GET_MICROS() 		timer.getElapsedMicros()
+	#else
+		#define TM_GET_MICROS() 		ofGetElapsedTimeMicros()
+	#endif
+	#define TM_CONVERT_TO_MS(t)			t / 1000.0f
+	#define TM_SUBTRACT_TIMES(t1,t2) 	t1 - t2;
+	#define TM_RESET_TIME(t)			t = 0;
+#endif
+//clang-format on
 
 #define TIME_MEASUREMENTS_LINE_HEIGHT		(14)
 #define TIME_MEASUREMENTS_EDGE_GAP_H		(5 * uiScale)
@@ -167,10 +182,10 @@ class ofxTimeMeasurements {
 		typedef Poco::Thread::TID ThreadId;
 
 		struct TimeMeasurement{
-			uint64_t microsecondsStart;
-			uint64_t microsecondsStop;
-			uint64_t microsecondsAccum;
-			uint64_t duration;
+			TM_TIME_UNIT microsecondsStart;
+			TM_TIME_UNIT microsecondsStop;
+			TM_TIME_UNIT microsecondsAccum;
+			TM_TIME_UNIT duration;
 			double avgDuration;
 			bool measuring;
 			bool error;
@@ -240,7 +255,7 @@ class ofxTimeMeasurements {
 		void loadSettings();
 		void saveSettings();
 
-		string formatTime(uint64_t microSeconds, int precision);
+		string formatTime(TM_TIME_UNIT microSeconds, int precision);
 		string getTimeStringForTM(TimeMeasurement* tm);
 		void drawString(const string & text, const float & x, const float & y);
 
@@ -342,14 +357,14 @@ class ofxTimeMeasurements {
 		bool									drawAuto;
 		unsigned char							dimColorA;
 
-		uint64_t								currentFrameNum;
+		TM_TIME_UNIT							currentFrameNum;
 
 		//internal performance testing
 		bool									internalBenchmark;
-		uint64_t								wastedTimeThisFrame;
-		uint64_t								wastedTimeDrawingThisFrame;
-		uint64_t								wastedTimeAvg;
-		uint64_t								wastedTimeDrawingAvg;
+		TM_TIME_UNIT								wastedTimeThisFrame;
+		TM_TIME_UNIT								wastedTimeDrawingThisFrame;
+		TM_TIME_UNIT								wastedTimeAvg;
+		TM_TIME_UNIT								wastedTimeDrawingAvg;
 
 };
 

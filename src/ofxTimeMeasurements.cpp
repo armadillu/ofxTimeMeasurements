@@ -339,8 +339,7 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 	it = times.find(ID);
 
 	if ( it == times.end() ){	//not found!
-		ofLog( OF_LOG_WARNING, "ID (%s)not found at stopMeasuring(). Make sure you called"
-			  " startMeasuring with that ID first.", ID.c_str());
+		ofLogWarning("ofxTimeMeasurements") << "ID ("<< ID<< ")not found at stopMeasuring(). Make sure you called startMeasuring with that ID first.";
 	}else{
 
 		TimeMeasurement* t = it->second;
@@ -364,8 +363,7 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 			}
 		}else{	//wrong use, start first, then stop
 			t->error = true;
-			ofLog( OF_LOG_WARNING, "Can't stopMeasuring(%s). Make sure you called startMeasuring"
-				  " with that ID first.", ID.c_str());
+			ofLogWarning("ofxTimeMeasurements") << "Can't stopMeasuring(" << ID << "). Make sure you called startMeasuring() with that ID first.";
 		}
 	}
 
@@ -1126,7 +1124,7 @@ void ofxTimeMeasurements::loadSettings(){
 		}
 		myfile.close();
 	}else{
-		ofLogWarning() << "Unable to load Settings file " << TIME_MEASUREMENTS_SETTINGS_FILENAME;
+		ofLogWarning("ofxTimeMeasurements") << "Unable to load Settings file " << TIME_MEASUREMENTS_SETTINGS_FILENAME;
 	}
 }
 

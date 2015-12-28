@@ -78,6 +78,10 @@ void testApp::update(){
 		TS_START_ACC("accum test");
 		ofSleepMillis(1);
 		TS_STOP_ACC("accum test");
+		{
+			TS_SCOPE_ACC("scope measurement acc");
+			ofSleepMillis(1);
+		}
 	}
 
 	for(int i = myThreads.size() - 1; i >= 0 ; i--){
@@ -85,6 +89,11 @@ void testApp::update(){
 			delete myThreads[i];
 			myThreads.erase(myThreads.begin() + i);
 		}
+	}
+
+	{
+		TS_SCOPE("scope measurement");
+		ofSleepMillis(1);
 	}
 }
 

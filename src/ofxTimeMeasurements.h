@@ -23,7 +23,7 @@
 #endif
 
 
-#if defined(__has_include)
+#if defined(__has_include) /*llvm only - query about header files being available or not*/
 #if __has_include("ofxHistoryPlot.h")
 	#define USE_OFX_HISTORYPLOT
 #endif
@@ -36,6 +36,8 @@
 #ifdef USE_OFX_FONTSTASH
 	#include "ofxFontStash.h"
 #endif
+
+#include "ofxTimeMeasurementsMacros.h"
 
 
 /*
@@ -67,8 +69,7 @@ Just include it in your project, and define USE_MSA_TIMER in your project prepro
 
 #define TIME_MEASUREMENTS_SETTINGS_FILENAME	(configsDir + "/" + "ofxTimeMeasurements.settings")
 
-#include "ofxTimeMeasurementsMacros.h"
-
+#ifndef TIME_MEASUREMENTS_DISABLED
 
 enum ofxTMDrawLocation{
 	TIME_MEASUREMENTS_TOP_LEFT = 0,
@@ -78,7 +79,6 @@ enum ofxTMDrawLocation{
 	TIME_MEASUREMENTS_CUSTOM_LOCATION,
 	TIME_MEASUREMENTS_NUM_DRAW_LOCATIONS
 };
-
 
 class ofxTimeMeasurements {
 
@@ -353,3 +353,6 @@ class ofxTimeMeasurements {
 
 };
 
+#include "ofxTimeMeasurementsScoped.h"
+
+#endif

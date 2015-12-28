@@ -5,7 +5,7 @@ Simple OpenFrameworks addon to easily measure execution times across any section
 
 ![ofxTimeMeasurements anim](https://www.dropbox.com/s/y6nsin52sugpmms/ofxTimeMeasurementsAnim.gif?dl=1)
 
-## FEATURES
+## 1. FEATURES
 
 *	Measure execution time of any parts of your app
 *	Enable / disable execution of code sections on the fly through the widget
@@ -14,12 +14,12 @@ Simple OpenFrameworks addon to easily measure execution times across any section
 *	Measure exact times, or averaged time across frames
 *	Measure cumulative times (TS_START_ACC) for shared code sections
 *	Highlight frequently used calls, slowly fade unused calls
-*	update(), and draw() are automatically time sampled (measuring setup() needs some work in main.cpp).
-*	Optionally use [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer) for higher precision (recommended on windows)
+*	update(), and draw() are automatically time sampled
+*	Optionally use [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer) for higher precision (recommended on windows) for < OF_09
 *	Optionally use [ofxHistoryPlot](https://github.com/armadillu/ofxHistoryPlot) to show timings over time
-*	Optionally use [ofxFontStash](https://github.com/armadillu/ofxFontStash) for rendering, which looks nicer and is much faster than the default ofDrawBitmapFont. (see drawUiWithFontStash())
+*	Optionally use [ofxFontStash](https://github.com/armadillu/ofxFontStash) for rendering, which looks nicer and is much faster to draw than the default ofDrawBitmapFont. (see drawUiWithFontStash())
 
-## QUICK START
+## 2. QUICK START
 
 That's all you need to get basic measurements of update() and draw();
 
@@ -31,9 +31,9 @@ void setup(){
 }
 ```
 
-## HOW TO MEASURE TIMES
+## 3. HOW TO MEASURE TIMES / PROFILE YOUR CODE
 
-### Standard Mode
+### 3.1 Standard Mode
 
 You can measure times across any code section with TS_START() - TS_STOP()
 
@@ -44,7 +44,7 @@ You can measure times across any code section with TS_START() - TS_STOP()
 ```
 The ofxTimeMeasurements widget will list a line named "measurement1" showing how long it took for the section to execute.
 
-### Accumulation Mode
+### 3.2 Accumulation Mode
 
 You can accumulate the time spent across one frame over sections of your code. This can be handy when a methods is called several times over one frame.
 
@@ -58,7 +58,7 @@ You can accumulate the time spent across one frame over sections of your code. T
 If we were to use TS_START/STOP on the example above, ofxTimeMeasurements would only report the time spent on the last iteration of the for loop. By using TS_START_ACC / TS_STOP_ACC, it accumulates the time spent on each iteration of the loop, reporting the total time spent.
 
 
-### "No If" Mode (_NIF)
+### 3.3 "No If" Mode (_NIF)
 
 ofxTimeMeasurements wraps your code around an if(){} clause. It does so to be able to disable code on the fly from its GUI. This can be problematic if you declare variables inside a measurement, as they will not be in scope outside the measurement. If that's the case, you use the _NIF extension in your macros, this way your code will not be wrapped around an if(){} clause. The only drawback is that you will not be able to enable/disable that code section from the GUI.
 
@@ -70,7 +70,22 @@ ofxTimeMeasurements wraps your code around an if(){} clause. It does so to be ab
 	a = 1; //we can now access the variable declared in the TM scope.
 ```
 
-### TS() Mode
+You can also use both NIF and ACC, see TS_START_ACC_NIF() and family.
+
+### 3.4 Scope Mode
+
+This mode measures execution times in a particular scope. It creates a temporary minimal object that will start measuring when its constructor is called, and it will stop measuring when its destructor is called.
+
+```
+	{
+		TS_SCOPE("myTime");
+		doSomething();
+		doSomethingElse();
+	}
+```
+The example above will report the time it takes for doSomething() and doSomethingElse() to execute. The advantage here is that only one ofxTimeMeasurements call is needed to measure time.
+
+### 3.5 TS() Mode
 
 TS() is a very convenient ultra-short macro to measure the time a single method takes to execute. This will show up as "myMethod()" on your measurements widget.
 
@@ -78,18 +93,25 @@ TS() is a very convenient ultra-short macro to measure the time a single method 
 	TS(myMethod());
 ```
 
-##KEYBOARD COMMANDS
+## 4. KEYBOARD COMMANDS
+
+ofxTimeMeasurements responds to a few pre-defined keyboard commands:
+
 *	OF_KEY_PAGE_DOWN to toggle all time measuring, and the drawing of the widget
 * 	'T' when widget is visible (enabled) to get into interactive mode.
-* 	When in interactive mode, a "KEYBOARD COMMANDS" list is shown
+* 	When in interactive mode, a "KEYBOARD COMMANDS" list is shown : basically on-screen instructions.
  	![](https://farm1.staticflickr.com/473/20007668446_d428e77cdf_o_d.png)
 
- Up / Down keys to select, Left / Right keys to expand/collapse the sample tree.
+ Up / Down keys to select, Left / Right keys to expand/collapse the time measurements tree.
 
 
-## NOTES
+## 5. RANDOM NOTES
 
-####SAMPLE AVERAGING
+####5.1 OVERHEAD
+
+ofxTimeMeasurements adds some overhead when measuring times; and it adds even more when drawing its widget. You can see how much it adds by pressing the "B" key, it will display two extra timings, the time it takes for the measurements to be taken, and the time it takes for the widget to be drawn. When ofxTimeMeasurements is disabled (by pressing PgDown or by calling TIME_SAMPLE_DISABLE() at setup), it barely adds any overhead (it doesn't measure anything when the widget is not drawn) but it does add a tiny bit as the calls to its methods are still going through. To entirely remove all ofxTimeMeasurements calls without actually removing them from your code, you can define "TIME_MEASUREMENTS_DISABLED" in your project pro-processor macros for it to be entirely bypassed at compile time. This will only work if you use the recommended MACRO based API; if you have code that gets the ofxTimeMeasurements instance ```ofxTimeMeasurements::instance()``` and operates with it, your project will not compile.
+
+#### 5.2 SAMPLE AVERAGING
 
 If times vary too much from frame to frame to be readable on the widget, you can enable sample averaging; if you do so, each new time sample will be blended with the previous one; obtaining a smoother reading. Keep in mind that several samples will be required to get accurate readings when using averaging. You can also completely disable averaging.
 
@@ -97,23 +119,23 @@ If times vary too much from frame to frame to be readable on the widget, you can
 	TIME_SAMPLE_DISABLE_AVERAGE();  //disable time sample averaging
 	
 
-#### COLORS
+#### 5.3 COLORS / THREADS
 
-The ofxTimeMeasurements widget can show measurements in different colored sections. The first section will always represent times measured in the main thread. Following sections show times measured other threads. 
+The ofxTimeMeasurements widget can show measurements in different colored sections. The first section will always represent times measured in the main thread. Following sections show times measured other threads. ofxTimeMeasurements keeps a collapsable tree per each thread.
 
 ![](https://farm1.staticflickr.com/298/20034358155_b4a49742b7_o_d.png)
 
 Active Time Measurements will appear in a bright color if the corresponding code section has just been executed, and they will slowly fade to a darker color if that section of code is not accessed / measured. The final fading percentage and the fade speed are customizable.
 
 
-####CUSTOMIZATIONS
-Most key commands and ui colors are customizable, you only need to get a hold of the instance
+#### 5.4 CUSTOMIZATIONS
+Most key commands and ui colors are customizable, you only need to get a hold of the instance. Keep in mind that by doing that the use of the "TIME_MEASUREMENTS_DISABLED" macro might lead to compile errors.
 
 	TIME_SAMPLE_GET_INSTANCE()->setUIActivationKey('T');
 	TIME_SAMPLE_GET_INSTANCE()->setHighlightColor(ofColor::red);
 	
 
-####MEASURING setup()
+#### 5.5 MEASURING setup()
 If you want the setup() call to be automatically measured, you need to at least call once ofxTimeMeasurements in your main.cpp, just before the ofRunApp() line. This is so that the ofxTimeMeasurements instance is allocated before setup() is called. Make sure you call it after ofSetupOpenGL() otherwise it might not be able to find its settings file, because ofToDataPath might not be set yet. 
 
 	int main(){
@@ -124,13 +146,13 @@ If you want the setup() call to be automatically measured, you need to at least 
 
 in OF v09, you need to call ```TIME_SAMPLE_ADD_SETUP_HOOKS()``` in your main()
 
-####PERCENTAGES
+#### 5.6 PERCENTAGES
 The percentages shown besides the ms counts represent how much of a full frame that code section takes. For example; on a 60fps app, if a code section takes 16.6ms, it will fully saturate the desired between-frames time (16.6ms), and it will show 100% 
 
-####TIMING RESOLUTION
+#### 5.7 TIMING RESOLUTION
 You can increase the resolution/accuracy of the time measurements by using [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer). This is recommended on Windows, as the default OF timer resolution is not very high on that platform. To use ofxMSATimer you need to add the ofxMSATimer to the project, and define USE_MSA_TIMER in your project Pre-Processor macros.
 
-####USING ofxHistoryPlot
+#### 5.8 USING ofxHistoryPlot
 
 If you add [ofxHistoryPlot](https://github.com/armadillu/ofxHistoryPlot) to your project, you will also be able to track your timings over time. To do so, add ofxHistoryPlot to your project, and ofxTimeMeasurements will automatically detect it and enable the use of time plots.
 
@@ -140,17 +162,20 @@ If you do so, when in interactive mode, you can press 'P' to toggle the plotting
 
 Measurements that are being plotted will show a colored label on the left side, matching the color of the plot.
 
-####USING ofxFontStash
+####5.9 USING ofxFontStash
 
-If you include [ofxFontStash](https://github.com/armadillu/ofxFontStash) in your project, you can use it to draw the widget with any font of your liking. FontStash is faster at drawing text than ofDrawBitmapString(), which is what ofxTimeMeasurements uses by default. Define USE_OFX_FONTSTASH in your project's PreProcessor Macros, and call
-```
-TIME_SAMPLE_GET_INSTANCE()->drawUiWithFontStash()
-```
-supplying a monospaced ttf font and a font size. 
+If you include [ofxFontStash](https://github.com/armadillu/ofxFontStash) in your project, you can use it to draw the widget with any font of your liking. FontStash is faster at drawing text than ofDrawBitmapString(), which is what ofxTimeMeasurements uses by default. Define USE_OFX_FONTSTASH in your project's PreProcessor Macros, and call drawUiWithFontStash() supplying a monospaced ttf font. 
 
+```
+TIME_SAMPLE_GET_INSTANCE()->setUiScale( 2.0 ); //x2 the size for 4k screens
+TIME_SAMPLE_GET_INSTANCE()->drawUiWithFontStash("VeraMono.ttf");
+```
+
+Another perk of using ofxFontStash is that you can set a custom font/UI scale. Look for setUiScale(); but make sure you set the UI Scale before you supply the TTF font.
+
+This can be useful on retina/4k screens to make the widget more legible, as shown on the screenshot below.
 ![img](https://farm1.staticflickr.com/533/20034108485_fdaa20bd72_o_d.png)
 
-Another perk of using ofxFontStash is that you can set the font/UI scale. Look for setUiScale(); but make sure you set the UI Scale before you supply the TTF font. This can be useful on retina/4k screens to make the widget more legible. (See screenshot above)
 
 ##LICENSE
 ofxTimeMeasurements is made available under the [MIT](http://opensource.org/licenses/MIT) license.

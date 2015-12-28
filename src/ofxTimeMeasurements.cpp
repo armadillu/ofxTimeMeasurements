@@ -10,6 +10,7 @@
 #include "ofxTimeMeasurements.h"
 #include <float.h>
 
+#ifndef TIME_MEASUREMENTS_DISABLED
 
 ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
 
@@ -1259,3 +1260,5 @@ float ofxTimeMeasurements::getWidth() const{
 	return (maxW + 1) * charW;
 	#endif
 }
+
+#endif

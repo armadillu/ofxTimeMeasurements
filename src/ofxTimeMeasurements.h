@@ -138,6 +138,8 @@ class ofxTimeMeasurements {
 		void setPlotResolution(float r){plotResolution = r;}
 		void setMaxNumPlotSamples(int nSamples){maxPlotSamples = nSamples;}
 		#endif
+		float getPlotsHeight();
+
 
 		#ifdef USE_OFX_FONTSTASH
 		void drawUiWithFontStash(string fontPath, float fontSize = 13.0f /*good with VeraMono*/);

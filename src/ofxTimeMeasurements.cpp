@@ -172,8 +172,16 @@ void ofxTimeMeasurements::setDeadThreadTimeDecay(float decay){
 
 float ofxTimeMeasurements::getHeight() const{
 	if (!enabled) return 0;
-	return (drawLines.size() + 2 ) * charH - 9;
+	return  (drawLines.size() + 2 ) * charH - 9;
 }
+
+float ofxTimeMeasurements::getPlotsHeight(){
+	#if defined(USE_OFX_HISTORYPLOT)
+	return numActivePlots * plotHeight;
+	#endif
+	return 0.0f;
+}
+
 
 float ofxTimeMeasurements::getLastDurationFor(const string & ID){
 

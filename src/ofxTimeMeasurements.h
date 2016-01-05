@@ -151,7 +151,10 @@ class ofxTimeMeasurements {
 		void setAutoDraw(bool b){drawAuto = b;}
 		void draw(int x, int y) ;
 
-		void addSetupHooks();
+    void addEventHooks(ofCoreEvents* eventHooks = nullptr);
+		void addSetupHooks(ofCoreEvents* eventHooks = nullptr);
+    void removeEventHooks(ofCoreEvents* eventHooks);
+    void removeSetupHooks(ofCoreEvents* eventHooks);
 
 	private:
 

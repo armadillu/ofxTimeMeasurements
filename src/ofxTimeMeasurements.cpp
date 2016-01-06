@@ -66,6 +66,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	toggleSampleKey = TIME_MEASUREMENTS_TOGGLE_SAMPLE_KEY;
 
 	menuActive = false;
+	drawLines.reserve(50);
 
 	int numHues = 9;
 	float brightness = 190.0f;
@@ -311,11 +312,6 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 		tinfo = &threadInfo[thread];
 		tr = &tinfo->tree; //easier to read, tr is our tree from now on
 
-		string tName = bIsMainThread ? "Main Thread" : (threadName + "(" + ofToString(numThreads) + ")");
-		//init the iterator
-		*tr = tName; //thread name is root
-		tinfo->tit = (core::tree<string>::iterator)*tr;
-
 		if (!bIsMainThread){
 			tinfo->color = threadColorTable[numThreads%(threadColorTable.size())];
 			numThreads++;
@@ -324,8 +320,13 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 		}
 		tinfo->order = numThreads;
 
+		string tName = bIsMainThread ? "Main Thread" : ("T" + ofToString(tinfo->order) + ": " + threadName);
+		//init the iterator
+		*tr = tName; //thread name is root
+		tinfo->tit = (core::tree<string>::iterator)*tr;
+
 	}else{
-		tinfo = &threadInfo[thread];
+		tinfo = &threadIt->second;
 		tr = &(tinfo->tree); //easier to read, tr is our tree from now on
 	}
 
@@ -338,7 +339,16 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 	TimeMeasurement* t;
 
 	if(tit == times.end()){ //if it wasnt in the tree, append it
+		times[localID] = t = new TimeMeasurement();
+		unordered_map<string, TimeMeasurementSettings>::iterator it2 = settings.find(localID);
+		if (it2 != settings.end()){
+			t->settings = settings[localID];
+			if(tinfo->tit.out() == tinfo->tit.end()){ //if we are the tree root - we cant be hidden!
+				t->settings.visible = true;
+			}
+		}
 		tinfo->tit = tinfo->tit.push_back(localID);
+
 	}else{
 		core::tree<string>::iterator temptit = tr->tree_find_depth(localID);
 		if(temptit != tr->end()){
@@ -350,15 +360,6 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 			//so we re-add that ID for this thread and update the tree iterator
 			tinfo->tit = tinfo->tit.push_back(localID);
 		}
-	}
-
-	if (tit == times.end()){ //not found, let alloc a new TimeMeasurement
-		times[localID] = t = new TimeMeasurement();
-		unordered_map<string, TimeMeasurementSettings>::iterator it2 = settings.find(ID);
-		if (it2 != settings.end()){
-			t->settings = settings[localID];
-		}
-	}else{
 		t = tit->second;
 	}
 
@@ -789,6 +790,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		l.fullLine = " 'L' cycle widget location"; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'PG_DWN' en/disable addon"; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'B' internal benchmark"; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'V' expand all"; drawLines.push_back(l); numInstructionLines++;
 		#if defined USE_OFX_HISTORYPLOT
 		l.fullLine = " 'P' plot selectd measur."; drawLines.push_back(l); numInstructionLines++;
 		#endif
@@ -974,7 +976,14 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 		if(e.key == 'A') averaging ^= true;  //Average Toggle
 		if(e.key == 'B') internalBenchmark ^= true;  //internalBenchmark Toggle
 		if (e.key == 'F') freeze ^= true;  //free measurements
-		
+
+		if(e.key == 'V'){ //make all timings visible!
+			unordered_map<string, TimeMeasurement*>::iterator it = times.begin();
+			while(it != times.end()){
+				it->second->settings.visible = true;
+				++it;
+			}
+		}
 
 		if(e.key == 'L'){
 			drawLocation = ofxTMDrawLocation(drawLocation+1);
@@ -1188,7 +1197,7 @@ void ofxTimeMeasurements::loadSettings(){
 			getline( myfile, visible, '|' ); //visible
 			if(fileHasPlotData){
 				getline( myfile, enabled_, '|' ); //enabled
-				getline( myfile, plotting, '\n' ); //enabled
+				getline( myfile, plotting, '\n' ); //plotting
 			}else{
 				getline( myfile, enabled_, '\n' ); //enabled
 			}
@@ -1209,6 +1218,7 @@ void ofxTimeMeasurements::loadSettings(){
 				}
 				#endif
 			}
+			ofLogNotice("ofxTimeMeasurements") << "loaded settings for " << name << " enabled: " << settings[name].enabled << " visible: " << settings[name].visible ;
 		}
 		myfile.close();
 	}else{

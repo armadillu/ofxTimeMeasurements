@@ -248,7 +248,7 @@ float ofxTimeMeasurements::getLastDurationFor(const string & ID){
 	unordered_map<string,TimeMeasurement*>::iterator it;
 	it = times.find(ID);
 	if ( it != times.end() ){	//not found!
-		r = times[ID]->duration / 1000.0f; //to ms
+		r = it->second->duration / 1000.0f; //to ms
 	}
 	return r;
 }
@@ -260,7 +260,7 @@ float ofxTimeMeasurements::getAvgDurationFor(const string & ID){
 	unordered_map<string,TimeMeasurement*>::iterator it;
 	it = times.find(ID);
 	if ( it != times.end() ){	//not found!
-		r = times[ID]->avgDuration / 1000.0f; //to ms
+		r = it->second->avgDuration / 1000.0f; //to ms
 	}
 	return r;
 }
@@ -400,7 +400,12 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 
 	unordered_map<ThreadId, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
 
-	ThreadInfo & tinfo = threadInfo[thread];
+	if(threadIt == threadInfo.end()){ //thread not found!
+		mutex.unlock();
+		return;
+	}
+
+	ThreadInfo & tinfo = threadIt->second;
 
 	if(tinfo.order > 0){
 		localID = "T" + ofToString(tinfo.order) + ":" + localID;
@@ -521,7 +526,12 @@ void ofxTimeMeasurements::updateLongestLabel(){
 
 void ofxTimeMeasurements::draw(int x, int y) {
 
-	if (!enabled) return;
+	float fr = ofGetFrameRate();
+
+	if (!enabled){
+		drawString(ofToString(fr, msPrecision), 10, fontSize);
+		return;
+	}
 
 	uint64_t timeNow;
 	if(internalBenchmark){
@@ -884,7 +894,6 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	}//lines
 
 	//print bottom line, fps and stuff
-	float fr = ofGetFrameRate();
 	bool missingFrames = ( fr < desiredFrameRate - 1.0 ); // tolerance of 1 fps TODO!
 	static char msg[128];
 

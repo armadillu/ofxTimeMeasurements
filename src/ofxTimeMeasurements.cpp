@@ -273,6 +273,7 @@ void ofxTimeMeasurements::setHighlightColor(ofColor c){
 
 bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, bool ifClause){
 
+	string localID = ID;
 	if (!enabled) return true;
 
 	uint64_t wastedTime;
@@ -314,7 +315,6 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 		//init the iterator
 		*tr = tName; //thread name is root
 		tinfo->tit = (core::tree<string>::iterator)*tr;
-		tinfo->order = numThreads;
 
 		if (!bIsMainThread){
 			tinfo->color = threadColorTable[numThreads%(threadColorTable.size())];
@@ -322,20 +322,25 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 		}else{ //main thread
 			tinfo->color = hilightColor;
 		}
+		tinfo->order = numThreads;
 
 	}else{
 		tinfo = &threadInfo[thread];
 		tr = &(tinfo->tree); //easier to read, tr is our tree from now on
 	}
 
+	if(tinfo->order > 0){
+		localID = "T" + ofToString(tinfo->order) + ":" + localID;
+	}
+
 	//see if we had an actual measurement, or its a new one
-	unordered_map<string, TimeMeasurement*>::iterator tit = times.find(ID);
+	unordered_map<string, TimeMeasurement*>::iterator tit = times.find(localID);
 	TimeMeasurement* t;
 
 	if(tit == times.end()){ //if it wasnt in the tree, append it
-		tinfo->tit = tinfo->tit.push_back(ID);
+		tinfo->tit = tinfo->tit.push_back(localID);
 	}else{
-		core::tree<string>::iterator temptit = tr->tree_find_depth(ID);
+		core::tree<string>::iterator temptit = tr->tree_find_depth(localID);
 		if(temptit != tr->end()){
 			tinfo->tit = temptit;
 		}else{
@@ -343,21 +348,21 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 			//this is the rare case where we already had a measurement for this ID,
 			//but it must be assigned to another old thread bc we cant find it!
 			//so we re-add that ID for this thread and update the tree iterator
-			tinfo->tit = tinfo->tit.push_back(ID);
+			tinfo->tit = tinfo->tit.push_back(localID);
 		}
 	}
 
 	if (tit == times.end()){ //not found, let alloc a new TimeMeasurement
-		times[ID] = t = new TimeMeasurement();
+		times[localID] = t = new TimeMeasurement();
 		unordered_map<string, TimeMeasurementSettings>::iterator it2 = settings.find(ID);
 		if (it2 != settings.end()){
-			times[ID]->settings = settings[ID];
+			t->settings = settings[localID];
 		}
 	}else{
 		t = tit->second;
 	}
 
-	t->key = ID;
+	t->key = localID;
 	t->life = 1.0f; //
 	t->measuring = true;
 	t->ifClause = ifClause;
@@ -384,6 +389,7 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 
 	if (!enabled) return 0.0f;
 	float ret = 0.0f;
+	string localID = ID;
 
 	uint64_t timeNow = TM_GET_MICROS(); //get the time before the lock() to avoid affecting
 
@@ -395,19 +401,24 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 	unordered_map<ThreadId, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
 
 	ThreadInfo & tinfo = threadInfo[thread];
+
+	if(tinfo.order > 0){
+		localID = "T" + ofToString(tinfo.order) + ":" + localID;
+	}
+
 	core::tree<string> & tr = tinfo.tree; //easier to read, tr is our tree from now on
 	core::tree<string>::iterator & tit = tinfo.tit;
 	if (tit.out() != tr.end()){
 		tit = tit.out();
 	}else{
-		ofLogError("ofxTimeMeasurements") << "tree climbing too high up! (" << ID << ")";
+		ofLogError("ofxTimeMeasurements") << "tree climbing too high up! (" << localID << ")";
 	}
 
 	unordered_map<string,TimeMeasurement*>::iterator it;
-	it = times.find(ID);
+	it = times.find(localID);
 
 	if ( it == times.end() ){	//not found!
-		ofLogWarning("ofxTimeMeasurements") << "ID ("<< ID<< ")not found at stopMeasuring(). Make sure you called startMeasuring with that ID first.";
+		ofLogWarning("ofxTimeMeasurements") << "ID ("<< localID << ")not found at stopMeasuring(). Make sure you called startMeasuring with that ID first.";
 	}else{
 
 		TimeMeasurement* t = it->second;
@@ -431,7 +442,7 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 			}
 		}else{	//wrong use, start first, then stop
 			t->error = true;
-			ofLogWarning("ofxTimeMeasurements") << "Can't stopMeasuring(" << ID << "). Make sure you called startMeasuring() with that ID first.";
+			ofLogWarning("ofxTimeMeasurements") << "Can't stopMeasuring(" << localID << "). Make sure you called startMeasuring() with that ID first.";
 		}
 	}
 

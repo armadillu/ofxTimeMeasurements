@@ -152,7 +152,7 @@ class ofxTimeMeasurements {
 		void draw(int x, int y) ;
 
     void addEventHooks(ofCoreEvents* eventHooks = nullptr);
-		void addSetupHooks(ofCoreEvents* eventHooks = nullptr);
+	void addSetupHooks(ofCoreEvents* eventHooks = nullptr);
     void removeEventHooks(ofCoreEvents* eventHooks);
     void removeSetupHooks(ofCoreEvents* eventHooks);
 
@@ -294,7 +294,6 @@ class ofxTimeMeasurements {
 		ofColor									measuringColor;
 		ofColor									frozenColor;
 
-
 		float									idleTimeColorFadePercent;
 		float									idleTimeColorDecay;
 		float									deadThreadExtendedLifeDecSpeed;
@@ -355,7 +354,6 @@ class ofxTimeMeasurements {
 		uint64_t								wastedTimeDrawingThisFrame;
 		uint64_t								wastedTimeAvg;
 		uint64_t								wastedTimeDrawingAvg;
-
 };
 
 #include "ofxTimeMeasurementsScoped.h"

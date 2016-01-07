@@ -79,7 +79,10 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	numThreads = 0;
 	configsDir = ".";
 	removeExpiredThreads = true;
+	removeExpiredTimings = false;
 	settingsLoaded = false;
+
+	drawPercentageAsGraph = true;
 
 	charW = 8; //ofBitmap font char w
 	charH = TIME_MEASUREMENTS_LINE_HEIGHT;
@@ -371,7 +374,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 	t->accumulating = accumulate;
 	if(accumulate) t->numAccumulations++;
 	t->error = false;
-	t->frame = ofGetFrameNum();
+	t->frame = currentFrameNum;
 	t->updatedLastFrame = true;
 	t->microsecondsStart = TM_GET_MICROS();
 	t->thread = thread;
@@ -432,9 +435,9 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 			t->measuring = false;
 			t->thread = thread;
 			t->error = false;
-			t->acrossFrames = (bIsMainThread && t->frame != ofGetFrameNum()); //we only care about across-frames in main thread
+			t->acrossFrames = (bIsMainThread && t->frame != currentFrameNum); //we only care about across-frames in main thread
 			t->microsecondsStop = timeNow;
-			ret = t->duration = t->microsecondsStop - t->microsecondsStart;
+			ret = t->duration = timeNow - t->microsecondsStart;
 			if (!freeze) {
 				if (!averaging) {
 					t->avgDuration = t->duration;
@@ -641,7 +644,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 					numAlive++;
 				}
 
-				if (visible){
+				if (visible && (removeExpiredTimings ? alive : true)){
 					PrintedLine l;
 					l.key = key;
 					l.tm = t;
@@ -658,6 +661,9 @@ void ofxTimeMeasurements::draw(int x, int y) {
 					l.formattedKey += key + string(t->accumulating ? "[" + ofToString(t->numAccumulations)+ "]" : "" );
 					l.isAccum = t->accumulating;
 					l.time = getTimeStringForTM(t);
+					if(drawPercentageAsGraph){
+						l.percentGraph = getPctForTM(t);
+					}
 
 					l.color = tinfo.color * ((1.0 - idleTimeColorFadePercent) + idleTimeColorFadePercent * t->life);
 					if (!t->settings.enabled){
@@ -755,14 +761,18 @@ void ofxTimeMeasurements::draw(int x, int y) {
 				drawLines[i].formattedKey += " ";
 			}
 			if (!drawLines[i].tm->error){
+				drawLines[i].shouldDrawPctGraph = true;
 				drawLines[i].fullLine = drawLines[i].formattedKey + " " + drawLines[i].time;
 			}else{
+				drawLines[i].shouldDrawPctGraph = true;
 				drawLines[i].fullLine = drawLines[i].formattedKey + "    Error!" ;
 			}
 			int len = drawLines[i].fullLine.length();
 			if(len > tempMaxW) tempMaxW = len;
+			if(drawLines[i].tm->measuring) drawLines[i].shouldDrawPctGraph = false;
 		}else{ //its a header
 			drawLines[i].fullLine = drawLines[i].formattedKey;
+			drawLines[i].shouldDrawPctGraph = false;
 			headerLocations.push_back(i);
 		}
 	}
@@ -826,15 +836,19 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 	//draw bg rect
 	ofSetColor(bgColor);
-	ofRect(x, y + 1, totalW, totalH);
+	ofDrawRectangle(x, y + 1, totalW, totalH);
 
 	//draw all lines
 	for(int i = 0; i < drawLines.size(); i++){
 		ofSetColor(drawLines[i].lineBgColor);
-		ofRect(x, y + 2 + i * charH, totalW, charH + (drawLines[i].tm ? 0 : 1));
+		ofRectangle lineRect = ofRectangle(x, y + 2 + i * charH, totalW, charH + (drawLines[i].tm ? 0 : 1));
+		ofDrawRectangle(lineRect);
 		if(drawLines[i].isAccum && drawLines[i].tm != NULL){
 			ofSetColor(drawLines[i].color, 128);
-			ofRect(x + totalW, y + 4 + i * charH, -5, charH - 2 );
+			ofDrawRectangle(x + totalW,
+							y + 3 + i * charH,
+							-5,
+							charH - 1 );
 		}
 		ofSetColor(drawLines[i].color);
 		drawString(drawLines[i].fullLine, x , y + (i + 1) * charH);
@@ -844,6 +858,26 @@ void ofxTimeMeasurements::draw(int x, int y) {
 			ofDrawTriangle(	x, y1, 
 							x, y1 + charH, 
 							x + charW * 0.7f, y1 + charH * 0.5f);
+		}
+
+		if(drawPercentageAsGraph && drawLines[i].shouldDrawPctGraph && drawLines[i].percentGraph > 0.02f){
+			float ww = charW * 5.5;
+			float xx = lineRect.x + lineRect.width - charW * 7;
+			float pct = MIN(drawLines[i].percentGraph, 1.0);
+			unsigned char a = 64;
+			ofColor gC;
+			if(drawLines[i].percentGraph > 1.0){
+				gC = ofColor(255,0,0, (currentFrameNum%4 > 2) ? 1.5 * a : a);
+			}else{
+				gC = ofColor(drawLines[i].lineBgColor, a) * (1.0f - pct) + ofColor(255,0,0,a) * pct;
+			}
+
+			ofSetColor(gC);
+			ofDrawRectangle( xx,
+							lineRect.y + 0.2 * lineRect.height ,
+							ww * pct,
+							lineRect.height * 0.65
+							);
 		}
 	}
 
@@ -855,7 +889,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 			offset = (drawLines.size() + 2.5) * charH;
 		}
 		ofSetColor(0);
-		ofRect(x, offset + y - charH, totalW, charH);
+		ofDrawRectangle(x, offset + y - charH, totalW, charH);
 		ofSetColor(currentFrameNum%3 ? 255 : 64);
 		drawString(" Meas: " + ofToString(wastedTimeAvg / 1000.f, 2) + "ms " +
 				   " Draw: " + ofToString(wastedTimeDrawingAvg / 1000.f, 2) + "ms ",
@@ -1105,6 +1139,20 @@ string ofxTimeMeasurements::formatTime(uint64_t microSeconds, int precision){
 	return ofToString(time,  precision) + timeUnit;
 }
 
+float ofxTimeMeasurements::getPctForTM(TimeMeasurement * tm){
+
+	if (!tm->settings.enabled){
+		return 0.0f;
+	}else{
+		float time;
+		if(tm->accumulating){
+			time = tm->microsecondsAccum / 1000.0f;
+		}else{
+			time = tm->avgDuration / 1000.0f;
+		}
+		return time / (1000.0f / desiredFrameRate);
+	}
+}
 
 string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 
@@ -1125,6 +1173,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 	}else{
 
 		string timeString;
+		string percentStr;
 		static char percentChar[64];
 
 		if (!tm->settings.enabled){
@@ -1143,12 +1192,6 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 				time = tm->avgDuration / 1000.0f;
 			}
 
-			float percent = 100.0f * time / (1000.0f / desiredFrameRate);
-			bool over = false;
-			if (percent > 100.0f){
-				percent = 100.0f;
-				over = true;
-			}
 			int originalLen = timeString.length();
 
 			int expectedLen = 8;
@@ -1156,13 +1199,25 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 				timeString = " " + timeString;
 			}
 
-			if (over){
-				sprintf(percentChar, int(currentFrameNum * 0.8)%5 < 3  ? " >100": "  100");
+			if(!drawPercentageAsGraph){
+				float percent = 100.0f * time / (1000.0f / desiredFrameRate);
+				bool over = false;
+				if (percent > 100.0f){
+					percent = 100.0f;
+					over = true;
+				}
+
+				if (over){
+					sprintf(percentChar, int(currentFrameNum * 0.8)%5 < 3  ? " >100": "  100");
+				}else{
+					sprintf(percentChar, "% 5.1f", percent);
+				}
+				percentStr = string(percentChar) + "%";
 			}else{
-				sprintf(percentChar, "% 5.1f", percent);
+				percentStr = "       ";
 			}
 		}
-		return timeString + percentChar + "%";
+		return timeString + percentStr;
 	}
 }
 
@@ -1217,7 +1272,7 @@ void ofxTimeMeasurements::loadSettings(){
 				}
 				#endif
 			}
-			ofLogNotice("ofxTimeMeasurements") << "loaded settings for " << name << " enabled: " << settings[name].enabled << " visible: " << settings[name].visible ;
+			//ofLogVerbose("ofxTimeMeasurements") << "loaded settings for " << name << " enabled: " << settings[name].enabled << " visible: " << settings[name].visible ;
 		}
 		myfile.close();
 	}else{

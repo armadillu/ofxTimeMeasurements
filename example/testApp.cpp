@@ -60,11 +60,11 @@ void testApp::update(){
 
 
 	if (ofGetFrameNum()%60 == 1){
-		TS_START("sample across frames");
+		TS_START_NIF("sample across frames");
 	}
 
 	if (ofGetFrameNum()%60 == 3){
-		TS_STOP("sample across frames");
+		TS_STOP_NIF("sample across frames");
 	}
 
 	if (ofGetFrameNum()%600 == 30 || ofGetFrameNum() == 1){

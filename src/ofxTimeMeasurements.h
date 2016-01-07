@@ -101,6 +101,7 @@ class ofxTimeMeasurements {
 		void setMsPrecision(int digits);		//how many decimals for the ms units
 		void setTimeAveragePercent(double p);	//[0..1] >> if set to 1.0, 100% of every new sample contributes to the average.
 												//if set to 0.1, a new sample contributes 10% to the average
+		void setDrawPercentageAsGraph(bool d){drawPercentageAsGraph = d;}
 		float durationForID(const string & ID);
 		void setBgColor(ofColor c){bgColor = c;}
 		void setHighlightColor(ofColor c);
@@ -128,6 +129,8 @@ class ofxTimeMeasurements {
 		void setUiScale(float scale){uiScale = scale;};
 
 		void setRemoveExpiredThreads(bool b){removeExpiredThreads = b;}
+		void setRemoveExpiredTimings(bool r){removeExpiredTimings = r;}
+
 		#if defined(USE_OFX_HISTORYPLOT)
 		void setPlotHeight(int h){plotHeight = h;}
 		void setPlotBaseY(float y){plotBaseY = y;}
@@ -207,12 +210,14 @@ class ofxTimeMeasurements {
 			string formattedKey;
 			string time;
 			string fullLine;
+			bool shouldDrawPctGraph;
 			bool isAccum;
 			ofColor color;
 			ofColor lineBgColor;
 			ofColor plotColor; //if a > 0 , this measurement is being plotted
+			float percentGraph;
 			TimeMeasurement * tm;
-			PrintedLine(){ tm = NULL; plotColor.a = 0; isAccum = false; }
+			PrintedLine(){ tm = NULL; plotColor.a = 0; isAccum = false; percentGraph = 0.0f; }
 		};
 
 		struct ThreadInfo{
@@ -247,6 +252,7 @@ class ofxTimeMeasurements {
 
 		string formatTime(uint64_t microSeconds, int precision);
 		string getTimeStringForTM(TimeMeasurement* tm);
+		float getPctForTM(TimeMeasurement* tm);
 		void drawString(const string & text, const float & x, const float & y);
 
 
@@ -319,6 +325,9 @@ class ofxTimeMeasurements {
 		string									configsDir;
 
 		bool									removeExpiredThreads;
+		bool 									removeExpiredTimings;
+		bool									drawPercentageAsGraph;
+
 		bool 									settingsLoaded;
 		float 									uiScale;
 		#if defined(USE_OFX_HISTORYPLOT)

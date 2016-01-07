@@ -13,7 +13,7 @@ class MyThread: public ofThread{
 		tcount++;
 		getPocoThread().setName("MyThread_" + ID);
 		TS_START("task_" + ID);
-		ofSleepMillis(1000 * 5); //sleep for a bit
+		ofSleepMillis(ofRandom(1,500)); //sleep for a bit
 		TS_STOP("task_" + ID);
 	}
 };

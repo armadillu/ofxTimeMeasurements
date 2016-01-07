@@ -127,6 +127,7 @@ class ofxTimeMeasurements {
 		float getAvgDurationFor(const string & ID); //ms
 
 		void setUiScale(float scale){uiScale = scale;};
+		float getUiScale(){return uiScale;}	
 
 		void setRemoveExpiredThreads(bool b){removeExpiredThreads = b;}
 		void setRemoveExpiredTimings(bool r){removeExpiredTimings = r;}

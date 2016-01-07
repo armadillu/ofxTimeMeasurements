@@ -403,7 +403,7 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 
 	if(threadIt == threadInfo.end()){ //thread not found!
 		mutex.unlock();
-		return;
+		return 0.0f;
 	}
 
 	ThreadInfo & tinfo = threadIt->second;
@@ -528,9 +528,8 @@ void ofxTimeMeasurements::updateLongestLabel(){
 void ofxTimeMeasurements::draw(int x, int y) {
 
 	float fr = ofGetFrameRate();
-
 	if (!enabled){
-		drawString(ofToString(fr, msPrecision), 10, fontSize);
+		//drawString(ofToString(fr, msPrecision), 10, fontSize);
 		return;
 	}
 

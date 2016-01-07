@@ -527,12 +527,12 @@ void ofxTimeMeasurements::updateLongestLabel(){
 
 void ofxTimeMeasurements::draw(int x, int y) {
 
-	float fr = ofGetFrameRate();
 	if (!enabled){
 		//drawString(ofToString(fr, msPrecision), 10, fontSize);
 		return;
 	}
-
+	
+	float fr = ofGetFrameRate();
 	uint64_t timeNow;
 	if(internalBenchmark){
 		timeNow = TM_GET_MICROS();

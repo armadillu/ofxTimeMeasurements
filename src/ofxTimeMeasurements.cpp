@@ -242,7 +242,8 @@ float ofxTimeMeasurements::getHeight() const{
 float ofxTimeMeasurements::getPlotsHeight(){
 	#if defined(USE_OFX_HISTORYPLOT)
 	if(allPlotsTogether){
-		return plotHeight;
+		if(numActivePlots >  0) return plotHeight + numActivePlots * charH; // for text labelsH
+		else return 0;
 	}else{
 		return numActivePlots * plotHeight;
 	}
@@ -488,7 +489,7 @@ void ofxTimeMeasurements::autoDraw(){
 
 	float yy = 0;
 	#ifdef USE_OFX_HISTORYPLOT
-	yy = numActivePlots * plotHeight;
+	yy = getPlotsHeight();
 	#endif
 
 	switch(drawLocation){
@@ -843,7 +844,6 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		}
 	}
 
-
 	float canvasW = ofGetWidth();
 	float canvasH = ofGetHeight();
 
@@ -874,7 +874,6 @@ void ofxTimeMeasurements::draw(int x, int y) {
 			string msg = plotsToDraw[i]->getVariableName() + " " + ofToString(val, 2);
 			drawString(msg, canvasW - charW * msg.size() - 2, ofGetHeight() - plotHeight - 4 - charH * (plotsToDraw.size() -1 - i));
 		}
-
 	}
 	#endif
 

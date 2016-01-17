@@ -847,7 +847,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	float canvasW = ofGetWidth();
 	float canvasH = ofGetHeight();
 
-	if(allPlotsTogether){
+	if(allPlotsTogether && plotsToDraw.size()){
 		ofSetColor(0, 180);
 		ofDrawRectangle(0, canvasH - plotHeight, canvasW / uiScale, plotHeight);
 	}
@@ -868,7 +868,10 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 		if(allPlotsTogether){
 			ofSetColor(plotsToDraw[i]->getColor());
-			string msg = plotsToDraw[i]->getVariableName() + " " + ofToString(plotsToDraw[i]->getValues().back(), 2);
+			deque<float>& vals = plotsToDraw[i]->getValues();
+			float val = 0.0f;
+			if(!vals.empty()) val = vals.back();
+			string msg = plotsToDraw[i]->getVariableName() + " " + ofToString(val, 2);
 			drawString(msg, canvasW - charW * msg.size() - 2, ofGetHeight() - plotHeight - 4 - charH * (plotsToDraw.size() -1 - i));
 		}
 

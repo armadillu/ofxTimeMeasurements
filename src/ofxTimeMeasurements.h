@@ -141,6 +141,7 @@ class ofxTimeMeasurements {
 		/// r = 0.5; plot will have half of that.
 		void setPlotResolution(float r){plotResolution = r;}
 		void setMaxNumPlotSamples(int nSamples){maxPlotSamples = nSamples;}
+		void setDrawAllPlotsOnTopOfEachOther(bool doit){ allPlotsTogether = doit;}
 		#endif
 		float getPlotsHeight();
 
@@ -337,6 +338,7 @@ class ofxTimeMeasurements {
 		int										plotBaseY;
 		int										numAllocatdPlots;
 		int										numActivePlots;
+		bool									allPlotsTogether;
 
 		ofxHistoryPlot*							makeNewPlot(string name);
 		float									plotResolution;

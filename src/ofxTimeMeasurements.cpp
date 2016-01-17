@@ -38,6 +38,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	plotResolution = 1;
 	maxPlotSamples = 4096;
 	numActivePlots = 0;
+	allPlotsTogether = true;
 	#endif
 
 	mainThreadID = getThreadID();
@@ -68,7 +69,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	menuActive = false;
 	drawLines.reserve(50);
 
-	int numHues = 9;
+	int numHues = 7;
 	float brightness = 190.0f;
 	for (int i = 0; i < numHues; i++) {
 		float hue = fmod( i * (255.0f / float(numHues)), 255.0f);
@@ -240,7 +241,11 @@ float ofxTimeMeasurements::getHeight() const{
 
 float ofxTimeMeasurements::getPlotsHeight(){
 	#if defined(USE_OFX_HISTORYPLOT)
-	return numActivePlots * plotHeight;
+	if(allPlotsTogether){
+		return plotHeight;
+	}else{
+		return numActivePlots * plotHeight;
+	}
 	#endif
 	return 0.0f;
 }
@@ -821,13 +826,52 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	//draw all plots
 	#if defined(USE_OFX_HISTORYPLOT)
 	//int numCols = plotsToDraw.size()
-	for(int i = 0; i < plotsToDraw.size(); i++){
-		int y = (plotBaseY == 0 ? ofGetHeight() : plotBaseY) / uiScale - plotHeight * (i + 1);
-		plotsToDraw[i]->draw(0, y, ofGetWidth() / uiScale, plotHeight);
-		ofSetColor(99);
-		if(i != plotsToDraw.size() -1){
-			ofLine(0, y, ofGetWidth() / uiScale, y );
+
+	float highest = FLT_MIN;
+	for(auto plot : plotsToDraw){
+		if(allPlotsTogether){ //lets find the range that covers all the plots
+			float high = plot->getHigerRange();
+			if (high > highest) highest = high;
+			plot->setDrawTitle(false);
+			plot->setDrawBackground(false);
+			plot->setShowSmoothedCurve(false);
+		}else{
+			plot->setDrawTitle(true);
+			plot->setDrawBackground(true);
+			plot->setLowerRange(0);
+			plot->setShowSmoothedCurve(true);
 		}
+	}
+
+
+	float canvasW = ofGetWidth();
+	float canvasH = ofGetHeight();
+
+	if(allPlotsTogether){
+		ofSetColor(0, 180);
+		ofDrawRectangle(0, canvasH - plotHeight, canvasW / uiScale, plotHeight);
+	}
+
+	for(int i = 0; i < plotsToDraw.size(); i++){
+		int y = (plotBaseY == 0 ? canvasH : plotBaseY) / uiScale - plotHeight * (i + 1);
+		if(allPlotsTogether){
+			plotsToDraw[i]->setRange(0, highest);
+			y = ((plotBaseY == 0 ? canvasH : plotBaseY) - plotHeight) / uiScale;
+		}
+		plotsToDraw[i]->draw(0, y, canvasW / uiScale, plotHeight);
+		if(!allPlotsTogether){
+			ofSetColor(99);
+			if(i != plotsToDraw.size() -1){
+				ofLine(0, y, canvasW / uiScale, y );
+			}
+		}
+
+		if(allPlotsTogether){
+			ofSetColor(plotsToDraw[i]->getColor());
+			string msg = plotsToDraw[i]->getVariableName() + " " + ofToString(plotsToDraw[i]->getValues().back(), 2);
+			drawString(msg, canvasW - charW * msg.size() - 2, ofGetHeight() - plotHeight - 4 - charH * (plotsToDraw.size() -1 - i));
+		}
+
 	}
 	#endif
 

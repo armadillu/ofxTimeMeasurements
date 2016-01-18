@@ -848,7 +848,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	float canvasH = ofGetHeight();
 
 	if(allPlotsTogether && plotsToDraw.size()){
-		ofSetColor(0, 180);
+		ofSetColor(0, 230);
 		ofDrawRectangle(0, canvasH - plotHeight, canvasW / uiScale, plotHeight);
 	}
 

@@ -54,7 +54,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	freeze = false;
 
 	idleTimeColorFadePercent = 0.5;
-	idleTimeColorDecay = 0.96;
+	idleTimeColorDecay = 0.97;
 	deadThreadExtendedLifeDecSpeed = 0.975;
 
 	longestLabel = 0;

@@ -1028,6 +1028,7 @@ ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 	plot->setRespectBorders(true);
 	plot->setLineWidth(1);
 	plot->setLowerRange(0);
+	plot->setScissorTest(true);
 	plot->addHorizontalGuide(1000.0f/desiredFrameRate, ofColor(0,255,0));
 	plot->setDrawGrid(true);
 	plot->setGridUnit(16);

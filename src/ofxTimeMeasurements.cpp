@@ -831,7 +831,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	float highest = FLT_MIN;
 	for(auto plot : plotsToDraw){
 		if(allPlotsTogether){ //lets find the range that covers all the plots
-			float high = plot->getHigerRange();
+			float high = plot->getHigestValue();
 			if (high > highest) highest = high;
 			plot->setDrawTitle(false);
 			plot->setDrawBackground(false);
@@ -1025,6 +1025,7 @@ ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 	plot->setColor( threadColorTable[colorID] * 1.7 );
 	plot->setBackgroundColor(ofColor(0,220));
 	plot->setShowNumericalInfo(true);
+	plot->setRangeAuto();
 	plot->setRespectBorders(true);
 	plot->setLineWidth(1);
 	plot->setLowerRange(0);

@@ -11,6 +11,7 @@
 
 #include "ofMain.h"
 #include "../lib/tree.h"
+#include <poco/Thread.h>
 #include <map>
 
 
@@ -31,6 +32,12 @@
 
 #ifdef USE_OFX_HISTORYPLOT
 #include "ofxHistoryPlot.h"
+#endif
+
+#if defined(__has_include) /*llvm only - query about header files being available or not*/
+	#if __has_include("ofxFontStash.h")
+		#define USE_OFX_FONTSTASH
+	#endif
 #endif
 
 #ifdef USE_OFX_FONTSTASH

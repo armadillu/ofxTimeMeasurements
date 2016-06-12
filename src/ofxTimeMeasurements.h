@@ -11,7 +11,7 @@
 
 #include "ofMain.h"
 #include "../lib/tree.h"
-#include <poco/Thread.h>
+#include <Poco/Thread.h>
 #include <map>
 
 

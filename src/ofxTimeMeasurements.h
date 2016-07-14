@@ -11,9 +11,6 @@
 
 #include "ofMain.h"
 #include "../lib/tree.h"
-#ifndef TARGET_RASPBERRY_PI
-#include <poco/Thread.h>
-#endif
 #include <map>
 
 

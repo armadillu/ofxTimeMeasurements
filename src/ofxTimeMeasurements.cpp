@@ -301,9 +301,11 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 	bool bIsMainThread = isMainThread(thread);
 
 	if(!bIsMainThread){
+		#ifndef TARGET_RASPBERRY_PI
 		if(Poco::Thread::current()){
 			threadName = Poco::Thread::current()->getName();
 		}
+		#endif
 	}
 
 	mutex.lock();

@@ -11,7 +11,9 @@
 
 #include "ofMain.h"
 #include "../lib/tree.h"
+#ifndef TARGET_RASPBERRY_PI
 #include <poco/Thread.h>
+#endif
 #include <map>
 
 
@@ -181,7 +183,9 @@ class ofxTimeMeasurements {
 			#endif
 		};
 
-		typedef Poco::Thread::TID ThreadId;
+		//typedef Poco::Thread::TID ThreadId;
+		typedef std::thread::id ThreadId;
+
 
 		struct TimeMeasurement{
 			uint64_t microsecondsStart;
@@ -288,7 +292,8 @@ class ofxTimeMeasurements {
 		bool isMainThread(ThreadId tid){return tid == mainThreadID;}
 
 		ThreadId getThreadID(){
-			return Poco::Thread::currentTid();
+			//return Poco::Thread::currentTid();
+			return std::this_thread::get_id();
 		}
 
 		vector<PrintedLine>						drawLines; //what's drawn line by line

@@ -10,6 +10,11 @@
 #include "ofxTimeMeasurements.h"
 #include <float.h>
 
+
+#ifndef TARGET_RASPBERRY_PI
+#include <Poco/Thread.h>
+#endif
+
 #ifndef TIME_MEASUREMENTS_DISABLED
 
 ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;

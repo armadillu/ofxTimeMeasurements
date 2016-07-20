@@ -962,21 +962,21 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		lines.setMode(OF_PRIMITIVE_LINES);
 		float fuzzyFix = 0.5;
 		float yy = y+1 + fuzzyFix;
-		lines.addVertex(ofVec2f(x, yy));
-		lines.addVertex(ofVec2f(x + totalW, yy));
+		lines.addVertex(ofVec3f(x, yy));
+		lines.addVertex(ofVec3f(x + totalW, yy));
 		yy = y + totalH - charH - 3 + fuzzyFix;
-		lines.addVertex(ofVec2f(x, yy));
-		lines.addVertex(ofVec2f(x + totalW, yy));
+		lines.addVertex(ofVec3f(x, yy));
+		lines.addVertex(ofVec3f(x + totalW, yy));
 		yy = y + totalH + fuzzyFix;
-		lines.addVertex(ofVec2f(x, yy));
-		lines.addVertex(ofVec2f(x + totalW, yy));
+		lines.addVertex(ofVec3f(x, yy));
+		lines.addVertex(ofVec3f(x + totalW, yy));
 		if(menuActive){
 			yy = y + totalH + fuzzyFix - (numInstructionLines + 1) * charH - 3;
-			lines.addVertex(ofVec2f(x, yy));
-			lines.addVertex(ofVec2f(x + totalW, yy));
+			lines.addVertex(ofVec3f(x, yy));
+			lines.addVertex(ofVec3f(x + totalW, yy));
 			yy = y + totalH + fuzzyFix - (numInstructionLines) * charH - 3;
-			lines.addVertex(ofVec2f(x, yy));
-			lines.addVertex(ofVec2f(x + totalW, yy));
+			lines.addVertex(ofVec3f(x, yy));
+			lines.addVertex(ofVec3f(x + totalW, yy));
 		}
 		lines.draw();
 	}//lines

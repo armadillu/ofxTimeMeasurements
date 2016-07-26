@@ -64,8 +64,20 @@
 	#define TS_STOP_ACC_NIF(x)					TIME_SAMPLE_STOP_ACC_NOIF(x)
 
 	//scope timings
-	#define TS_SCOPE(x) auto scopeTiming = ofxTimeMeasurementsScoped(x, false)
-	#define TS_SCOPE_ACC(x) auto scopeTiming = ofxTimeMeasurementsScoped(x, true)
+	#define TS_SCOPE(x) 		auto scopeTiming = ofxTimeMeasurementsScoped(x, false)
+	#define TS_SCOPE_ACC(x) 	auto scopeTiming = ofxTimeMeasurementsScoped(x, true)
+	//automatic naming for this scoped time - will look like "Class::method()"
+	#define TS_ASCOPE() 		auto scopeTiming = ofxTimeMeasurementsScoped(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, false)
+
+	//auto-named timings
+	#define TS_ASTART()				if(ofxTimeMeasurements::instance()->startMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, false, true)){
+	#define TS_ASTOP()				}ofxTimeMeasurements::instance()->stopMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, false)
+	#define TS_ASTART_NIF()			ofxTimeMeasurements::instance()->startMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, false, false)
+	#define TS_ASTOP_NIF()			ofxTimeMeasurements::instance()->stopMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, false)
+	#define TS_ASTART_ACC()			if(ofxTimeMeasurements::instance()->startMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, true, true)){
+	#define TS_ASTOP_ACC()			}ofxTimeMeasurements::instance()->stopMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, true)
+	#define TS_ASTART_ACC_NIF()		ofxTimeMeasurements::instance()->startMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, true, false)
+	#define TS_ASTOP_ACC_NIF()		ofxTimeMeasurements::instance()->stopMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, true)
 
 #else
 
@@ -115,6 +127,17 @@
 	//scope timings
 	#define TS_SCOPE(x)
 	#define TS_SCOPE_ACC(x)
+	#define TS_ASCOPE()
+
+	//auto named
+	#define TS_ASTART()
+	#define TS_ASTOP()
+	#define TS_ASTART_NIF()
+	#define TS_ASTOP_NIF()
+	#define TS_ASTART_ACC()
+	#define TS_ASTOP_ACC()
+	#define TS_ASTART_ACC_NIF()
+	#define TS_ASTOP_ACC_NIF()
 
 #endif
 
@@ -123,3 +146,45 @@
 #define TIME_SAMPLE_DRAW_LOC_BOTTOM_LEFT 	TIME_MEASUREMENTS_BOTTOM_LEFT
 #define TIME_SAMPLE_DRAW_LOC_BOTTOM_RIGHT 	TIME_MEASUREMENTS_BOTTOM_RIGHT
 #define TIME_SAMPLE_DRAW_LOC_TOP_RIGHT 		TIME_MEASUREMENTS_TOP_RIGHT
+
+//auto measurement naming
+static char demangleSpace[4096];
+static ofMutex logMutex;
+
+inline std::string demangled_type_info_name(const std::type_info&ti){
+
+	ofScopedLock lock(logMutex);
+	#ifdef TARGET_WIN32
+	static std::vector<std::string> keywords;
+	if ( 0 == keywords.size() ) {
+		keywords.push_back("class ");
+		keywords.push_back("struct ");
+		keywords.push_back("enum ");
+		keywords.push_back("union ");
+		keywords.push_back("__cdecl");
+	}
+	std::string r = ti.name();
+	for ( size_t i = 0; i < keywords.size(); i ++ ) {
+		while (r.find(keywords[i]) != std::string::npos)
+			r = r.replace(r.find(keywords[i]), keywords[i].size(), "");
+		while (r.find(" *") != std::string::npos)
+			r = r.replace(r.find(" *"), 2, "*");
+		while (r.find(" &") != std::string::npos)
+			r = r.replace(r.find(" &"), 2, "&");
+	}
+	if(r.size() > 0){
+		r = r.substr(0, r.size() - 1);
+	}
+
+	return r;
+	#else
+	int status = 0;
+	size_t len = 4096;
+	char * ret = abi::__cxa_demangle(ti.name(),(char*)&demangleSpace, &len, &status);
+	string finalS = string(demangleSpace);
+	if(finalS.size() > 0){
+		finalS = finalS.substr(0, finalS.size() - 1);
+	}
+	return finalS;
+	#endif
+}

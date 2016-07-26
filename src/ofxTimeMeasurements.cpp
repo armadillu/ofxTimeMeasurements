@@ -815,7 +815,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		l.fullLine = " 'V' expand all"; drawLines.push_back(l); numInstructionLines++;
 		#if defined USE_OFX_HISTORYPLOT
 		l.fullLine = " 'P' plot selectd measur."; drawLines.push_back(l); numInstructionLines++;
-		l.fullLine = " 'G' toggle plot grouping."; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'G' toggle plot grouping"; drawLines.push_back(l); numInstructionLines++;
 		#endif
 	}
 
@@ -837,19 +837,29 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	//int numCols = plotsToDraw.size()
 
 	float highest = FLT_MIN;
+	int plotC = 0;
 	for(auto plot : plotsToDraw){
 		if(allPlotsTogether){ //lets find the range that covers all the plots
 			float high = plot->getHigestValue();
 			if (high > highest) highest = high;
 			plot->setDrawTitle(false);
-			plot->setDrawBackground(false);
+			if(plotC == 0){
+				plot->setDrawBackground(true);
+				plot->setDrawGrid(true);
+			}else{
+				plot->setDrawBackground(false);
+				plot->setDrawGrid(false);
+			}
 			plot->setShowSmoothedCurve(false);
 		}else{
 			plot->setDrawTitle(true);
 			plot->setDrawBackground(true);
+			plot->setDrawGrid(true);
 			plot->setLowerRange(0);
 			plot->setShowSmoothedCurve(true);
+			plot->setDrawGrid(true);
 		}
+		plotC++;
 	}
 
 	float canvasW = ofGetWidth();
@@ -860,6 +870,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		ofDrawRectangle(0, canvasH - plotHeight, canvasW / uiScale, plotHeight);
 	}
 
+	ofSetColor(255);
 	for(int i = 0; i < plotsToDraw.size(); i++){
 		int y = (plotBaseY == 0 ? canvasH : plotBaseY) / uiScale - plotHeight * (i + 1);
 		if(allPlotsTogether){
@@ -1041,7 +1052,7 @@ ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 	plot->addHorizontalGuide(1000.0f/desiredFrameRate, ofColor(0,255,0));
 	plot->setDrawGrid(true);
 	plot->setGridUnit(16);
-	plot->setGridColor(ofColor(20,255));
+	plot->setGridColor(ofColor(22,255));
 	plot->setAutoRangeShrinksBack(true);
 	plot->setShowSmoothedCurve(true);
 	plot->setSmoothFilter(0.03);
@@ -1120,7 +1131,12 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 							}
 						}break;
 
-						case 'G': allPlotsTogether ^= true; break;
+						case 'G':
+							for(auto & p : plots){
+								if(p.second) p.second->reset();
+							}
+							allPlotsTogether ^= true;
+							break;
 						#endif
 
 						case OF_KEY_RETURN:{
@@ -1306,20 +1322,22 @@ void ofxTimeMeasurements::loadSettings(){
 			}
 
 			getline( myfile, name, '=' );//name
-			getline( myfile, visible, '|' ); //visible
-			if(fileHasPlotData){
-				getline( myfile, enabled_, '|' ); //enabled
-				getline( myfile, plotting, '\n' ); //plotting
-			}else{
-				getline( myfile, enabled_, '\n' ); //enabled
-			}
 
-			if (name == TIME_MEASUREMENTS_SETUP_KEY ||
-				name == TIME_MEASUREMENTS_UPDATE_KEY ||
-				name == TIME_MEASUREMENTS_DRAW_KEY ){
-				visible = enabled_ = "1";
-			}
 			if(name.length()){
+				getline( myfile, visible, '|' ); //visible
+				if(fileHasPlotData){
+					getline( myfile, enabled_, '|' ); //enabled
+					getline( myfile, plotting, '\n' ); //plotting
+				}else{
+					getline( myfile, enabled_, '\n' ); //enabled
+				}
+
+				if (name == TIME_MEASUREMENTS_SETUP_KEY ||
+					name == TIME_MEASUREMENTS_UPDATE_KEY ||
+					name == TIME_MEASUREMENTS_DRAW_KEY ){
+					visible = enabled_ = "1";
+				}
+
 				settings[name].visible = bool(visible == "1" ? true : false);
 				settings[name].enabled = bool(enabled_ == "1" ? true : false);
 				#if defined(USE_OFX_HISTORYPLOT)

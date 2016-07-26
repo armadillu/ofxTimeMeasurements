@@ -815,6 +815,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		l.fullLine = " 'V' expand all"; drawLines.push_back(l); numInstructionLines++;
 		#if defined USE_OFX_HISTORYPLOT
 		l.fullLine = " 'P' plot selectd measur."; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'G' toggle plot grouping."; drawLines.push_back(l); numInstructionLines++;
 		#endif
 	}
 
@@ -1118,6 +1119,8 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 								times[selection]->settings.plotting ^= true;
 							}
 						}break;
+
+						case 'G': allPlotsTogether ^= true; break;
 						#endif
 
 						case OF_KEY_RETURN:{

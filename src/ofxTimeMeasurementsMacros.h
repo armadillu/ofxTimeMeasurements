@@ -9,6 +9,10 @@
 
 #pragma once
 
+#if( defined(TARGET_OSX) || defined(TARGET_LINUX))
+#include <cxxabi.h>
+#endif
+
 //you can define "TIME_MEASUREMENTS_DISABLED" in your project pre-processor macros to ENTIRELY disable time measurements
 #ifndef TIME_MEASUREMENTS_DISABLED
 

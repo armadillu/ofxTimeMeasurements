@@ -13,6 +13,13 @@
 #include <cxxabi.h>
 #endif
 
+#ifdef TARGET_WIN32
+	#define AUTOMAGICAL_FUNC_NAME __FUNCTION__
+#else
+	#define AUTOMAGICAL_FUNC_NAME (demangled_type_info_name(typeid(this)) + "::" + __FUNCTION__)
+#endif
+
+
 //you can define "TIME_MEASUREMENTS_DISABLED" in your project pre-processor macros to ENTIRELY disable time measurements
 #ifndef TIME_MEASUREMENTS_DISABLED
 
@@ -71,17 +78,17 @@
 	#define TS_SCOPE(x) 		auto scopeTiming = ofxTimeMeasurementsScoped(x, false)
 	#define TS_SCOPE_ACC(x) 	auto scopeTiming = ofxTimeMeasurementsScoped(x, true)
 	//automatic naming for this scoped time - will look like "Class::method()"
-	#define TS_ASCOPE() 		auto scopeTiming = ofxTimeMeasurementsScoped(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, false)
+	#define TS_ASCOPE() 		auto scopeTiming = ofxTimeMeasurementsScoped(AUTOMAGICAL_FUNC_NAME, false)
 
 	//auto-named timings
-	#define TS_ASTART()				if(ofxTimeMeasurements::instance()->startMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, false, true)){
-	#define TS_ASTOP()				}ofxTimeMeasurements::instance()->stopMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, false)
-	#define TS_ASTART_NIF()			ofxTimeMeasurements::instance()->startMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, false, false)
-	#define TS_ASTOP_NIF()			ofxTimeMeasurements::instance()->stopMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, false)
-	#define TS_ASTART_ACC()			if(ofxTimeMeasurements::instance()->startMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, true, true)){
-	#define TS_ASTOP_ACC()			}ofxTimeMeasurements::instance()->stopMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, true)
-	#define TS_ASTART_ACC_NIF()		ofxTimeMeasurements::instance()->startMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, true, false)
-	#define TS_ASTOP_ACC_NIF()		ofxTimeMeasurements::instance()->stopMeasuring(demangled_type_info_name(typeid(this))+"::"+__FUNCTION__, true)
+	#define TS_ASTART()				if(ofxTimeMeasurements::instance()->startMeasuring(AUTOMAGICAL_FUNC_NAME, false, true)){
+	#define TS_ASTOP()				}ofxTimeMeasurements::instance()->stopMeasuring(AUTOMAGICAL_FUNC_NAME, false)
+	#define TS_ASTART_NIF()			ofxTimeMeasurements::instance()->startMeasuring(AUTOMAGICAL_FUNC_NAME, false, false)
+	#define TS_ASTOP_NIF()			ofxTimeMeasurements::instance()->stopMeasuring(AUTOMAGICAL_FUNC_NAME, false)
+	#define TS_ASTART_ACC()			if(ofxTimeMeasurements::instance()->startMeasuring(AUTOMAGICAL_FUNC_NAME, true, true)){
+	#define TS_ASTOP_ACC()			}ofxTimeMeasurements::instance()->stopMeasuring(AUTOMAGICAL_FUNC_NAME, true)
+	#define TS_ASTART_ACC_NIF()		ofxTimeMeasurements::instance()->startMeasuring(AUTOMAGICAL_FUNC_NAME, true, false)
+	#define TS_ASTOP_ACC_NIF()		ofxTimeMeasurements::instance()->stopMeasuring(AUTOMAGICAL_FUNC_NAME, true)
 
 #else
 
@@ -153,35 +160,10 @@
 
 //auto measurement naming
 static char demangleSpace[4096];
-static ofMutex logMutex;
+static ofMutex autoNamingMutex;
 
 inline std::string demangled_type_info_name(const std::type_info&ti){
-
-	ofScopedLock lock(logMutex);
-	#ifdef TARGET_WIN32
-	static std::vector<std::string> keywords;
-	if ( 0 == keywords.size() ) {
-		keywords.push_back("class ");
-		keywords.push_back("struct ");
-		keywords.push_back("enum ");
-		keywords.push_back("union ");
-		keywords.push_back("__cdecl");
-	}
-	std::string r = ti.name();
-	for ( size_t i = 0; i < keywords.size(); i ++ ) {
-		while (r.find(keywords[i]) != std::string::npos)
-			r = r.replace(r.find(keywords[i]), keywords[i].size(), "");
-		while (r.find(" *") != std::string::npos)
-			r = r.replace(r.find(" *"), 2, "*");
-		while (r.find(" &") != std::string::npos)
-			r = r.replace(r.find(" &"), 2, "&");
-	}
-	if(r.size() > 0){
-		r = r.substr(0, r.size() - 1);
-	}
-
-	return r;
-	#else
+	ofScopedLock lock(autoNamingMutex);
 	int status = 0;
 	size_t len = 4096;
 	char * ret = abi::__cxa_demangle(ti.name(),(char*)&demangleSpace, &len, &status);
@@ -190,5 +172,4 @@ inline std::string demangled_type_info_name(const std::type_info&ti){
 		finalS = finalS.substr(0, finalS.size() - 1);
 	}
 	return finalS;
-	#endif
 }

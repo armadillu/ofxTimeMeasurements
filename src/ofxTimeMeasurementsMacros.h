@@ -162,7 +162,9 @@
 static char demangleSpace[4096];
 static ofMutex autoNamingMutex;
 
+#ifndef TARGET_WIN32
 inline std::string demangled_type_info_name(const std::type_info&ti){
+
 	ofScopedLock lock(autoNamingMutex);
 	int status = 0;
 	size_t len = 4096;
@@ -173,3 +175,4 @@ inline std::string demangled_type_info_name(const std::type_info&ti){
 	}
 	return finalS;
 }
+#endif

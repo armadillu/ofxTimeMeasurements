@@ -887,7 +887,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		if(!allPlotsTogether){
 			ofSetColor(99);
 			if(i != plotsToDraw.size() -1){
-				ofLine(0, y, canvasW / uiScale, y );
+				ofDrawLine(0, y, canvasW / uiScale, y );
 			}
 		}
 

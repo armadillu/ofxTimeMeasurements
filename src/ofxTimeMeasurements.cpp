@@ -1225,6 +1225,7 @@ float ofxTimeMeasurements::getPctForTM(TimeMeasurement * tm){
 		return 0.0f;
 	}else{
 		float time;
+		if(!tm->updatedLastFrame) return 0.0f;
 		if(tm->accumulating){
 			time = tm->microsecondsAccum / 1000.0f;
 		}else{

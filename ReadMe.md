@@ -154,7 +154,7 @@ You can increase the resolution/accuracy of the time measurements by using [ofxM
 
 #### 5.8 USING ofxHistoryPlot
 
-If you add [ofxHistoryPlot](https://github.com/armadillu/ofxHistoryPlot) to your project, you will also be able to track your timings over time. To do so, add ofxHistoryPlot to your project, and ofxTimeMeasurements will automatically detect it and enable the use of time plots.
+If you add [ofxHistoryPlot](https://github.com/armadillu/ofxHistoryPlot) to your project, you will also be able to track your timings over time. To do so, add ofxHistoryPlot to your project, and ofxTimeMeasurements will automatically detect it and enable the use of time plots. * On Windows, you will still need to manually add USE_OFX_HISTORYPLOT to your project pre-processor macros for HistoryPlot to be available..
 
 If you do so, when in interactive mode, you can press 'P' to toggle the plotting of the timings of the selected section over time.
 

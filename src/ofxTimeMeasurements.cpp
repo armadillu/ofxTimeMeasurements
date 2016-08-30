@@ -1091,7 +1091,7 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 			}
 		}
 
-		if(e.key == 'L'){
+		if(menuActive && e.key == 'L'){
 			drawLocation = ofxTMDrawLocation(drawLocation+1);
 			if(drawLocation == TIME_MEASUREMENTS_NUM_DRAW_LOCATIONS) drawLocation = ofxTMDrawLocation(0);
 		}

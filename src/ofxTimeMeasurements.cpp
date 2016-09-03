@@ -83,7 +83,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	}
 
 	numThreads = 0;
-	configsDir = ".";
+	configsDir = "configs";
 	removeExpiredThreads = true;
 	removeExpiredTimings = false;
 	settingsLoaded = false;

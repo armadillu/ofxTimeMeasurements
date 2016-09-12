@@ -16,7 +16,7 @@
 #ifdef TARGET_WIN32
 	#define AUTOMAGICAL_FUNC_NAME __FUNCTION__
 #else
-	#define AUTOMAGICAL_FUNC_NAME (demangled_type_info_name(typeid(this)) + "::" + __FUNCTION__)
+	#define AUTOMAGICAL_FUNC_NAME (demangledTypeInfoName(typeid(this)) + "::" + __FUNCTION__)
 #endif
 
 
@@ -159,11 +159,12 @@
 #define TIME_SAMPLE_DRAW_LOC_TOP_RIGHT 		TIME_MEASUREMENTS_TOP_RIGHT
 
 //auto measurement naming
-static char demangleSpace[4096];
-static ofMutex autoNamingMutex;
 
 #ifndef TARGET_WIN32
-inline std::string demangled_type_info_name(const std::type_info&ti){
+inline std::string demangledTypeInfoName(const std::type_info&ti){
+
+	static char demangleSpace[4096];
+	static ofMutex autoNamingMutex;
 
 	ofScopedLock lock(autoNamingMutex);
 	int status = 0;

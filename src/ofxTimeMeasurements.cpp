@@ -856,7 +856,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 			plot->setDrawBackground(true);
 			plot->setDrawGrid(true);
 			plot->setLowerRange(0);
-			plot->setShowSmoothedCurve(true);
+			plot->setShowSmoothedCurve(false);
 			plot->setDrawGrid(true);
 		}
 		plotC++;

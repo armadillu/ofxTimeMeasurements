@@ -132,7 +132,7 @@ class ofxTimeMeasurements {
 		float getLastDurationFor(const string & ID); //ms
 		float getAvgDurationFor(const string & ID); //ms
 
-		void setUiScale(float scale){uiScale = scale;};
+		void setUiScale(float scale);
 		float getUiScale(){return uiScale;}	
 
 		void setRemoveExpiredThreads(bool b){removeExpiredThreads = b;}
@@ -356,10 +356,12 @@ class ofxTimeMeasurements {
 
 		#ifdef USE_OFX_FONTSTASH
 		bool									useFontStash;
+		string 									fontStashFile;
 		ofxFontStash							font;
 		float									fontSize;
 		#endif
-		float									charW;
+	
+		float									charW; //to draw text flexibly with bitmap / fontstash
 		float									charH;
 
 		void walkTree(core::tree<string>::iterator Arg, int levelArg, vector<string> &result);

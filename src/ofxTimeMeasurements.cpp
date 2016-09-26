@@ -1078,7 +1078,11 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 		if (e.key == activateKey){
 			menuActive = !menuActive;
 		}
-
+		if(menuActive){
+			if(e.key == '+'){ setUiScale(uiScale += 0.1);}
+			if(e.key == '-'){ setUiScale(MAX(uiScale -= 0.1, 0.50));}
+		}
+		
 		if(e.key == 'A') averaging ^= true;  //Average Toggle
 		if(e.key == 'B') internalBenchmark ^= true;  //internalBenchmark Toggle
 		if (e.key == 'F') freeze ^= true;  //free measurements
@@ -1410,8 +1414,8 @@ void ofxTimeMeasurements::_appExited(ofEventArgs &e){
 
 #ifdef USE_OFX_FONTSTASH
 void ofxTimeMeasurements::drawUiWithFontStash(string fontPath, float fontSize_){
-	useFontStash = true;
-	fontSize = fontSize_;
+	useFontStash = true; fontSize = fontSize_; fontStashFile = fontPath;
+	font = ofxFontStash();
 	font.setup(ofToDataPath(fontPath, true), 1.0, 512, false, 0, uiScale);
 	ofRectangle r = font.getBBox("M", fontSize, 0, 0);
 	charW = r.width;
@@ -1436,6 +1440,17 @@ void ofxTimeMeasurements::drawString(const string & text, const float & x, const
 	ofDrawBitmapString(text, x, y);
 	#endif
 }
+
+
+void ofxTimeMeasurements::setUiScale(float scale){
+	uiScale = scale;
+	#ifdef USE_OFX_FONTSTASH
+	if(fontStashFile.size()){
+		drawUiWithFontStash(fontStashFile, fontSize);
+	}
+	#endif
+}
+
 
 
 float ofxTimeMeasurements::durationForID( const string & ID){

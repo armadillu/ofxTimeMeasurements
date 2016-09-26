@@ -1079,8 +1079,8 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 			menuActive = !menuActive;
 		}
 		if(menuActive){
-			if(e.key == '+'){ setUiScale(uiScale += 0.1);}
-			if(e.key == '-'){ setUiScale(MAX(uiScale -= 0.1, 0.50));}
+			if(e.key == '+'){ setUiScale(uiScale + 0.1);}
+			if(e.key == '-'){ setUiScale(MAX(uiScale - 0.1, 0.50));}
 		}
 		
 		if(e.key == 'A') averaging ^= true;  //Average Toggle

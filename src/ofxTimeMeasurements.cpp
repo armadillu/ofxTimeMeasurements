@@ -669,7 +669,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 					l.tm = t;
 					l.lineBgColor = ofColor(tinfo.color, dimColorA);
 
-					int depth = wholeTreeWalker.level();
+					int depth = (int)wholeTreeWalker.level();
 					for(int i = 0; i < depth; ++i) l.formattedKey += " ";
 
 					if (wholeTreeWalker.size() == 0){
@@ -741,14 +741,14 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		}
 
 		#if defined(USE_OFX_HISTORYPLOT)
-		numActivePlots = plotsToDraw.size();
+		numActivePlots = (int)plotsToDraw.size();
 		#endif
 
 		if (numAlive == 0 && removeExpiredThreads){
 			//drop that whole section if all entries in it are not alive
 			for(int i = 0; i < numAdded + 1; i++){
 				if(drawLines.size() > 0){
-					int delID = drawLines.size() - 1;
+					int delID = (int)drawLines.size() - 1;
 					//clear selection if needed
 					if (selection == drawLines[delID].key){
 						selection = TIME_MEASUREMENTS_UPDATE_KEY;
@@ -776,7 +776,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	for( int i = 0; i < drawLines.size(); i++ ){
 		if (drawLines[i].tm){ //its a measurement
 			//add padding to draw in columns
-			for(int j = drawLines[i].formattedKey.length(); j < longestLabel; j++){
+			for(int j = (int)drawLines[i].formattedKey.length(); j < longestLabel; j++){
 				drawLines[i].formattedKey += " ";
 			}
 			if (!drawLines[i].tm->error){
@@ -786,7 +786,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 				drawLines[i].shouldDrawPctGraph = true;
 				drawLines[i].fullLine = drawLines[i].formattedKey + "    Error!" ;
 			}
-			int len = drawLines[i].fullLine.length();
+			int len = (int)drawLines[i].fullLine.length();
 			if(len > tempMaxW) tempMaxW = len;
 			if(drawLines[i].tm->measuring) drawLines[i].shouldDrawPctGraph = false;
 		}else{ //its a header
@@ -1009,7 +1009,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	}else{
 		ofSetColor(hilightColor);
 	}
-	int len = strlen(msg);
+	int len = (int)strlen(msg);
 	string pad = " ";
 	int diff = (maxW - len) - 1;
 	for(int i = 0; i < diff; i++) pad += " ";
@@ -1123,10 +1123,10 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
 						case OF_KEY_UP:{
 							selIndex --;
-							if(selIndex < 0 ) selIndex = drawLines.size() - 1;
+							if(selIndex < 0 ) selIndex = (int)drawLines.size() - 1;
 							while(drawLines[selIndex].tm == NULL){
 								selIndex --;
-								if(selIndex < 0 ) selIndex = drawLines.size() - 1;
+								if(selIndex < 0 ) selIndex = (int)drawLines.size() - 1;
 							}
 							selection = drawLines[selIndex].key;
 						}break;
@@ -1277,7 +1277,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 				time = tm->avgDuration / 1000.0f;
 			}
 
-			int originalLen = timeString.length();
+			int originalLen = (int)timeString.length();
 
 			int expectedLen = 8;
 			for(int i = 0; i < expectedLen - originalLen; i++){

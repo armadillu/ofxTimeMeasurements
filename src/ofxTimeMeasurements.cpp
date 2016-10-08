@@ -98,6 +98,10 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	wastedTimeDrawingThisFrame = wastedTimeDrawingAvg = 0;
 
 	addEventHooks();
+
+	//
+	startMeasuring(TIME_MEASUREMENTS_UPDATE_KEY, false, false);
+	stopMeasuring(TIME_MEASUREMENTS_UPDATE_KEY, false);
 }
 
 void ofxTimeMeasurements::addEventHooks(ofCoreEvents* eventHooks /*= nullptr*/) {
@@ -1172,7 +1176,7 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 			}
 			ret = e.key != OF_KEY_ESC; //return true or false; if returning true, it stops the event chain
 			//so, next listerners will not get notified
-			if(ret == true && times[TIME_MEASUREMENTS_KEYPRESSED_KEY]->measuring){
+			if(ret == true && times.find(TIME_MEASUREMENTS_KEYPRESSED_KEY) != times.end() && times[TIME_MEASUREMENTS_KEYPRESSED_KEY]->measuring){
 				stopMeasuring(TIME_MEASUREMENTS_KEYPRESSED_KEY, false); //if enabling the menu, we interrupt the following events,
 																		//so we manually stop the timing as otherwise its never stopped
 																		//bc the "after" kepressed event is never reached.

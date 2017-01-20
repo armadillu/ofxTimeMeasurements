@@ -826,6 +826,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		#if defined USE_OFX_HISTORYPLOT
 		l.fullLine = " 'P' plot selectd measur."; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'G' toggle plot grouping"; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'C' clear all plots"; drawLines.push_back(l); numInstructionLines++;
 		#endif
 	}
 
@@ -1098,6 +1099,14 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 				++it;
 			}
 		}
+
+		#if defined(USE_OFX_HISTORYPLOT)
+		if(e.key == 'C'){ //clear all plots!
+			for(auto & p : plots){
+				if(p.second) p.second->reset();
+			}
+		}
+		#endif
 
 		if(menuActive && e.key == 'L'){
 			drawLocation = ofxTMDrawLocation(drawLocation+1);

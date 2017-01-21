@@ -46,7 +46,7 @@ public:
 
 	bool isMeasurementReady(){return state == RESULT_READY;}
 	double getMeasurement(){return measurementResult;}
-	bool acknowledgeMeasurement(){ state = INITED;} // after you successfully read the measurement, ack it
+	void acknowledgeMeasurement(){ state = INITED;} // after you successfully read the measurement, ack it
 												//so that the timer can be started again.
 
 

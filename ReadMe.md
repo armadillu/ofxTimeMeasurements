@@ -98,7 +98,7 @@ TS() is a very convenient ultra-short macro to measure the time a single method 
 
 This will NOT measure the time it takes the CPU to execute the code between the start() and stop() methods, but the time it takes the GPU to execute all the OpenGL instructions issued between start() and stop().  
 
-It does so by sending glBeginQuery(GL_TIME_ELAPSED_EXT) and glEndQuery(GL_TIME_ELAPSED_EXT) OpenGL commands, and retrieving the time it actually took to render by querying OpenGL after the rendering has happened. This method was chosen vs the GL_TIMESTAMP based, bc it seems to work with OpenGL 2.0, vs the GL_TIMESTAMP one requiring OpenGL 3.3.
+It does so by sending ```glBeginQuery(GL_TIME_ELAPSED_EXT)``` and ```glEndQuery(GL_TIME_ELAPSED_EXT)``` OpenGL commands, and retrieving the time it actually took to render by querying OpenGL after the rendering has happened. This method was chosen vs the ```GL_TIMESTAMP``` based, bc it seems to work with OpenGL 2.0, vs the ```GL_TIMESTAMP``` one requiring OpenGL 3.3.
 
 ![OpenGL Timings](https://farm1.staticflickr.com/576/32429675235_3844e560bf_o_d.png)
 
@@ -111,11 +111,11 @@ TSGL_STOP("FancyShader");
 ```
 	
 
-*Some Caveats:
-OpenGL timing measurements can't be nested, you can't start a measurement unless you stopped the previous one. It's still ok to measure several things each frame, but not nested.
-*It's ok to nest/mix these within standard "CPU" measurements.
-*There's also "no if" version of this measurement, see 3.3 to learn more. TSGL_START_NIF() and TSGL_STOP_NIF().
-*Because the timings can only be known after the frame has been fully drawn, the timings appear 2-3 frames after measured.
+#####Some Caveats:
+* OpenGL timing measurements can't be nested, you can't start a measurement unless you stopped the previous one. It's still ok to measure several things each frame, but not nested.
+* It's ok to nest/mix these within standard "CPU" measurements.
+* There's also "no if" version of this measurement, see 3.3 to learn more. TSGL_START_NIF() and TSGL_STOP_NIF().
+* Because the timings can only be known after the frame has been fully drawn, the timings appear 2-3 frames after measured.
 
 
 ## 4. KEYBOARD COMMANDS

@@ -294,6 +294,8 @@ void ofxTimeMeasurements::setHighlightColor(ofColor c){
 
 bool ofxTimeMeasurements::startMeasuringGL(const string & name){
 
+	if (!enabled) return true;
+
 	if(measuringGlLabel.size() > 0){
 		ofLogError("ofxTimeMeasurements") << "Can't startMeasuringGL()! You can't have nested GL measurements : " << name;
 		return true;
@@ -329,6 +331,8 @@ bool ofxTimeMeasurements::startMeasuringGL(const string & name){
 }
 
 void ofxTimeMeasurements::stopMeasuringGL(const string & name){
+
+	if (!enabled) return;
 
 	string glName = glPrefix + name;
 

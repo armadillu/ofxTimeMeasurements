@@ -208,7 +208,7 @@ class ofxTimeMeasurements {
 			string key;
 			ThreadId thread;
 			float life;
-			bool isGL; //this is a GL measurements, some behaviors don't apply  (avg)
+			bool isGL; //this is a GL measurement, some behaviors don't apply
 			TimeMeasurementSettings settings;
 
 			TimeMeasurement(){

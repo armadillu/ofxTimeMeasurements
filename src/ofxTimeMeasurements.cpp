@@ -642,7 +642,7 @@ void ofxTimeMeasurements::updateGLMeasurements(){
 			it.second->acknowledgeMeasurement();
 			double meas = it.second->getMeasurement();
 
-			//ugly hack - start + stop and hack the internal data to inject the GL measurements in there
+			//ugly hack - inject the GL measurements in the internal TM data
 			tm->duration = meas * 1000 ; //from ms to microseconds
 			if (!freeze) {
 				if(!averaging){
@@ -652,8 +652,8 @@ void ofxTimeMeasurements::updateGLMeasurements(){
 				}
 			}
 			tm->isGL = true;
+			tm->life = 1.0;
 		}
-		tm->life = 1.0;
 		tm->ifClause = true;
 		tm->updatedLastFrame = true;
 	}

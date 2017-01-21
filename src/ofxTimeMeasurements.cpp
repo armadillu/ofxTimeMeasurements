@@ -50,6 +50,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 
 	bgColor = ofColor(0);
 	hilightColor = ofColor(44,77,255) * 1.5;
+	glColor = ofColor(255,148,79); //Gl logo color
 	disabledTextColor = ofColor(255,0,128);
 	measuringColor = ofColor(0,130,0);
 	frozenColor = hilightColor * 1.5;
@@ -87,7 +88,6 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	removeExpiredThreads = true;
 	removeExpiredTimings = false;
 	settingsLoaded = false;
-
 	drawPercentageAsGraph = true;
 
 	charW = 8; //ofBitmap font char w
@@ -292,6 +292,67 @@ void ofxTimeMeasurements::setHighlightColor(ofColor c){
 }
 
 
+bool ofxTimeMeasurements::startMeasuringGL(const string & name){
+
+	if(measuringGlLabel.size() > 0){
+		ofLogError("ofxTimeMeasurements") << "Can't startMeasuringGL()! You can't have nested GL measurements : " << name;
+		return true;
+	}else{
+
+		string glName = glPrefix + name;
+		measuringGlLabel = glName;
+		GL_Measurement * m;
+		auto it = glTimes.find(glName);
+		if (it == glTimes.end()){ //new measurement, we need to create an object for it
+			m = new GL_Measurement();
+			m->init();
+			glTimes[glName] = m;
+			// we fake 1 single measurement! note the horrible hack glMeasurementMode == true to modify the start & stop behavior
+			// the whole thing is about prentending GL calls are in an immaginary thread, so that they are drawn separatelly
+			// automatically. search for "if(glMeasurementMode)" to see all the nasty stuff necessary to make this work.
+			// Note we only have 1 measurement, and we hijack the data object with the values obtained from the GL measurement.
+			glMeasurementMode = true;
+			TS_START_NIF(glName);
+			TS_STOP_NIF(glName);
+			glMeasurementMode = false;
+		}else{
+			m = it->second;
+		}
+		TimeMeasurement * tm = times[glName];
+		if (tm->settings.enabled){
+			if (m->canStartMeasuring()){
+				m->start();
+			}
+		}
+		return tm->settings.enabled;
+	}
+}
+
+void ofxTimeMeasurements::stopMeasuringGL(const string & name){
+
+	string glName = glPrefix + name;
+
+	if (measuringGlLabel != glName){
+		ofLogError("ofxTimeMeasurements") << "Can't stopMeasuringGL()! you haven't started measuring yet! : " << name;
+	}else{
+		GL_Measurement * m;
+		auto it = glTimes.find(glName);
+		if (it == glTimes.end()){ //unkonwn measurement! missmatched start-stop!
+			ofLogError("ofxTimeMeasurements") << "Can't stopMeasuringGL()! you haven't started measuring yet! : " << name;
+		}else{
+			m = it->second;
+		}
+		TimeMeasurement * tm = times[glName];
+		if (tm->settings.enabled){
+			if (m->canStopMeasuring()){
+				m->stop();
+			}
+		}
+		measuringGlLabel = "";
+	}
+}
+
+
 bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, bool ifClause){
 
 	string localID = ID;
@@ -309,6 +370,9 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 
 	string threadName = "Thread";
 	ThreadId thread = getThreadID();
+	if (glMeasurementMode){
+		thread = std::thread::id();
+	}
 	bool bIsMainThread = isMainThread(thread);
 
 	if(!bIsMainThread){
@@ -341,8 +405,15 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 			tinfo->color = hilightColor;
 		}
 		tinfo->order = numThreads;
+		if (glMeasurementMode){
+			threadIDGL = tinfo->order;
+			tinfo->color = glColor;
+		}
 
 		string tName = bIsMainThread ? "Main Thread" : ("T" + ofToString(tinfo->order) + ": " + threadName);
+		if (glMeasurementMode){
+			tName = "OpenGL";
+		}
 		//init the iterator
 		*tr = tName; //thread name is root
 		tinfo->tit = (core::tree<string>::iterator)*tr;
@@ -353,7 +424,9 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 	}
 
 	if(tinfo->order > 0){
-		localID = "T" + ofToString(tinfo->order) + ":" + localID;
+		if (!glMeasurementMode){
+			localID = "T" + ofToString(tinfo->order) + ":" + localID;
+		}
 	}
 
 	//see if we had an actual measurement, or its a new one
@@ -417,6 +490,10 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 	uint64_t timeNow = TM_GET_MICROS(); //get the time before the lock() to avoid affecting
 
 	ThreadId thread = getThreadID();
+	if (glMeasurementMode){
+		thread = std::thread::id();
+	}
+
 	bool bIsMainThread = isMainThread(thread);
 
 	mutex.lock();
@@ -431,7 +508,9 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 	ThreadInfo & tinfo = threadIt->second;
 
 	if(tinfo.order > 0){
-		localID = "T" + ofToString(tinfo.order) + ":" + localID;
+		if(!glMeasurementMode){
+			localID = "T" + ofToString(tinfo.order) + ":" + localID;
+		}
 	}
 
 	core::tree<string> & tr = tinfo.tree; //easier to read, tr is our tree from now on
@@ -551,6 +630,32 @@ void ofxTimeMeasurements::updateLongestLabel(){
 }
 
 
+void ofxTimeMeasurements::updateGLMeasurements(){
+	for(auto it : glTimes){
+		it.second->update();
+		TimeMeasurement * tm = times[it.first];
+		if (it.second->isMeasurementReady()){
+			it.second->acknowledgeMeasurement();
+			double meas = it.second->getMeasurement();
+
+			//ugly hack - start + stop and hack the internal data to inject the GL measurements in there
+			tm->duration = meas * 1000 ; //from ms to microseconds
+			if (!freeze) {
+				if(!averaging){
+					tm->avgDuration = tm->duration;
+				}else{
+					tm->avgDuration = (1.0f - timeAveragePercent) * tm->avgDuration + tm->duration * timeAveragePercent;
+				}
+			}
+			tm->isGL = true;
+		}
+		tm->life = 1.0;
+		tm->ifClause = true;
+		tm->updatedLastFrame = true;
+	}
+}
+
+
 void ofxTimeMeasurements::draw(int x, int y) {
 
 	if (!enabled){
@@ -564,6 +669,8 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		timeNow = TM_GET_MICROS();
 	}
 	currentFrameNum = ofGetFrameNum();
+
+	updateGLMeasurements();
 
 	drawLines.clear();
 	float percentTotal = 0.0f;
@@ -646,7 +753,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 						if(t->updatedLastFrame){
 							//update plot res every now and then
 							if(currentFrameNum%120 == 1) plot->setMaxHistory(MIN(maxPlotSamples, winW * plotResolution));
-							if (!freeze) {
+							if (!freeze && t->settings.enabled) {
 								if (t->accumulating) {
 									plot->update(t->microsecondsAccum / 1000.0f);
 								}
@@ -681,7 +788,13 @@ void ofxTimeMeasurements::draw(int x, int y) {
 					}else{
 						l.formattedKey += "+";
 					}
-					l.formattedKey += key + string(t->accumulating ? "[" + ofToString(t->numAccumulations)+ "]" : "" );
+					string keyStr;
+					if (!t->isGL){
+						keyStr = key;
+					}else{ //lets remove the GL_ prefiix on display
+						keyStr = key.substr(glPrefix.size(), key.size() - glPrefix.size());
+					}
+					l.formattedKey += keyStr + string(t->accumulating ? "[" + ofToString(t->numAccumulations)+ "]" : "" );
 					l.isAccum = t->accumulating;
 					l.time = getTimeStringForTM(t);
 					if(drawPercentageAsGraph){
@@ -787,7 +900,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 				drawLines[i].shouldDrawPctGraph = true;
 				drawLines[i].fullLine = drawLines[i].formattedKey + " " + drawLines[i].time;
 			}else{
-				drawLines[i].shouldDrawPctGraph = true;
+				drawLines[i].shouldDrawPctGraph = false;
 				drawLines[i].fullLine = drawLines[i].formattedKey + "    Error!" ;
 			}
 			int len = (int)drawLines[i].fullLine.length();
@@ -1276,9 +1389,9 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 
 		if (!tm->settings.enabled){
 			if(tm->ifClause){
-				return "   DISABLED!";
+				return "      DISABLED!";
 			}else{
-				return "  CANT DISABLE!";
+				return " CAN'T DISABLE!";
 			}
 		}else{
 

@@ -15,6 +15,7 @@ Simple OpenFrameworks addon to easily measure execution times across any section
 *	Measure cumulative times (TS_START_ACC) for shared code sections
 *	Highlight frequently used calls, slowly fade unused calls
 *	update(), and draw() are automatically time sampled
+*	Measure GL driver execution times; actually querying openGL with glBeginQuery(GL_TIME_ELAPSED_EXT) & co.  
 *	Optionally use [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer) for higher precision (recommended on windows) for < OF_09
 *	Optionally use [ofxHistoryPlot](https://github.com/armadillu/ofxHistoryPlot) to show timings over time
 *	Optionally use [ofxFontStash](https://github.com/armadillu/ofxFontStash) for rendering, which looks nicer and is much faster to draw than the default ofDrawBitmapFont. (see drawUiWithFontStash())
@@ -92,6 +93,30 @@ TS() is a very convenient ultra-short macro to measure the time a single method 
 ```
 	TS(myMethod());
 ```
+
+### 3.6 OpenGL Execution Times
+
+This will NOT measure the time it takes the CPU to execute the code between the start() and stop() methods, but the time it takes the GPU to execute all the OpenGL instructions issued between start() and stop().  
+
+It does so by sending glBeginQuery(GL_TIME_ELAPSED_EXT) and glEndQuery(GL_TIME_ELAPSED_EXT) OpenGL commands, and retrieving the time it actually took to render by querying OpenGL after the rendering has happened. This method was chosen vs the GL_TIMESTAMP based, bc it seems to work with OpenGL 2.0, vs the GL_TIMESTAMP one requiring OpenGL 3.3.
+
+![OpenGL Timings](https://farm1.staticflickr.com/576/32429675235_3844e560bf_o_d.png)
+
+OpenGL timings will show in their own separate section named "OpenGL", similar to timings in different threads. They can be disabled the same way as CPU timings, and also averaged and plotted.
+
+```
+TSGL_START("FancyShader");
+myFancyShader.run();
+TSGL_STOP("FancyShader");
+```
+	
+
+*Some Caveats:
+OpenGL timing measurements can't be nested, you can't start a measurement unless you stopped the previous one. It's still ok to measure several things each frame, but not nested.
+*It's ok to nest/mix these within standard "CPU" measurements.
+*There's also "no if" version of this measurement, see 3.3 to learn more. TSGL_START_NIF() and TSGL_STOP_NIF().
+*Because the timings can only be known after the frame has been fully drawn, the timings appear 2-3 frames after measured.
+
 
 ## 4. KEYBOARD COMMANDS
 

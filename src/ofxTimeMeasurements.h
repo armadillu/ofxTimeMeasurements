@@ -12,6 +12,8 @@
 #include "ofMain.h"
 #include "../lib/tree.h"
 #include <map>
+#include "GL_Measurement.h"
+
 
 
 #if __cplusplus>=201103L || defined(_MSC_VER)
@@ -99,6 +101,11 @@ class ofxTimeMeasurements {
 		//ifEnabled  > if true, it means that measurement is wrapped aroun with an if() caluse
 		bool startMeasuring(const string & ID, bool accumulate, bool ifEnabled = true);
 		float stopMeasuring(const string & ID, bool accumulate);
+
+		// GL
+		bool startMeasuringGL(const string & name);
+		void stopMeasuringGL(const string & name);
+		// end GL
 
 		void setEnabled( bool enable );
 		bool getEnabled();
@@ -201,6 +208,7 @@ class ofxTimeMeasurements {
 			string key;
 			ThreadId thread;
 			float life;
+			bool isGL; //this is a GL measurements, some behaviors don't apply  (avg)
 			TimeMeasurementSettings settings;
 
 			TimeMeasurement(){
@@ -212,6 +220,7 @@ class ofxTimeMeasurements {
 				accumulating = false;
 				duration = 0;
 				avgDuration = 0.0;
+				isGL = false;
 			}
 		};
 
@@ -306,6 +315,7 @@ class ofxTimeMeasurements {
 
 		ofColor									bgColor;
 		ofColor									hilightColor;
+		ofColor									glColor;
 		ofColor									textColor;
 		ofColor									disabledTextColor;
 		ofColor									measuringColor;
@@ -377,6 +387,15 @@ class ofxTimeMeasurements {
 		uint64_t								wastedTimeDrawingThisFrame;
 		uint64_t								wastedTimeAvg;
 		uint64_t								wastedTimeDrawingAvg;
+
+		/// GL measurements
+		unordered_map<string, GL_Measurement*>	glTimes;
+		string 									measuringGlLabel;
+		const string 							glPrefix = "GL_";
+		bool glMeasurementMode = false;
+		int threadIDGL = -1;
+		void									updateGLMeasurements();
+
 };
 
 #include "ofxTimeMeasurementsScoped.h"

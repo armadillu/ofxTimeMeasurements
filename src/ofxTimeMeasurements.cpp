@@ -1544,12 +1544,16 @@ void ofxTimeMeasurements::_appExited(ofEventArgs &e){
 
 #ifdef USE_OFX_FONTSTASH
 void ofxTimeMeasurements::drawUiWithFontStash(string fontPath, float fontSize_){
-	useFontStash = true; fontSize = fontSize_; fontStashFile = fontPath;
-	font = ofxFontStash();
-	font.setup(ofToDataPath(fontPath, true), 1.0, 512, false, 0, uiScale);
-	ofRectangle r = font.getBBox("M", fontSize, 0, 0);
-	charW = r.width;
-	charH = ceil(r.height * 1.55);
+	if(!ofIsGLProgrammableRenderer()){
+		useFontStash = true; fontSize = fontSize_; fontStashFile = fontPath;
+		font = ofxFontStash();
+		font.setup(ofToDataPath(fontPath, true), 1.0, 512, false, 0, uiScale);
+		ofRectangle r = font.getBBox("M", fontSize, 0, 0);
+		charW = r.width;
+		charH = ceil(r.height * 1.55);
+	}else{
+		ofLogError("ofxTimeMeasurements") << "Can't use ofxFontStash with the Programmable Renderer!";
+	}
 }
 
 void ofxTimeMeasurements::drawUiWithBitmapFont(){

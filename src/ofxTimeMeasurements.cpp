@@ -10,11 +10,6 @@
 #include "ofxTimeMeasurements.h"
 #include <float.h>
 
-
-#ifndef TARGET_RASPBERRY_PI
-#include <Poco/Thread.h>
-#endif
-
 #ifndef TIME_MEASUREMENTS_DISABLED
 
 ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
@@ -380,10 +375,14 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 	bool bIsMainThread = isMainThread(thread);
 
 	if(!bIsMainThread){
-		#ifndef TARGET_RASPBERRY_PI
-		if(Poco::Thread::current()){
-			threadName = Poco::Thread::current()->getName();
-		}
+		#ifdef TARGET_WIN32
+			threadName = //TODO find out thread name on all platforms
+		#else
+			char buf[64];
+			int r = pthread_getname_np(pthread_self(), buf, 64);
+			if ( r == 0 ){
+				threadName = string(buf);
+			}
 		#endif
 	}
 

@@ -187,9 +187,7 @@ class ofxTimeMeasurements {
 			#endif
 		};
 
-		//typedef Poco::Thread::TID ThreadId;
 		typedef std::thread::id ThreadId;
-
 
 		struct TimeMeasurement{
 			uint64_t microsecondsStart;
@@ -298,7 +296,6 @@ class ofxTimeMeasurements {
 		bool isMainThread(ThreadId tid){return tid == mainThreadID;}
 
 		ThreadId getThreadID(){
-			//return Poco::Thread::currentTid();
 			return std::this_thread::get_id();
 		}
 

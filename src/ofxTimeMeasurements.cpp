@@ -20,7 +20,7 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	uiScale = 1.0;
 	desiredFrameRate = 60.0f; //assume 60
 	enabled = true;
-	timeAveragePercent = 0.02;
+	timeAveragePercent = 0.05;
 	averaging = false;
 	msPrecision = 1;
 	maxW = 27;
@@ -665,13 +665,27 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		//drawString(ofToString(fr, msPrecision), 10, fontSize);
 		return;
 	}
-	
+
 	float fr = ofGetFrameRate();
 	uint64_t timeNow;
 	if(internalBenchmark){
 		timeNow = TM_GET_MICROS();
 	}
 	currentFrameNum = ofGetFrameNum();
+	if(currentFrameNum%120 == 60){
+		int newFrameRate = ofGetTargetFrameRate();
+		#if defined(USE_OFX_HISTORYPLOT)
+		if(newFrameRate != desiredFrameRate){
+			for(auto p : plots){
+				if(p.second){
+					p.second->clearHorizontalGuides();
+					p.second->addHorizontalGuide(1000.0f/newFrameRate, ofColor(0,255,0, 128));
+				}
+			}
+		}
+		#endif
+		desiredFrameRate = newFrameRate;
+	}
 
 	updateGLMeasurements();
 
@@ -1124,10 +1138,16 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	}//lines
 
 	//print bottom line, fps and stuff
-	bool missingFrames = ( fr < desiredFrameRate - 1.0 ); // tolerance of 1 fps TODO!
+	float fDiff = fabs( fr - desiredFrameRate);
+	float minDiff = desiredFrameRate * 0.025;
+	bool missingFrames = fDiff > minDiff;
 	static char msg[128];
 
-	sprintf(msg, "%2.1f fps % 5.1f%%", fr, percentTotal );
+	if(missingFrames){
+		sprintf(msg, "%2.1f fps (%d) %5.1f%%", fr, (int)desiredFrameRate, percentTotal );
+	}else{
+		sprintf(msg, "%2.1f fps %5.1f%%", fr, percentTotal );
+	}
 	if(missingFrames){
 		ofSetColor(170,33,33); //reddish fps below desired fps
 	}else{
@@ -1178,7 +1198,7 @@ ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 	plot->setLineWidth(1);
 	plot->setLowerRange(0);
 	plot->setCropToRect(false);
-	plot->addHorizontalGuide(1000.0f/desiredFrameRate, ofColor(0,255,0));
+	plot->addHorizontalGuide(1000.0f/desiredFrameRate, ofColor(0,255,0, 128));
 	plot->setDrawGrid(true);
 	plot->setGridUnit(16);
 	plot->setGridColor(ofColor(22,255));

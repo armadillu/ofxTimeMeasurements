@@ -242,7 +242,7 @@ void ofxTimeMeasurements::setDeadThreadTimeDecay(float decay){
 
 float ofxTimeMeasurements::getHeight() const{
 	if (!enabled) return 0;
-	return  (drawLines.size() + 2 ) * charH - 9;
+	return  (drawLines.size() + 1 ) * charH;
 }
 
 float ofxTimeMeasurements::getPlotsHeight(){
@@ -937,8 +937,8 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		l.fullLine = " 'F' freeze measurements"; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'L' cycle widget location"; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'PG_DWN' en/disable addon"; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " 'V' expand all measur."; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'B' internal benchmark"; drawLines.push_back(l); numInstructionLines++;
-		l.fullLine = " 'V' expand all"; drawLines.push_back(l); numInstructionLines++;
 		#if defined USE_OFX_HISTORYPLOT
 		l.fullLine = " 'P' plot selectd measur."; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'G' toggle plot grouping"; drawLines.push_back(l); numInstructionLines++;
@@ -989,26 +989,26 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		plotC++;
 	}
 
-	float canvasW = ofGetWidth();
-	float canvasH = ofGetHeight();
+	float canvasW = ofGetWidth() / uiScale;
+	float canvasH = ofGetHeight() / uiScale;
 
 	if(allPlotsTogether && plotsToDraw.size()){
 		ofSetColor(0, 230);
-		ofDrawRectangle(0, canvasH - plotHeight, canvasW / uiScale, plotHeight);
+		ofDrawRectangle(0, canvasH - plotHeight, canvasW , plotHeight );
 	}
 
 	ofSetColor(255);
 	for(int i = 0; i < plotsToDraw.size(); i++){
-		int y = (plotBaseY == 0 ? canvasH : plotBaseY) / uiScale - plotHeight * (i + 1);
+		int y = (plotBaseY == 0 ? canvasH : plotBaseY) - plotHeight * (i + 1) ;
 		if(allPlotsTogether){
 			plotsToDraw[i]->setRange(0, highest);
-			y = ((plotBaseY == 0 ? canvasH : plotBaseY) - plotHeight) / uiScale;
+			y = ((plotBaseY == 0 ? canvasH : plotBaseY) - plotHeight) ;
 		}
-		plotsToDraw[i]->draw(0, y, canvasW / uiScale, plotHeight);
+		plotsToDraw[i]->draw(0, y, canvasW , plotHeight);
 		if(!allPlotsTogether){
 			ofSetColor(99);
 			if(i != plotsToDraw.size() -1){
-				ofDrawLine(0, y, canvasW / uiScale, y );
+				ofDrawLine(0, y, canvasW , y );
 			}
 		}
 
@@ -1018,7 +1018,10 @@ void ofxTimeMeasurements::draw(int x, int y) {
 			float val = 0.0f;
 			if(!vals.empty()) val = vals.back();
 			string msg = plotsToDraw[i]->getVariableName() + " " + ofToString(val, 2);
-			drawString(msg, canvasW - charW * msg.size() - 2, ofGetHeight() - plotHeight - 4 - charH * (plotsToDraw.size() -1 - i));
+			drawString(msg,
+					   canvasW - charW * (msg.size() + 0.75 ),
+					   canvasH - plotHeight  - 4 - charH * (plotsToDraw.size() -1 - i)
+					   );
 		}
 	}
 	#endif
@@ -1033,7 +1036,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	//draw all lines
 	for(int i = 0; i < drawLines.size(); i++){
 		ofSetColor(drawLines[i].lineBgColor);
-		ofRectangle lineRect = ofRectangle(x, y + 2 + i * charH, totalW, charH + (drawLines[i].tm ? 0 : 1));
+		ofRectangle lineRect = ofRectangle(x, y + i * charH, totalW, charH + (drawLines[i].tm ? 0 : 1));
 		ofDrawRectangle(lineRect);
 		if(drawLines[i].isAccum && drawLines[i].tm != NULL){
 			ofSetColor(drawLines[i].color, 128);
@@ -1100,20 +1103,20 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		ofSetLineWidth(0.1);
 		lines.setMode(OF_PRIMITIVE_LINES);
 		float fuzzyFix = 0.5;
-		float yy = y+1 + fuzzyFix;
+		float yy = y + 1 + fuzzyFix;
 		lines.addVertex(ofVec3f(x, yy));
 		lines.addVertex(ofVec3f(x + totalW, yy));
-		yy = y + totalH - charH - 3 + fuzzyFix;
+		yy = y + totalH - charH  + fuzzyFix;
 		lines.addVertex(ofVec3f(x, yy));
 		lines.addVertex(ofVec3f(x + totalW, yy));
 		yy = y + totalH + fuzzyFix;
 		lines.addVertex(ofVec3f(x, yy));
 		lines.addVertex(ofVec3f(x + totalW, yy));
 		if(menuActive){
-			yy = y + totalH + fuzzyFix - (numInstructionLines + 1) * charH - 3;
+			yy = y + totalH + fuzzyFix - (numInstructionLines + 1) * charH;
 			lines.addVertex(ofVec3f(x, yy));
 			lines.addVertex(ofVec3f(x + totalW, yy));
-			yy = y + totalH + fuzzyFix - (numInstructionLines) * charH - 3;
+			yy = y + totalH + fuzzyFix - (numInstructionLines) * charH;
 			lines.addVertex(ofVec3f(x, yy));
 			lines.addVertex(ofVec3f(x + totalW, yy));
 		}
@@ -1130,11 +1133,10 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	}else{
 		ofSetColor(hilightColor);
 	}
-	int len = (int)strlen(msg);
-	string pad = " ";
-	int diff = (maxW - len) - 1;
+	string pad;
+	int diff = (maxW - strlen(msg));
 	for(int i = 0; i < diff; i++) pad += " ";
-	int lastLine = ( drawLines.size() + 1 ) * charH + 2;
+	int lastLine = ( drawLines.size() + 1 ) * charH;
 	drawString( pad + msg, x, y + lastLine );
 	
 	//show activate menu key
@@ -1175,7 +1177,7 @@ ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 	plot->setRespectBorders(true);
 	plot->setLineWidth(1);
 	plot->setLowerRange(0);
-	plot->setCropToRect(true);
+	plot->setCropToRect(false);
 	plot->addHorizontalGuide(1000.0f/desiredFrameRate, ofColor(0,255,0));
 	plot->setDrawGrid(true);
 	plot->setGridUnit(16);
@@ -1565,12 +1567,12 @@ void ofxTimeMeasurements::drawUiWithBitmapFont(){
 void ofxTimeMeasurements::drawString(const string & text, const float & x, const float & y){
 	#ifdef USE_OFX_FONTSTASH
 	if(useFontStash){
-		font.draw(text, fontSize, x + 2, y - 1);
+		font.draw(text, fontSize, x + 2, y - charH * 0.125);
 	}else{
-		ofDrawBitmapString(text, x, y);
+		ofDrawBitmapString(text, x, y - 2);
 	}
 	#else
-	ofDrawBitmapString(text, x, y);
+	ofDrawBitmapString(text, x, y - 2);
 	#endif
 }
 
@@ -1635,7 +1637,7 @@ void ofxTimeMeasurements::setMsPrecision(int digits){
 float ofxTimeMeasurements::getWidth() const{
 	#ifdef USE_OFX_FONTSTASH
 	if(useFontStash)
-		return (maxW ) * charW + float(useFontStash ? 4.0f: 0.0f);
+		return (maxW + 0.25) * charW ;
 	else
 		return (maxW + 1) * charW;
 	#else

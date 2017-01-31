@@ -20,9 +20,9 @@ matrix:
   # relative order of sudo and env is important so that addons: is recognized
 
 
-#branches: #only CI on the testing branch
-#  only:
-#  - feature/ci
+branches: #only CI on the testing branch
+  only:
+  - feature/ci
 
 # Linux 64bit, OF master
   - os: linux

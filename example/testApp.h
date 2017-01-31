@@ -11,7 +11,6 @@ class MyThread: public ofThread{
 
 		string ID = ofToString(tcount);
 		tcount++;
-		getPocoThread().setName("MyThread_" + ID);
 		TS_START("task_" + ID);
 		ofSleepMillis(ofRandom(1,500)); //sleep for a bit
 		TS_STOP("task_" + ID);

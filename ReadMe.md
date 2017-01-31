@@ -1,5 +1,6 @@
 #ofxTimeMeasurements
 
+[![Build Status](https://travis-ci.org/armadillu/ofxTimeMeasurements.svg?branch=master)](https://travis-ci.org/armadillu/ofxTimeMeasurements)
 
 Simple OpenFrameworks addon to easily measure execution times across any sections of your code.
 

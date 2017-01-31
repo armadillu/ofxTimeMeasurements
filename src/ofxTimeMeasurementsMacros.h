@@ -175,10 +175,8 @@
 #ifndef TARGET_WIN32
 inline std::string demangledTypeInfoName(const std::type_info&ti){
 
-	static char demangleSpace[4096];
-	static ofMutex autoNamingMutex;
+	char demangleSpace[4096];
 
-	ofScopedLock lock(autoNamingMutex);
 	int status = 0;
 	size_t len = 4096;
 	char * ret = abi::__cxa_demangle(ti.name(),(char*)&demangleSpace, &len, &status);

@@ -24,7 +24,7 @@ matrix:
 #  only:
 #  - feature/ci
 
- Linux 64bit, OF master
+# Linux 64bit, OF master
   - os: linux
     dist: trusty
     sudo: required

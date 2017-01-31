@@ -26,7 +26,7 @@ void testApp::setup(){
 
 void testApp::threadedFunction(){
 
-	getPocoThread().setName("MyLoopingThread");
+	//getPocoThread().setName("MyLoopingThread");
 
 	while(isThreadRunning()){
 		TS_START("task");

@@ -89,8 +89,8 @@
 #   Note: Leave a leading space when adding list items with the += operator
 ################################################################################
 # PROJECT_DEFINES = 
-#  PROJECT_DEFINES = USE_OFX_HISTORYPLOT 
-#  PROJECT_DEFINES += USE_OFX_FONTSTASH 
+  PROJECT_DEFINES = USE_OFX_HISTORYPLOT 
+  PROJECT_DEFINES += USE_OFX_FONTSTASH 
 
 ################################################################################
 # PROJECT CFLAGS

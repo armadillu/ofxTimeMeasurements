@@ -1,1 +1,3 @@
 ofxTimeMeasurements
+ofxFontStash
+ofxHistoryPlot

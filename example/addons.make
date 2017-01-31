@@ -1,3 +1,0 @@
-ofxTimeMeasurements
-ofxHistoryPlot
-ofxFontStash

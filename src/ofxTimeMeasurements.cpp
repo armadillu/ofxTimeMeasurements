@@ -1211,7 +1211,7 @@ ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){
 	plot->setAutoRangeShrinksBack(true);
 	plot->setShowSmoothedCurve(true);
 	plot->setSmoothFilter(0.03);
-	plot->setDrawFromRight(true);
+	plot->setDrawFromRight(false);
 	numAllocatdPlots++;
 	return plot;
 }

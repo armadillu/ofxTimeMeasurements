@@ -17,7 +17,7 @@ class MyThread: public ofThread{
 	}
 };
 
-class testApp : public ofBaseApp,  ofThread{
+class ofApp : public ofBaseApp,  ofThread{
 
 	public:
 		void setup();

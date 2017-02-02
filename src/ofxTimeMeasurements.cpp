@@ -674,17 +674,19 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	currentFrameNum = ofGetFrameNum();
 	if(currentFrameNum%120 == 60){
 		int newFrameRate = ofGetTargetFrameRate();
-		#if defined(USE_OFX_HISTORYPLOT)
-		if(newFrameRate != desiredFrameRate){
-			for(auto p : plots){
-				if(p.second){
-					p.second->clearHorizontalGuides();
-					p.second->addHorizontalGuide(1000.0f/newFrameRate, ofColor(0,255,0, 128));
+		if(newFrameRate > 0.0f){
+			#if defined(USE_OFX_HISTORYPLOT)
+			if(newFrameRate != desiredFrameRate){
+				for(auto p : plots){
+					if(p.second){
+						p.second->clearHorizontalGuides();
+						p.second->addHorizontalGuide(1000.0f/newFrameRate, ofColor(0,255,0, 128));
+					}
 				}
 			}
+			#endif
+			desiredFrameRate = newFrameRate;
 		}
-		#endif
-		desiredFrameRate = newFrameRate;
 	}
 
 	updateGLMeasurements();
@@ -1064,9 +1066,13 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		if(drawLines[i].plotColor.a > 0){ //plot highlight on the sides
 			ofSetColor(drawLines[i].plotColor);
 			float y1 = y + 2.4f + i * charH;
-			ofDrawTriangle(	x, y1, 
-							x, y1 + charH, 
-							x + charW * 0.7f, y1 + charH * 0.5f);
+			int voffset = -2;
+			#ifdef USE_OFX_FONTSTASH
+			if(useFontStash) voffset = 0;
+			#endif
+			ofDrawTriangle(	x, y1 + voffset,
+							x, y1 + charH + voffset,
+							x + charW * 0.7f, y1 + charH * 0.5f + voffset);
 		}
 
 		if(drawPercentageAsGraph && drawLines[i].shouldDrawPctGraph && drawLines[i].percentGraph > 0.02f){

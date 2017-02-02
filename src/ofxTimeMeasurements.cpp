@@ -952,7 +952,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		l.fullLine = " 'L' cycle widget location"; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'PG_DWN' en/disable addon"; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'V' expand all measur."; drawLines.push_back(l); numInstructionLines++;
-		l.fullLine = " 'B' internal benchmark"; drawLines.push_back(l); numInstructionLines++;
+		l.fullLine = " '+'/'-' GUI size"; drawLines.push_back(l); numInstructionLines++;
 		#if defined USE_OFX_HISTORYPLOT
 		l.fullLine = " 'P' plot selectd measur."; drawLines.push_back(l); numInstructionLines++;
 		l.fullLine = " 'G' toggle plot grouping"; drawLines.push_back(l); numInstructionLines++;
@@ -1224,11 +1224,14 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 		if(menuActive){
 			if(e.key == '+'){ setUiScale(uiScale + 0.1);}
 			if(e.key == '-'){ setUiScale(MAX(uiScale - 0.1, 0.50));}
+			if(e.key == '.'){ msPrecision = ofClamp(msPrecision+1, 0, 8);}
+			if(e.key == ','){ msPrecision = ofClamp(msPrecision-1, 1, 8);}
+
 		}
 		
 		if(e.key == 'A') averaging ^= true;  //Average Toggle
 		if(e.key == 'B') internalBenchmark ^= true;  //internalBenchmark Toggle
-		if (e.key == 'F') freeze ^= true;  //free measurements
+		if(e.key == 'F') freeze ^= true;  //free measurements
 
 		if(e.key == 'V'){ //make all timings visible!
 			unordered_map<string, TimeMeasurement*>::iterator it = times.begin();

@@ -1,7 +1,7 @@
-#include "testApp.h"
+#include "ofApp.h"
 
 
-void testApp::setup(){
+void ofApp::setup(){
 
 	ofBackground(22);
 
@@ -24,7 +24,7 @@ void testApp::setup(){
 
 }
 
-void testApp::threadedFunction(){
+void ofApp::threadedFunction(){
 
 	//getPocoThread().setName("MyLoopingThread");
 
@@ -41,7 +41,7 @@ void testApp::threadedFunction(){
 }
 
 
-void testApp::update(){
+void ofApp::update(){
 
 	TS_START("simple measurement");
 		ofSleepMillis(1);
@@ -98,7 +98,7 @@ void testApp::update(){
 }
 
 
-void testApp::draw(){
+void ofApp::draw(){
 
 	TS_START("draw dots") ///////////////////////////////  START MEASURING ///
 		for(int i = 0; i < ofGetMouseX() * 5; i++){
@@ -125,7 +125,7 @@ void testApp::draw(){
 }
 
 
-void testApp::keyPressed( ofKeyEventArgs & key ){
+void ofApp::keyPressed( ofKeyEventArgs & key ){
 
 	TS_START("keyDown");
 	if(key.key == ' '){

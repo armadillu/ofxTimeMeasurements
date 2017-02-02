@@ -1,5 +1,5 @@
 #include "ofMain.h"
-#include "testApp.h"
+#include "ofApp.h"
 #include "ofAppGLFWWindow.h"
 #include "ofxTimeMeasurements.h"
 
@@ -11,5 +11,5 @@ int main( ){
 									//you need to create the instance once before setup() is called;
 									//just call any TIME_SAMPLE_* method to do so
 
-	ofRunApp(new testApp());
+	ofRunApp(new ofApp());
 }

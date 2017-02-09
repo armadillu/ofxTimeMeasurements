@@ -169,10 +169,12 @@ class ofxTimeMeasurements {
 		void setAutoDraw(bool b){drawAuto = b;}
 		void draw(int x, int y) ;
 
-    void addEventHooks(ofCoreEvents* eventHooks = nullptr);
-	void addSetupHooks(ofCoreEvents* eventHooks = nullptr);
-    void removeEventHooks(ofCoreEvents* eventHooks);
-    void removeSetupHooks(ofCoreEvents* eventHooks);
+		void addEventHooks(ofCoreEvents* eventHooks = nullptr);
+		void addSetupHooks(ofCoreEvents* eventHooks = nullptr);
+		void removeEventHooks(ofCoreEvents* eventHooks);
+		void removeSetupHooks(ofCoreEvents* eventHooks);
+
+		static void drawSmoothFpsClock(float x, float y, float radius);
 
 	private:
 

@@ -376,7 +376,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 
 	if(!bIsMainThread){
 		#ifdef TARGET_WIN32
-			threadName = //TODO find out thread name on all platforms
+			//threadName = ""; //TODO find out thread name on all platforms
 		#else
 			char buf[64];
 			int r = pthread_getname_np(pthread_self(), buf, 64);

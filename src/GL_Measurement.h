@@ -39,7 +39,7 @@ public:
 				glGetQueryObjectui64vEXT(queryID[0], GL_QUERY_RESULT, &measurementResult);
 				this->measurementResult = measurementResult * 0.000001; //convert to msec
 			}else{
-				ofLogError("aa") << "not yet";
+				ofLogError("ofxTimeMeasurements") << "GL measurement not ready yet!";
 			}
 		}
 	}

@@ -162,6 +162,7 @@ class ofxTimeMeasurements {
 		#ifdef USE_OFX_FONTSTASH
 		void drawUiWithFontStash(string fontPath, float fontSize = 13.0f /*good with VeraMono*/);
 		void drawUiWithBitmapFont();
+		ofxFontStash & getFont(){return font;}
 		#endif
 
 		void enableInternalBenchmark(bool bench){internalBenchmark = bench;}

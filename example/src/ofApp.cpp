@@ -21,12 +21,10 @@ void ofApp::setup(){
 	//TIME_SAMPLE_GET_INSTANCE()->setHighlightColor(ofColor::yellow);
 
 	startThread();
-
 }
 
-void ofApp::threadedFunction(){
 
-	//getPocoThread().setName("MyLoopingThread");
+void ofApp::threadedFunction(){
 
 	while(isThreadRunning()){
 		TS_START("task");
@@ -34,7 +32,6 @@ void ofApp::threadedFunction(){
 			TS_START("subtask1");
 			ofSleepMillis(300);
 			TS_STOP("subtask1");
-
 		TS_STOP("task");
 		ofSleepMillis(100);
 	}
@@ -100,12 +97,14 @@ void ofApp::update(){
 
 void ofApp::draw(){
 
+	TSGL_START("drawDotsGL");
 	TS_START("draw dots") ///////////////////////////////  START MEASURING ///
 		for(int i = 0; i < ofGetMouseX() * 5; i++){
 			ofSetColor( ofRandom(96) );
 			ofRect( ofRandom( ofGetWidth()), ofRandom( ofGetHeight()), 4, 4);
 		}
-	TS_STOP("draw dots");			///////////////////////////////  STOP MEASURING  ///
+	TS_STOP("draw dots"); ///////////////////////////////  STOP MEASURING  ///
+	TSGL_STOP("drawDotsGL");
 
 
 	//testing late samples
@@ -136,4 +135,11 @@ void ofApp::keyPressed( ofKeyEventArgs & key ){
 		}
 	}
 	TS_STOP("keyDown");
+}
+
+void ofApp::exit(){
+	waitForThread(true);
+	for(auto t : myThreads){
+		t->waitForThread(true);
+	}
 }

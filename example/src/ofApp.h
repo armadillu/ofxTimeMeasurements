@@ -17,17 +17,17 @@ class MyThread: public ofThread{
 	}
 };
 
+
 class ofApp : public ofBaseApp,  ofThread{
 
 	public:
 		void setup();
 		void update();
 		void draw();
-		void exit(){stopThread();}
+		void exit();
 
 		void keyPressed( ofKeyEventArgs & key );
 
 		void threadedFunction();
 		vector<MyThread*> myThreads;
-
 };

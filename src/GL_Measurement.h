@@ -9,6 +9,8 @@
 #pragma once
 #include "ofMain.h"
 
+#ifndef TARGET_OPENGLES
+
 class GL_Measurement{
 
 public:
@@ -75,3 +77,5 @@ protected:
 	GLuint queryID[1];
 };
 
+
+#endif

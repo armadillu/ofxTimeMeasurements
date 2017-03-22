@@ -286,7 +286,7 @@ void ofxTimeMeasurements::setHighlightColor(ofColor c){
 	threadInfo[mainThreadID].color = c;
 }
 
-
+#ifndef TARGET_OPENGLES
 bool ofxTimeMeasurements::startMeasuringGL(const string & name){
 
 	if (!enabled) return true;
@@ -350,6 +350,7 @@ void ofxTimeMeasurements::stopMeasuringGL(const string & name){
 		measuringGlLabel = "";
 	}
 }
+#endif
 
 
 bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, bool ifClause){
@@ -369,9 +370,11 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 
 	string threadName = "Thread";
 	ThreadId thread = getThreadID();
+	#ifndef TARGET_OPENGLES
 	if (glMeasurementMode){
 		thread = std::thread::id();
 	}
+	#endif
 	bool bIsMainThread = isMainThread(thread);
 
 	if(!bIsMainThread){
@@ -408,15 +411,19 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 			tinfo->color = hilightColor;
 		}
 		tinfo->order = numThreads;
+		#ifndef TARGET_OPENGLES
 		if (glMeasurementMode){
 			threadIDGL = tinfo->order;
 			tinfo->color = glColor;
 		}
+		#endif
 
 		string tName = bIsMainThread ? "Main Thread" : ("T" + ofToString(tinfo->order) + ": " + threadName);
+		#ifndef TARGET_OPENGLES
 		if (glMeasurementMode){
 			tName = "OpenGL";
 		}
+		#endif
 		//init the iterator
 		*tr = tName; //thread name is root
 		tinfo->tit = (core::tree<string>::iterator)*tr;
@@ -427,9 +434,13 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 	}
 
 	if(tinfo->order > 0){
+		#ifndef TARGET_OPENGLES
 		if (!glMeasurementMode){
+		#endif
 			localID = "T" + ofToString(tinfo->order) + ":" + localID;
+		#ifndef TARGET_OPENGLES
 		}
+		#endif
 	}
 
 	//see if we had an actual measurement, or its a new one
@@ -493,9 +504,11 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 	uint64_t timeNow = TM_GET_MICROS(); //get the time before the lock() to avoid affecting
 
 	ThreadId thread = getThreadID();
+	#ifndef TARGET_OPENGLES
 	if (glMeasurementMode){
 		thread = std::thread::id();
 	}
+	#endif
 
 	bool bIsMainThread = isMainThread(thread);
 
@@ -511,9 +524,13 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 	ThreadInfo & tinfo = threadIt->second;
 
 	if(tinfo.order > 0){
+		#ifndef TARGET_OPENGLES
 		if(!glMeasurementMode){
+		#endif
 			localID = "T" + ofToString(tinfo.order) + ":" + localID;
+		#ifndef TARGET_OPENGLES
 		}
+		#endif
 	}
 
 	core::tree<string> & tr = tinfo.tree; //easier to read, tr is our tree from now on
@@ -632,7 +649,7 @@ void ofxTimeMeasurements::updateLongestLabel(){
 	}
 }
 
-
+#ifndef TARGET_OPENGLES
 void ofxTimeMeasurements::updateGLMeasurements(){
 	for(auto it : glTimes){
 		it.second->update();
@@ -657,7 +674,7 @@ void ofxTimeMeasurements::updateGLMeasurements(){
 		tm->updatedLastFrame = true;
 	}
 }
-
+#endif
 
 void ofxTimeMeasurements::draw(int x, int y) {
 
@@ -689,7 +706,9 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		}
 	}
 
+	#ifndef TARGET_OPENGLES
 	updateGLMeasurements();
+	#endif
 
 	drawLines.clear();
 	float percentTotal = 0.0f;
@@ -811,7 +830,9 @@ void ofxTimeMeasurements::draw(int x, int y) {
 					if (!t->isGL){
 						keyStr = key;
 					}else{ //lets remove the GL_ prefiix on display
+						#ifndef TARGET_OPENGLES
 						keyStr = key.substr(glPrefix.size(), key.size() - glPrefix.size());
+						#endif
 					}
 					l.formattedKey += keyStr + string(t->accumulating ? "[" + ofToString(t->numAccumulations)+ "]" : "" );
 					l.isAccum = t->accumulating;

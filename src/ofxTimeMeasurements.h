@@ -103,8 +103,10 @@ class ofxTimeMeasurements {
 		float stopMeasuring(const string & ID, bool accumulate);
 
 		// GL
+		#ifndef TARGET_OPENGLES
 		bool startMeasuringGL(const string & name);
 		void stopMeasuringGL(const string & name);
+		#endif
 		// end GL
 
 		void setEnabled( bool enable );
@@ -389,12 +391,14 @@ class ofxTimeMeasurements {
 		uint64_t								wastedTimeDrawingAvg;
 
 		/// GL measurements
+		#ifndef TARGET_OPENGLES
 		unordered_map<string, GL_Measurement*>	glTimes;
 		string 									measuringGlLabel;
 		const string 							glPrefix = "GL_";
 		bool glMeasurementMode = false;
 		int threadIDGL = -1;
 		void									updateGLMeasurements();
+		#endif
 
 };
 

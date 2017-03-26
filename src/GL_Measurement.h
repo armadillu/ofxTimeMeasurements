@@ -30,7 +30,7 @@ public:
 	}
 
 	void update(){
-		if (state == MEASURED && ofGetFrameNum() - measuredFrame > 1 ){
+		if (state == MEASURED && ofGetFrameNum() - measuredFrame > 2 ){
 			GLint available = false;
 			glGetQueryObjectiv(queryID[0], GL_QUERY_RESULT_AVAILABLE, &available);
 			if (available){

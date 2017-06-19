@@ -1700,7 +1700,7 @@ void ofxTimeMeasurements::drawSmoothFpsClock(float x, float y, float radius){
 	static float r = 0;
 	ofPushMatrix();
 	ofTranslate(x, y);
-	ofRotate(r, 0, 0, 1);
+	ofRotateDeg(r, 0, 0, 1);
 	float s = radius * 0.05;
 	ofDrawRectangle(-s * 0.5f, - 0.5f * s, radius, s);
 	ofPopMatrix();

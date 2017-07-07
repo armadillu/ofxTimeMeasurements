@@ -635,7 +635,7 @@ void ofxTimeMeasurements::autoDraw(){
 void ofxTimeMeasurements::updateLongestLabel(){
 
 	longestLabel = 0;
-	for( int i = 0; i < drawLines.size(); i++ ){
+	for(size_t i = 0; i < drawLines.size(); i++ ){
 
 		TimeMeasurement *t = drawLines[i].tm;
 		if (t){
@@ -757,7 +757,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	vector<ofxHistoryPlot*> plotsToDraw;
 	#endif
 
-	for( int k = 0; k < sortedThreadList.size(); k++ ){ //walk all thread trees
+	for(size_t k = 0; k < sortedThreadList.size(); k++ ){ //walk all thread trees
 
 		ThreadId thread = sortedThreadList[k].id;
 		core::tree<string> &tr = sortedThreadList[k].info->tree;
@@ -918,7 +918,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	}
 
 	//delete expired threads
-	for(int i = 0; i < expiredThreads.size(); i++){
+	for(size_t i = 0; i < expiredThreads.size(); i++){
 		unordered_map<ThreadId, ThreadInfo>::iterator treeIt = threadInfo.find(expiredThreads[i]);
 		if (treeIt != threadInfo.end()) threadInfo.erase(treeIt);
 	}
@@ -930,7 +930,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	//find headers
 	int tempMaxW = -1;
 	vector<int> headerLocations;
-	for( int i = 0; i < drawLines.size(); i++ ){
+	for(size_t i = 0; i < drawLines.size(); i++ ){
 		if (drawLines[i].tm){ //its a measurement
 			//add padding to draw in columns
 			for(int j = (int)drawLines[i].formattedKey.length(); j < longestLabel; j++){
@@ -961,8 +961,8 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		l.lineBgColor = ofColor(hilightColor, dimColorA * 2);
 		l.fullLine = " KEYBOARD COMMANDS "; //len = 23
 		int numPad = 2 + ceil((getWidth() - charW * (23)) / charW);
-		for(int i = 0; i < floor(numPad/2.0); i++ ) l.fullLine = "#" + l.fullLine;
-		for(int i = 0; i < ceil(numPad/2.0); i++ ) l.fullLine += "#";
+		for(size_t i = 0; i < floor(numPad/2.0); i++ ) l.fullLine = "#" + l.fullLine;
+		for(size_t i = 0; i < ceil(numPad/2.0); i++ ) l.fullLine += "#";
 		l.fullLine = " " + l.fullLine;
 		drawLines.push_back(l); numInstructionLines++;
 		//key command lines
@@ -1035,7 +1035,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	}
 
 	ofSetColor(255);
-	for(int i = 0; i < plotsToDraw.size(); i++){
+	for(size_t i = 0; i < plotsToDraw.size(); i++){
 		int y = (plotBaseY == 0 ? canvasH : plotBaseY) - plotHeight * (i + 1) ;
 		if(allPlotsTogether){
 			plotsToDraw[i]->setRange(0, highest);
@@ -1071,7 +1071,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	ofDrawRectangle(x, y + 1, totalW, totalH);
 
 	//draw all lines
-	for(int i = 0; i < drawLines.size(); i++){
+	for(size_t i = 0; i < drawLines.size(); i++){
 		ofSetColor(drawLines[i].lineBgColor);
 		ofRectangle lineRect = ofRectangle(x, y + i * charH, totalW, charH + (drawLines[i].tm ? 0 : 1));
 		ofDrawRectangle(lineRect);
@@ -1182,7 +1182,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	}
 	string pad;
 	int diff = (maxW - strlen(msg));
-	for(int i = 0; i < diff; i++) pad += " ";
+	for(size_t i = 0; i < diff; i++) pad += " ";
 	int lastLine = ( drawLines.size() + 1 ) * charH;
 	drawString( pad + msg, x, y + lastLine );
 	
@@ -1198,7 +1198,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		drawString(" avg!", x + charW * 3.5, y + lastLine);
 	}
 
-	for(int i = 0; i < toResetUpdatedLastFrameFlag.size(); i++){
+	for(size_t i = 0; i < toResetUpdatedLastFrameFlag.size(); i++){
 		toResetUpdatedLastFrameFlag[i]->updatedLastFrame = false;
 	}
 	ofPopMatrix();
@@ -1286,7 +1286,7 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
 			if (drawLines.size()){
 				int selIndex = -1;
-				for(int i = 0; i < drawLines.size(); i++){
+				for(size_t i = 0; i < drawLines.size(); i++){
 					if (drawLines[i].key == selection) selIndex = i;
 				}
 				if(selIndex != -1){
@@ -1461,7 +1461,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 			int originalLen = (int)timeString.length();
 
 			int expectedLen = 8;
-			for(int i = 0; i < expectedLen - originalLen; i++){
+			for(size_t i = 0; i < expectedLen - originalLen; i++){
 				timeString = " " + timeString;
 			}
 
@@ -1504,7 +1504,7 @@ void ofxTimeMeasurements::loadSettings(){
 				string wholeLine;
 				getline( myfile, wholeLine, '\n' );//see what version we are on
 				int numBars = 0;
-				for(int i = 0; i < wholeLine.size(); i++){
+				for(size_t i = 0; i < wholeLine.size(); i++){
 					if (wholeLine[i] == '|') numBars++;
 				}
 				if(numBars == 2) fileHasPlotData = true;

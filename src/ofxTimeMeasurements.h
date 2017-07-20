@@ -111,6 +111,7 @@ class ofxTimeMeasurements {
 
 		void setEnabled( bool enable );
 		bool getEnabled();
+		void setSavesSettingsOnExit(bool save) { savesSettingsOnExit = save; };
 		void setDrawLocation(ofxTMDrawLocation loc, ofVec2f p = ofVec2f()); //p only relevant if using TIME_MEASUREMENTS_CUSTOM_LOCATION
 		ofxTMDrawLocation getDrawLocation(){return drawLocation;}
 		void setMsPrecision(int digits);		//how many decimals for the ms units
@@ -399,6 +400,8 @@ class ofxTimeMeasurements {
 		int threadIDGL = -1;
 		void									updateGLMeasurements();
 		#endif
+
+		bool									savesSettingsOnExit = true;
 
 };
 

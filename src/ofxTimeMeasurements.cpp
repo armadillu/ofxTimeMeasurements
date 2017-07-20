@@ -1590,7 +1590,7 @@ void ofxTimeMeasurements::walkTree(core::tree<string>::iterator Arg, int levelAr
 
 
 void ofxTimeMeasurements::_appExited(ofEventArgs &e){
-	saveSettings();
+	if(savesSettingsOnExit) saveSettings();
 }
 
 #ifdef USE_OFX_FONTSTASH

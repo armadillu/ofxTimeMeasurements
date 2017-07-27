@@ -1461,7 +1461,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 			int originalLen = (int)timeString.length();
 
 			int expectedLen = 8;
-			for(size_t i = 0; i < expectedLen - originalLen; i++){
+			for(int i = 0; i < expectedLen - originalLen; i++){
 				timeString = " " + timeString;
 			}
 

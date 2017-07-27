@@ -18,7 +18,7 @@ Simple OpenFrameworks addon to easily measure execution times across any section
 *	Highlight frequently used calls, slowly fade unused calls
 *	update(), and draw() are automatically time sampled
 *	Measure GL driver execution times; actually querying openGL with glBeginQuery(GL_TIME_ELAPSED_EXT) & co.  
-*	Optionally use [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer) for higher precision (recommended on windows) for < OF_09
+*	Optionally use [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer) for higher precision (recommended on windows) for < OF_09 (not really needed nowadays).
 *	Optionally use [ofxHistoryPlot](https://github.com/armadillu/ofxHistoryPlot) to show timings over time
 *	Optionally use [ofxFontStash](https://github.com/armadillu/ofxFontStash) for rendering, which looks nicer and is much faster to draw than the default ofDrawBitmapFont. (see drawUiWithFontStash())
 
@@ -107,24 +107,25 @@ It does so by sending ```glBeginQuery(GL_TIME_ELAPSED_EXT)``` and ```glEndQuery(
 OpenGL timings will show in their own separate section named "OpenGL", similar to timings in different threads. They can be disabled the same way as CPU timings, and also averaged and plotted.
 
 ```
-TSGL_START("FancyShader");
-myFancyShader.run();
-TSGL_STOP("FancyShader");
+	TSGL_START("FancyShader");
+	myFancyShader.run();
+	TSGL_STOP("FancyShader");
 ```
 	
 
-#####Some Caveats:
+##### Some Caveats:
 * OpenGL timing measurements can't be nested, you can't start a measurement unless you stopped the previous one. It's still ok to measure several things each frame, but not nested.
 * It's ok to nest/mix these within standard "CPU" measurements.
 * There's also "no if" version of this measurement, see 3.3 to learn more. TSGL_START_NIF() and TSGL_STOP_NIF().
 * Because the timings can only be known after the frame has been fully drawn, the timings appear 2-3 frames after measured.
 
 
-## 4. KEYBOARD COMMANDS
+## 4. KEYBOARD COMMANDS / INTERACTIVE MODE
 
 ofxTimeMeasurements responds to a few pre-defined keyboard commands:
 
 *	OF_KEY_PAGE_DOWN to toggle all time measuring, and the drawing of the widget
+*	'A' to toggle time sample averaging.
 * 	'T' when widget is visible (enabled) to get into interactive mode.
 * 	When in interactive mode, a "KEYBOARD COMMANDS" list is shown : basically on-screen instructions.
  	![](https://farm1.staticflickr.com/473/20007668446_d428e77cdf_o_d.png)
@@ -174,20 +175,20 @@ If you want the setup() call to be automatically measured, you need to at least 
 in OF v09, you need to call ```TIME_SAMPLE_ADD_SETUP_HOOKS()``` in your main()
 
 #### 5.6 PERCENTAGES
-The percentages shown besides the ms counts represent how much of a full frame that code section takes. For example; on a 60fps app, if a code section takes 16.6ms, it will fully saturate the desired between-frames time (16.6ms), and it will show 100% 
+The bars shown besides the ms counts represent how much of a full frame that code section takes. For example; on a 60fps app, if a code section takes 16.6ms, the bar will take the whole width.
 
 #### 5.7 TIMING RESOLUTION
-You can increase the resolution/accuracy of the time measurements by using [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer). This is recommended on Windows, as the default OF timer resolution is not very high on that platform. To use ofxMSATimer you need to add the ofxMSATimer to the project, and define USE_MSA_TIMER in your project Pre-Processor macros.
+You can increase the resolution/accuracy of the time measurements by using [ofxMSATimer](https://github.com/obviousjim/ofxMSATimer). This is recommended on Windows, as the default OF timer resolution is not very high on that platform. To use ofxMSATimer you need to add the ofxMSATimer to the project, and define USE_MSA_TIMER in your project Pre-Processor macros. **This is not necessary anymore, OF uses an accurate timer without having to use ofxMSATimer.***
 
 #### 5.8 USING ofxHistoryPlot
 
-If you add [ofxHistoryPlot](https://github.com/armadillu/ofxHistoryPlot) to your project, you will also be able to track your timings over time. To do so, add ofxHistoryPlot to your project, and ofxTimeMeasurements will automatically detect it and enable the use of time plots. * On Windows, you will still need to manually add USE_OFX_HISTORYPLOT to your project pre-processor macros for HistoryPlot to be available..
+If you add [ofxHistoryPlot](https://github.com/armadillu/ofxHistoryPlot) to your project, you will also be able to track your timings over time. To do so, add ofxHistoryPlot to your project, and ofxTimeMeasurements will automatically detect it and enable the use of time plots. * On Windows, you will still need to manually add USE_OFX_HISTORYPLOT to your project pre-processor macros for ofxHistoryPlot to be available.
 
 If you do so, when in interactive mode, you can press 'P' to toggle the plotting of the timings of the selected section over time.
 
 ![img](https://farm1.staticflickr.com/510/19847290279_4b9761ff4d_o_d.png)
 
-Measurements that are being plotted will show a colored label on the left side, matching the color of the plot.
+Measurements that are being plotted will show a colored label on the left side, matching the color of the plot. You can plot as many measurements as you like simultaneously; you can press "G" from the interactive menu to toggle stacking the plots or overlaying them all in the same area.
 
 ####5.9 USING ofxFontStash
 

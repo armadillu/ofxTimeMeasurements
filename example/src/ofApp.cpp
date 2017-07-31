@@ -18,7 +18,7 @@ void ofApp::setup(){
 
 	TIME_SAMPLE_SET_REMOVE_EXPIRED_THREADS(true); //inactive threads will be dropped from the table
 	//customize color
-	TIME_SAMPLE_GET_INSTANCE()->setHighlightColor(ofColor::yellow);
+	//TIME_SAMPLE_GET_INSTANCE()->setHighlightColor(ofColor::yellow);
 
 	//TIME_SAMPLE_GET_INSTANCE()->drawUiWithFontStash("fonts/UbuntuMono-R.ttf");
 	//TIME_SAMPLE_GET_INSTANCE()->drawUiWithFontStash2("fonts/UbuntuMono-R.ttf");

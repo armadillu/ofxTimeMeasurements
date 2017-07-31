@@ -166,18 +166,17 @@ class ofxTimeMeasurements {
 		#endif
 		float getPlotsHeight();
 
-
-		#if defined(USE_OFX_FONTSTASH) || defined(USE_OFX_FONTSTASH2)
+		// Font render configs ///////
 		void drawUiWithBitmapFont();
-		#endif
 
 		#if defined(USE_OFX_FONTSTASH)
 		void drawUiWithFontStash(string fontPath, float fontSize = 13.0f /*good with VeraMono*/);
 		ofxFontStash & getFont(){return font;}
+		#endif
 
 		#if defined(USE_OFX_FONTSTASH2)
 		void drawUiWithFontStash2(string fontPath, float fontSize = 13.0f /*good with VeraMono*/);
-		ofxFontStash2 & getFont2(){return font;}
+		ofxFontStash2 & getFont2(){return font2;}
 		#endif
 
 		void enableInternalBenchmark(bool bench){internalBenchmark = bench;}
@@ -376,15 +375,20 @@ class ofxTimeMeasurements {
 		int										maxPlotSamples;
 		#endif
 
+		enum FontRenderer{
+			RENDER_WITH_OF_BITMAP_FONT,
+			RENDER_WITH_OFXFONTSTASH,
+			RENDER_WITH_OFXFONTSTASH2
+		};
+
+		FontRenderer							fontRenderer = RENDER_WITH_OF_BITMAP_FONT;
 		#ifdef USE_OFX_FONTSTASH
-		bool									useFontStash;
 		string 									fontStashFile;
 		ofxFontStash							font;
 		float									fontSize;
 		#endif
 
-		#ifdef USE_OFX_FONTSTASH
-		bool									useFontStash2;
+		#ifdef USE_OFX_FONTSTASH2
 		string 									fontStashFile2;
 		ofxFontStash2							font2;
 		float									fontSize2;

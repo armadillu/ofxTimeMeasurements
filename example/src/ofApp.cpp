@@ -20,6 +20,8 @@ void ofApp::setup(){
 	//customize color
 	//TIME_SAMPLE_GET_INSTANCE()->setHighlightColor(ofColor::yellow);
 
+	//TIME_SAMPLE_GET_INSTANCE()->drawUiWithFontStash("fonts/UbuntuMono-R.ttf");
+	TIME_SAMPLE_GET_INSTANCE()->drawUiWithFontStash2("fonts/UbuntuMono-R.ttf");
 	startThread();
 }
 

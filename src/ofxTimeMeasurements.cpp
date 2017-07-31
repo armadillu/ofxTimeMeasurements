@@ -27,10 +27,6 @@ ofxTimeMeasurements::ofxTimeMeasurements(){
 	drawAuto = true;
 	internalBenchmark = false;
 
-	#if defined(USE_OFX_FONTSTASH)
-	useFontStash = false;
-	#endif
-
 	#if defined(USE_OFX_HISTORYPLOT)
 	plotHeight = 60;
 	numAllocatdPlots = 0;
@@ -1070,6 +1066,17 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	ofSetColor(bgColor);
 	ofDrawRectangle(x, y + 1, totalW, totalH);
 
+	#ifdef USE_OFX_FONTSTASH2
+	if(fontRenderer == RENDER_WITH_OFXFONTSTASH2){
+		font2.beginBatch();
+	}
+	#endif
+	#ifdef USE_OFX_FONTSTASH
+	if(fontRenderer == RENDER_WITH_OFXFONTSTASH){
+		font.beginBatch();
+	}
+	#endif
+
 	//draw all lines
 	for(size_t i = 0; i < drawLines.size(); i++){
 		ofSetColor(drawLines[i].lineBgColor);
@@ -1088,9 +1095,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 			ofSetColor(drawLines[i].plotColor);
 			float y1 = y + 2.4f + i * charH;
 			int voffset = -2;
-			#ifdef USE_OFX_FONTSTASH
-			if(useFontStash) voffset = 0;
-			#endif
+			if(fontRenderer == RENDER_WITH_OFXFONTSTASH || fontRenderer == RENDER_WITH_OFXFONTSTASH2) voffset = 0;
 			ofDrawTriangle(	x, y1 + voffset,
 							x, y1 + charH + voffset,
 							x + charW * 0.7f, y1 + charH * 0.5f + voffset);
@@ -1115,21 +1120,6 @@ void ofxTimeMeasurements::draw(int x, int y) {
 							lineRect.height * 0.65
 							);
 		}
-	}
-
-	if(internalBenchmark){
-		float offset = 0;
-		if(drawLocation == TIME_MEASUREMENTS_TOP_LEFT ||
-		   drawLocation == TIME_MEASUREMENTS_TOP_RIGHT ||
-		   drawLocation == TIME_MEASUREMENTS_CUSTOM_LOCATION ){
-			offset = (drawLines.size() + 2.5) * charH;
-		}
-		ofSetColor(0);
-		ofDrawRectangle(x, offset + y - charH, totalW, charH);
-		ofSetColor(currentFrameNum%3 ? 255 : 64);
-		drawString(" Meas: " + ofToString(wastedTimeAvg / 1000.f, 2) + "ms " +
-				   " Draw: " + ofToString(wastedTimeDrawingAvg / 1000.f, 2) + "ms ",
-				   x, offset + y - charH * 0.12);
 	}
 
 	if (freeze) {
@@ -1196,6 +1186,35 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		if (currentFrameNum % 5 < 2) ofSetColor(hilightColor);
 		else ofSetColor(ofColor::limeGreen);
 		drawString(" avg!", x + charW * 3.5, y + lastLine);
+	}
+
+	#ifdef USE_OFX_FONTSTASH
+	if(fontRenderer == RENDER_WITH_OFXFONTSTASH){
+		font.endBatch();
+	}
+	#endif
+	#ifdef USE_OFX_FONTSTASH2
+	if(fontRenderer == RENDER_WITH_OFXFONTSTASH2){
+		font2.endBatch();
+	}
+	#endif
+
+	if(internalBenchmark){
+		float offset = 0;
+		if(drawLocation == TIME_MEASUREMENTS_TOP_LEFT ||
+		   drawLocation == TIME_MEASUREMENTS_TOP_RIGHT ||
+		   drawLocation == TIME_MEASUREMENTS_CUSTOM_LOCATION ){
+			offset = (drawLines.size() + 2.5) * charH;
+		}
+		ofSetColor(0);
+		ofDrawRectangle(x, offset + y - charH, totalW, charH);
+		ofSetColor(currentFrameNum%3 ? 255 : 64);
+		FontRenderer oldFontRenderer = fontRenderer;
+		fontRenderer = RENDER_WITH_OF_BITMAP_FONT;
+		drawString(" Meas: " + ofToString(wastedTimeAvg / 1000.f, 2) + "ms " +
+				   " Draw: " + ofToString(wastedTimeDrawingAvg / 1000.f, 2) + "ms ",
+				   x, offset + y - charH * 0.12);
+		fontRenderer = oldFontRenderer;
 	}
 
 	for(size_t i = 0; i < toResetUpdatedLastFrameFlag.size(); i++){
@@ -1596,7 +1615,7 @@ void ofxTimeMeasurements::_appExited(ofEventArgs &e){
 #ifdef USE_OFX_FONTSTASH
 void ofxTimeMeasurements::drawUiWithFontStash(string fontPath, float fontSize_){
 	if(!ofIsGLProgrammableRenderer()){
-		useFontStash = true; fontSize = fontSize_; fontStashFile = fontPath;
+		fontRenderer = RENDER_WITH_OFXFONTSTASH; fontSize = fontSize_; fontStashFile = fontPath;
 		font = ofxFontStash();
 		font.setup(ofToDataPath(fontPath, true), 1.0, 512, false, 0, uiScale);
 		ofRectangle r = font.getBBox("M", fontSize, 0, 0);
@@ -1606,24 +1625,44 @@ void ofxTimeMeasurements::drawUiWithFontStash(string fontPath, float fontSize_){
 		ofLogError("ofxTimeMeasurements") << "Can't use ofxFontStash with the Programmable Renderer!";
 	}
 }
+#endif
 
-void ofxTimeMeasurements::drawUiWithBitmapFont(){
-	useFontStash = false;
-	charW = 8;
-	charH = TIME_MEASUREMENTS_LINE_HEIGHT;
+#ifdef USE_OFX_FONTSTASH2
+void ofxTimeMeasurements::drawUiWithFontStash2(string fontPath, float fontSize_){
+	fontRenderer = RENDER_WITH_OFXFONTSTASH2; fontSize2 = fontSize_; fontStashFile2 = fontPath;
+	font2 = ofxFontStash2();
+	font2.setup();
+	font2.addFont("mono", ofToDataPath(fontStashFile2, true));
+	ofxFontStashStyle style = ofxFontStashStyle("mono", fontSize2);
+	ofRectangle r = font2.getTextBounds("M", style, 0, 0);
+	charW = r.width;
+	charH = ceil(r.height);
 }
 #endif
 
+void ofxTimeMeasurements::drawUiWithBitmapFont(){
+	fontRenderer = RENDER_WITH_OF_BITMAP_FONT;
+	charW = 8;
+	charH = TIME_MEASUREMENTS_LINE_HEIGHT;
+}
+
 void ofxTimeMeasurements::drawString(const string & text, const float & x, const float & y){
-	#ifdef USE_OFX_FONTSTASH
-	if(useFontStash){
-		font.draw(text, fontSize, x + 2, y - charH * 0.125);
-	}else{
-		ofDrawBitmapString(text, x, y - 2);
+
+	switch (fontRenderer) {
+		case RENDER_WITH_OF_BITMAP_FONT: ofDrawBitmapString(text, x, y - 2);break;
+
+		#ifdef USE_OFX_FONTSTASH
+		case RENDER_WITH_OFXFONTSTASH: font.drawBatch(text, fontSize, x + 2, y - charH * 0.125); break;
+		#endif
+
+		#ifdef USE_OFX_FONTSTASH2
+		case RENDER_WITH_OFXFONTSTASH2:{
+			ofxFontStashStyle style = ofxFontStashStyle("mono", fontSize2, ofGetStyle().color);
+			font2.draw(text, style, x + 2, y - charH * 0.125);
+			}
+			break;
+		#endif
 	}
-	#else
-	ofDrawBitmapString(text, x, y - 2);
-	#endif
 }
 
 
@@ -1685,14 +1724,11 @@ void ofxTimeMeasurements::setMsPrecision(int digits){
 
 
 float ofxTimeMeasurements::getWidth() const{
-	#ifdef USE_OFX_FONTSTASH
-	if(useFontStash)
-		return (maxW + 0.25) * charW ;
-	else
-		return (maxW + 1) * charW;
-	#else
-	return (maxW + 1) * charW;
-	#endif
+	switch(fontRenderer){
+		case RENDER_WITH_OF_BITMAP_FONT: return (maxW + 1) * charW;
+		case RENDER_WITH_OFXFONTSTASH: return (maxW + 0.25) * charW;
+		case RENDER_WITH_OFXFONTSTASH2: return (maxW + 0.25) * charW;
+	}
 }
 
 void ofxTimeMeasurements::drawSmoothFpsClock(float x, float y, float radius){

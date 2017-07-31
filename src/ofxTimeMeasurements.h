@@ -423,6 +423,8 @@ class ofxTimeMeasurements {
 
 		bool									savesSettingsOnExit = true;
 
+		void beginTextBatch();
+		void endTextBatch();
 };
 
 #include "ofxTimeMeasurementsScoped.h"

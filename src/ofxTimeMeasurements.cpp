@@ -1066,16 +1066,6 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	ofSetColor(bgColor);
 	ofDrawRectangle(x, y + 1, totalW, totalH);
 
-	#ifdef USE_OFX_FONTSTASH2
-	if(fontRenderer == RENDER_WITH_OFXFONTSTASH2){
-		font2.beginBatch();
-	}
-	#endif
-	#ifdef USE_OFX_FONTSTASH
-	if(fontRenderer == RENDER_WITH_OFXFONTSTASH){
-		font.beginBatch();
-	}
-	#endif
 
 	//draw all lines
 	for(size_t i = 0; i < drawLines.size(); i++){
@@ -1089,8 +1079,6 @@ void ofxTimeMeasurements::draw(int x, int y) {
 							-5,
 							charH - 1 );
 		}
-		ofSetColor(drawLines[i].color);
-		drawString(drawLines[i].fullLine, x , y + (i + 1) * charH);
 		if(drawLines[i].plotColor.a > 0){ //plot highlight on the sides
 			ofSetColor(drawLines[i].plotColor);
 			float y1 = y + 2.4f + i * charH;
@@ -1120,12 +1108,6 @@ void ofxTimeMeasurements::draw(int x, int y) {
 							lineRect.height * 0.65
 							);
 		}
-	}
-
-	if (freeze) {
-		if(currentFrameNum%5 < 4) ofSetColor(frozenColor);
-		else ofSetColor(ofColor::white);
-		drawString("Frozen! 'F'", x + totalW - 13 * charW, y + charH );
 	}
 
 	{//lines
@@ -1158,6 +1140,21 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	float fDiff = fabs( fr - desiredFrameRate);
 	float minDiff = desiredFrameRate * 0.025;
 	bool missingFrames = fDiff > minDiff;
+
+	// all text drawn between these begin/end() calls
+	beginTextBatch(); ////////////////////////////////////////////////////////////////////
+
+	for(size_t i = 0; i < drawLines.size(); i++){
+		ofSetColor(drawLines[i].color);
+		drawString(drawLines[i].fullLine, x , y + (i + 1) * charH);
+	}
+
+	if (freeze) {
+		if(currentFrameNum%5 < 4) ofSetColor(frozenColor);
+		else ofSetColor(ofColor::white);
+		drawString("Frozen! 'F'", x + totalW - 13 * charW, y + charH );
+	}
+
 	static char msg[128];
 
 	if(missingFrames){
@@ -1188,16 +1185,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		drawString(" avg!", x + charW * 3.5, y + lastLine);
 	}
 
-	#ifdef USE_OFX_FONTSTASH
-	if(fontRenderer == RENDER_WITH_OFXFONTSTASH){
-		font.endBatch();
-	}
-	#endif
-	#ifdef USE_OFX_FONTSTASH2
-	if(fontRenderer == RENDER_WITH_OFXFONTSTASH2){
-		font2.endBatch();
-	}
-	#endif
+	endTextBatch(); ////////////////////////////////////////////////////////////////////////
 
 	if(internalBenchmark){
 		float offset = 0;
@@ -1230,6 +1218,34 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		wastedTimeThisFrame = wastedTimeDrawingThisFrame = 0;
 	}
 }
+
+
+void ofxTimeMeasurements::beginTextBatch(){
+	#ifdef USE_OFX_FONTSTASH2
+	if(fontRenderer == RENDER_WITH_OFXFONTSTASH2){
+		font2.beginBatch();
+	}
+	#endif
+	#ifdef USE_OFX_FONTSTASH
+	if(fontRenderer == RENDER_WITH_OFXFONTSTASH){
+		font.beginBatch();
+	}
+	#endif
+}
+
+void ofxTimeMeasurements::endTextBatch(){
+	#ifdef USE_OFX_FONTSTASH
+	if(fontRenderer == RENDER_WITH_OFXFONTSTASH){
+		font.endBatch();
+	}
+	#endif
+	#ifdef USE_OFX_FONTSTASH2
+	if(fontRenderer == RENDER_WITH_OFXFONTSTASH2){
+		font2.endBatch();
+	}
+	#endif
+}
+
 
 #if defined(USE_OFX_HISTORYPLOT)
 ofxHistoryPlot* ofxTimeMeasurements::makeNewPlot(string name){

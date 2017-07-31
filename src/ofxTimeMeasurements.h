@@ -35,6 +35,8 @@
 #include "ofxHistoryPlot.h"
 #endif
 
+// ofxFontStash ///////////////////////////////////////////////////////////////////////////////////
+
 #if defined(__has_include) /*llvm only - query about header files being available or not*/
 	#if __has_include("ofxFontStash.h") && !defined(DISABLE_AUTO_FIND_FONSTASH_HEADERS)
 		#define USE_OFX_FONTSTASH
@@ -45,20 +47,23 @@
 	#include "ofxFontStash.h"
 #endif
 
+// ofxFontStash2 //////////////////////////////////////////////////////////////////////////////////
+
+#if defined(__has_include) /*llvm only - query about header files being available or not*/
+	#if __has_include("ofxFontStash2.h") && !defined(DISABLE_AUTO_FIND_FONSTASH_HEADERS)
+		#define USE_OFX_FONTSTASH2
+	#endif
+#endif
+
+#ifdef USE_OFX_FONTSTASH2
+	#include "ofxFontStash2.h"
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 #include "ofxTimeMeasurementsMacros.h"
 
-
-/*
-if you want better resolution on windows, the use of ofxMsaTimer is recommended.
-Just include it in your project, and define USE_MSA_TIMER in your project preprocessor macros.
-*/
-
-#ifdef USE_MSA_TIMER 
-	#include "ofxMSATimer.h"
-	#define TM_GET_MICROS() timer.getElapsedMicros()
-#else
-	#define TM_GET_MICROS() ofGetElapsedTimeMicros()
-#endif
+#define TM_GET_MICROS() ofGetElapsedTimeMicros()
 
 
 #define TIME_MEASUREMENTS_LINE_HEIGHT		(14)
@@ -162,10 +167,17 @@ class ofxTimeMeasurements {
 		float getPlotsHeight();
 
 
-		#ifdef USE_OFX_FONTSTASH
-		void drawUiWithFontStash(string fontPath, float fontSize = 13.0f /*good with VeraMono*/);
+		#if defined(USE_OFX_FONTSTASH) || defined(USE_OFX_FONTSTASH2)
 		void drawUiWithBitmapFont();
+		#endif
+
+		#if defined(USE_OFX_FONTSTASH)
+		void drawUiWithFontStash(string fontPath, float fontSize = 13.0f /*good with VeraMono*/);
 		ofxFontStash & getFont(){return font;}
+
+		#if defined(USE_OFX_FONTSTASH2)
+		void drawUiWithFontStash2(string fontPath, float fontSize = 13.0f /*good with VeraMono*/);
+		ofxFontStash2 & getFont2(){return font;}
 		#endif
 
 		void enableInternalBenchmark(bool bench){internalBenchmark = bench;}
@@ -340,9 +352,6 @@ class ofxTimeMeasurements {
 
 		bool									freeze; //if enabled, ignore current timings and show the last one we had b4 freezing
 		bool									menuActive;
-		#ifdef USE_MSA_TIMER
-		ofxMSATimer								timer;
-		#endif
 
 		ofMutex									mutex;
 
@@ -373,7 +382,14 @@ class ofxTimeMeasurements {
 		ofxFontStash							font;
 		float									fontSize;
 		#endif
-	
+
+		#ifdef USE_OFX_FONTSTASH
+		bool									useFontStash2;
+		string 									fontStashFile2;
+		ofxFontStash2							font2;
+		float									fontSize2;
+		#endif
+
 		float									charW; //to draw text flexibly with bitmap / fontstash
 		float									charH;
 

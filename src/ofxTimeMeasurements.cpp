@@ -1745,6 +1745,7 @@ float ofxTimeMeasurements::getWidth() const{
 		case RENDER_WITH_OFXFONTSTASH: return (maxW + 0.25) * charW;
 		case RENDER_WITH_OFXFONTSTASH2: return (maxW + 0.25) * charW;
 	}
+	return 0.0f;
 }
 
 void ofxTimeMeasurements::drawSmoothFpsClock(float x, float y, float radius){

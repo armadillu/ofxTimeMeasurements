@@ -1684,6 +1684,7 @@ void ofxTimeMeasurements::drawString(const string & text, const float & x, const
 			}
 			break;
 		#endif
+		default:break;
 	}
 }
 

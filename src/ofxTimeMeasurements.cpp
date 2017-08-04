@@ -1044,7 +1044,10 @@ void ofxTimeMeasurements::draw(int x, int y) {
 				ofDrawLine(0, y, canvasW , y );
 			}
 		}
+	}
 
+	beginTextBatch(); /////////////////////////////////////
+	for(size_t i = 0; i < plotsToDraw.size(); i++){
 		if(allPlotsTogether){
 			ofSetColor(plotsToDraw[i]->getColor());
 			deque<float>& vals = plotsToDraw[i]->getValues();
@@ -1057,6 +1060,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 					   );
 		}
 	}
+	endTextBatch(); /////////////////////////////////////
 	#endif
 
 	float totalW = getWidth();
@@ -1665,10 +1669,12 @@ void ofxTimeMeasurements::drawUiWithBitmapFont(){
 void ofxTimeMeasurements::drawString(const string & text, const float & x, const float & y){
 
 	switch (fontRenderer) {
-		case RENDER_WITH_OF_BITMAP_FONT: ofDrawBitmapString(text, x, y - 2);break;
+		case RENDER_WITH_OF_BITMAP_FONT: ofDrawBitmapString(text, x, y - 2);
+			break;
 
 		#ifdef USE_OFX_FONTSTASH
-		case RENDER_WITH_OFXFONTSTASH: font.drawBatch(text, fontSize, x + 2, y - charH * 0.125); break;
+		case RENDER_WITH_OFXFONTSTASH: font.drawBatch(text, fontSize, x + 2, y - charH * 0.125);
+			break;
 		#endif
 
 		#ifdef USE_OFX_FONTSTASH2

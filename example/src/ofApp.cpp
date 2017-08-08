@@ -5,8 +5,6 @@ void ofApp::setup(){
 
 	ofBackground(22);
 
-	TIME_SAMPLE_SET_FRAMERATE( 60.0f ); //set the app's target framerate (MANDATORY)
-
 	//specify where the widget is to be drawn
 	TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_TOP_RIGHT ); //specify a drawing location (OPTIONAL)
 

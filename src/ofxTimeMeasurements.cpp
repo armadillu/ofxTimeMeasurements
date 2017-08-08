@@ -1650,10 +1650,10 @@ void ofxTimeMeasurements::drawUiWithFontStash(string fontPath, float fontSize_){
 #ifdef USE_OFX_FONTSTASH2
 void ofxTimeMeasurements::drawUiWithFontStash2(string fontPath, float fontSize_){
 	fontRenderer = RENDER_WITH_OFXFONTSTASH2; fontSize2 = fontSize_; fontStashFile2 = fontPath;
-	font2 = ofxFontStash2();
+	font2 = ofxFontStash2::Fonts();
 	font2.setup();
 	font2.addFont("mono", ofToDataPath(fontStashFile2, true));
-	ofxFontStashStyle style = ofxFontStashStyle("mono", fontSize2);
+	ofxFontStash2::Style style = ofxFontStash2::Style("mono", fontSize2);
 	ofRectangle r = font2.getTextBounds("M", style, 0, 0);
 	charW = r.width;
 	charH = ceil(r.height);
@@ -1679,7 +1679,7 @@ void ofxTimeMeasurements::drawString(const string & text, const float & x, const
 
 		#ifdef USE_OFX_FONTSTASH2
 		case RENDER_WITH_OFXFONTSTASH2:{
-			ofxFontStashStyle style = ofxFontStashStyle("mono", fontSize2, ofGetStyle().color);
+			ofxFontStash2::Style style = ofxFontStash2::Style("mono", fontSize2, ofGetStyle().color);
 			font2.draw(text, style, x + 2, y - charH * 0.125);
 			}
 			break;

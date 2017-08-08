@@ -176,7 +176,7 @@ class ofxTimeMeasurements {
 
 		#if defined(USE_OFX_FONTSTASH2)
 		void drawUiWithFontStash2(string fontPath, float fontSize = 13.0f /*good with VeraMono*/);
-		ofxFontStash2 & getFont2(){return font2;}
+		ofxFontStash2::Fonts & getFont2(){return font2;}
 		#endif
 
 		void enableInternalBenchmark(bool bench){internalBenchmark = bench;}
@@ -390,7 +390,7 @@ class ofxTimeMeasurements {
 
 		#ifdef USE_OFX_FONTSTASH2
 		string 									fontStashFile2;
-		ofxFontStash2							font2;
+		ofxFontStash2::Fonts					font2;
 		float									fontSize2;
 		#endif
 

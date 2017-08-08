@@ -771,7 +771,9 @@ void ofxTimeMeasurements::draw(int x, int y) {
 
 		core::tree<string>::iterator wholeTreeWalker = tr.in();
 		bool finishedWalking = false;
+		#if defined(USE_OFX_HISTORYPLOT)
 		float winW = ofGetWidth();
+		#endif
 
 		while( !finishedWalking ){
 

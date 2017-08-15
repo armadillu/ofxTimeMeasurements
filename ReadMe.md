@@ -1,4 +1,4 @@
-#ofxTimeMeasurements
+# ofxTimeMeasurements
 
 [![Build Status](https://travis-ci.org/armadillu/ofxTimeMeasurements.svg?branch=master)](https://travis-ci.org/armadillu/ofxTimeMeasurements)
 [![Build status](https://ci.appveyor.com/api/projects/status/0cne779u0mdp8mvp/branch/master?svg=true)](https://ci.appveyor.com/project/armadillu/ofxremoteui/branch/master)
@@ -29,7 +29,7 @@ That's all you need to get basic measurements of update() and draw();
 ```
 #include "ofxTimeMeasurements.h"
 
-void setup(){	
+void setup(){
 	TIME_SAMPLE_SET_FRAMERATE(60.0f); //specify a target framerate
 }
 ```
@@ -43,7 +43,7 @@ You can measure times across any code section with TS_START() - TS_STOP()
 ```
 	TS_START("measurement1");
 	//my code here
-	TS_STOP("measurement1")	
+	TS_STOP("measurement1")
 ```
 The ofxTimeMeasurements widget will list a line named "measurement1" showing how long it took for the section to execute.
 
@@ -69,7 +69,7 @@ ofxTimeMeasurements wraps your code around an if(){} clause. It does so to be ab
 	TS_START_NIF("nif");
 		int a = 0;
 	TS_STOP_NIF("nif");
-	
+
 	a = 1; //we can now access the variable declared in the TM scope.
 ```
 
@@ -111,7 +111,7 @@ OpenGL timings will show in their own separate section named "OpenGL", similar t
 	myFancyShader.run();
 	TSGL_STOP("FancyShader");
 ```
-	
+
 
 ##### Some Caveats:
 * OpenGL timing measurements can't be nested, you can't start a measurement unless you stopped the previous one. It's still ok to measure several things each frame, but not nested.
@@ -143,9 +143,9 @@ ofxTimeMeasurements adds some overhead when measuring times; and it adds even mo
 
 If times vary too much from frame to frame to be readable on the widget, you can enable sample averaging; if you do so, each new time sample will be blended with the previous one; obtaining a smoother reading. Keep in mind that several samples will be required to get accurate readings when using averaging. You can also completely disable averaging.
 
-	TIME_SAMPLE_SET_AVERAGE_RATE(0.01); //every new sample effects 1% of the value shown 
+	TIME_SAMPLE_SET_AVERAGE_RATE(0.01); //every new sample effects 1% of the value shown
 	TIME_SAMPLE_DISABLE_AVERAGE();  //disable time sample averaging
-	
+
 
 #### 5.3 COLORS / THREADS
 
@@ -161,10 +161,10 @@ Most key commands and ui colors are customizable, you only need to get a hold of
 
 	TIME_SAMPLE_GET_INSTANCE()->setUIActivationKey('T');
 	TIME_SAMPLE_GET_INSTANCE()->setHighlightColor(ofColor::red);
-	
+
 
 #### 5.5 MEASURING setup()
-If you want the setup() call to be automatically measured, you need to at least call once ofxTimeMeasurements in your main.cpp, just before the ofRunApp() line. This is so that the ofxTimeMeasurements instance is allocated before setup() is called. Make sure you call it after ofSetupOpenGL() otherwise it might not be able to find its settings file, because ofToDataPath might not be set yet. 
+If you want the setup() call to be automatically measured, you need to at least call once ofxTimeMeasurements in your main.cpp, just before the ofRunApp() line. This is so that the ofxTimeMeasurements instance is allocated before setup() is called. Make sure you call it after ofSetupOpenGL() otherwise it might not be able to find its settings file, because ofToDataPath might not be set yet.
 
 	int main(){
 		ofSetupOpenGL(1680,1050, OF_WINDOW);
@@ -192,7 +192,7 @@ Measurements that are being plotted will show a colored label on the left side, 
 
 ####5.9 USING ofxFontStash
 
-If you include [ofxFontStash](https://github.com/armadillu/ofxFontStash) in your project, you can use it to draw the widget with any font of your liking. FontStash is faster at drawing text than ofDrawBitmapString(), which is what ofxTimeMeasurements uses by default. Define USE_OFX_FONTSTASH in your project's PreProcessor Macros, and call drawUiWithFontStash() supplying a monospaced ttf font. 
+If you include [ofxFontStash](https://github.com/armadillu/ofxFontStash) in your project, you can use it to draw the widget with any font of your liking. FontStash is faster at drawing text than ofDrawBitmapString(), which is what ofxTimeMeasurements uses by default. Define USE_OFX_FONTSTASH in your project's PreProcessor Macros, and call drawUiWithFontStash() supplying a monospaced ttf font.
 
 ```
 TIME_SAMPLE_GET_INSTANCE()->setUiScale( 2.0 ); //x2 the size for 4k screens

@@ -16,7 +16,7 @@
 class ofxTimeMeasurementsScoped {
 
 public:
-	ofxTimeMeasurementsScoped(string key, bool acc) {
+	ofxTimeMeasurementsScoped(std::string key, bool acc) {
 
 		this->key = key;
 		this->acc = acc;
@@ -41,5 +41,5 @@ protected:
 	ofxTimeMeasurementsScoped(){}
 
 	bool acc;
-	string key;
+	std::string key;
 };

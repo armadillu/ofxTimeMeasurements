@@ -184,7 +184,7 @@ inline std::string demangledTypeInfoName(const std::type_info&ti){
 	size_t len = 512;
 	abi::__cxa_demangle(ti.name(),(char*)&demangleBuffer, &len, &status);
 	//note theres no need to free the returned char* as we are providing our own buffer
-	string finalS = string(demangleBuffer);
+	std::string finalS = std::string(demangleBuffer);
 	if(finalS.size() > 0){
 		finalS = finalS.substr(0, finalS.size() - 1);
 	}

@@ -99,18 +99,18 @@ class ofxTimeMeasurements {
 
 		static ofxTimeMeasurements* instance();
 
-		void setConfigsDir(string d);
+		void setConfigsDir(std::string d);
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 											//affects the % busy indicator
 
 		//ifEnabled  > if true, it means that measurement is wrapped aroun with an if() caluse
-		bool startMeasuring(const string & ID, bool accumulate, bool ifEnabled = true);
-		float stopMeasuring(const string & ID, bool accumulate);
+		bool startMeasuring(const std::string & ID, bool accumulate, bool ifEnabled = true);
+		float stopMeasuring(const std::string & ID, bool accumulate);
 
 		// GL
 		#ifndef TARGET_OPENGLES
-		bool startMeasuringGL(const string & name);
-		void stopMeasuringGL(const string & name);
+		bool startMeasuringGL(const std::string & name);
+		void stopMeasuringGL(const std::string & name);
 		#endif
 		// end GL
 
@@ -123,10 +123,10 @@ class ofxTimeMeasurements {
 		void setTimeAveragePercent(double p);	//[0..1] >> if set to 1.0, 100% of every new sample contributes to the average.
 												//if set to 0.1, a new sample contributes 10% to the average
 		void setDrawPercentageAsGraph(bool d){drawPercentageAsGraph = d;}
-		float durationForID(const string & ID);
+		float durationForID(const std::string & ID);
 		void setBgColor(ofColor c){bgColor = c;}
 		void setHighlightColor(ofColor c);
-		void setThreadColors(const vector<ofColor> & tc); //supply your own thread color list
+		void setThreadColors(const std::vector<ofColor> & tc); //supply your own thread color list
 
 		//[0..1], 0.5 means inactive times show 50% darker than active ones
 		void setIdleTimeColorFadePercent(float p){ idleTimeColorFadePercent = p;}
@@ -144,8 +144,8 @@ class ofxTimeMeasurements {
 		float getWidth() const;
 		float getHeight() const;
 
-		float getLastDurationFor(const string & ID); //ms
-		float getAvgDurationFor(const string & ID); //ms
+		float getLastDurationFor(const std::string & ID); //ms
+		float getAvgDurationFor(const std::string & ID); //ms
 
 		void setUiScale(float scale);
 		float getUiScale(){return uiScale;}	
@@ -170,12 +170,12 @@ class ofxTimeMeasurements {
 		void drawUiWithBitmapFont();
 
 		#if defined(USE_OFX_FONTSTASH)
-		void drawUiWithFontStash(string fontPath, float fontSize = 13.0f /*good with VeraMono*/);
+		void drawUiWithFontStash(std::string fontPath, float fontSize = 13.0f /*good with VeraMono*/);
 		ofxFontStash & getFont(){return font;}
 		#endif
 
 		#if defined(USE_OFX_FONTSTASH2)
-		void drawUiWithFontStash2(string fontPath, float fontSize = 13.0f /*good with VeraMono*/);
+		void drawUiWithFontStash2(std::string fontPath, float fontSize = 13.0f /*good with VeraMono*/);
 		ofxFontStash2::Fonts & getFont2(){return font2;}
 		#endif
 
@@ -220,7 +220,7 @@ class ofxTimeMeasurements {
 			int numAccumulations;
 			int frame; //used to compare start-stop calls frame, and see if its an across-frames measurement
 			bool acrossFrames;
-			string key;
+			std::string key;
 			ThreadId thread;
 			float life;
 			bool isGL; //this is a GL measurement, some behaviors don't apply
@@ -240,10 +240,10 @@ class ofxTimeMeasurements {
 		};
 
 		struct PrintedLine{
-			string key;
-			string formattedKey;
-			string time;
-			string fullLine;
+			std::string key;
+			std::string formattedKey;
+			std::string time;
+			std::string fullLine;
 			bool shouldDrawPctGraph;
 			bool isAccum;
 			ofColor color;
@@ -255,8 +255,8 @@ class ofxTimeMeasurements {
 		};
 
 		struct ThreadInfo{
-			core::tree<string>::iterator	tit; //tree iterator, to keep track of which node are we measuring now
-			core::tree<string>				tree;
+			core::tree<std::string>::iterator	tit; //tree iterator, to keep track of which node are we measuring now
+			core::tree<std::string>				tree;
 			ofColor							color;
 			int								order;
 		};
@@ -279,15 +279,15 @@ class ofxTimeMeasurements {
 		void _windowResized(ofResizeEventArgs &e);
 
 		void autoDraw();
-		void collapseExpand(string sel, bool colapse);
+		void collapseExpand(std::string sel, bool colapse);
 		void updateLongestLabel();
 		void loadSettings();
 		void saveSettings();
 
-		string formatTime(uint64_t microSeconds, int precision);
-		string getTimeStringForTM(TimeMeasurement* tm);
+		std::string formatTime(uint64_t microSeconds, int precision);
+		std::string getTimeStringForTM(TimeMeasurement* tm);
 		float getPctForTM(TimeMeasurement* tm);
-		void drawString(const string & text, const float & x, const float & y);
+		void drawString(const std::string & text, const float & x, const float & y);
 
 
 		struct ThreadContainer{
@@ -304,10 +304,10 @@ class ofxTimeMeasurements {
 		float											desiredFrameRate;
 		bool											enabled;
 
-		unordered_map<string, TimeMeasurement*>			times;
-		unordered_map<string, TimeMeasurementSettings>	settings; //visible/not at startup
+		std::unordered_map<std::string, TimeMeasurement*>			times;
+		std::unordered_map<std::string, TimeMeasurementSettings>	settings; //visible/not at startup
 
-		unordered_map<ThreadId, ThreadInfo>		threadInfo;
+		std::unordered_map<ThreadId, ThreadInfo>		threadInfo;
 		ThreadId								mainThreadID; //usually NULL
 
 		bool isMainThread(ThreadId tid){return tid == mainThreadID;}
@@ -316,7 +316,7 @@ class ofxTimeMeasurements {
 			return std::this_thread::get_id();
 		}
 
-		vector<PrintedLine>						drawLines; //what's drawn line by line
+		std::vector<PrintedLine>						drawLines; //what's drawn line by line
 
 		double									timeAveragePercent;
 		bool									averaging;
@@ -339,10 +339,10 @@ class ofxTimeMeasurements {
 		float									idleTimeColorDecay;
 		float									deadThreadExtendedLifeDecSpeed;
 
-		vector<ofColor>							threadColorTable;
+		std::vector<ofColor>							threadColorTable;
 		int										numThreads;
 
-		string									selection;
+		std::string									selection;
 		int										numVisible;
 
 		unsigned int							enableKey; //the whole addon
@@ -354,7 +354,7 @@ class ofxTimeMeasurements {
 
 		ofMutex									mutex;
 
-		string									configsDir;
+		std::string									configsDir;
 
 		bool									removeExpiredThreads;
 		bool 									removeExpiredTimings;
@@ -363,14 +363,14 @@ class ofxTimeMeasurements {
 		bool 									settingsLoaded;
 		float 									uiScale;
 		#if defined(USE_OFX_HISTORYPLOT)
-		map<string, ofxHistoryPlot*>			plots;
+		std::map<std::string, ofxHistoryPlot*>			plots;
 		int										plotHeight;
 		int										plotBaseY;
 		int										numAllocatdPlots;
 		int										numActivePlots;
 		bool									allPlotsTogether;
 
-		ofxHistoryPlot*							makeNewPlot(string name);
+		ofxHistoryPlot*							makeNewPlot(std::string name);
 		float									plotResolution;
 		int										maxPlotSamples;
 		#endif
@@ -383,13 +383,13 @@ class ofxTimeMeasurements {
 
 		FontRenderer							fontRenderer = RENDER_WITH_OF_BITMAP_FONT;
 		#ifdef USE_OFX_FONTSTASH
-		string 									fontStashFile;
+		std::string 									fontStashFile;
 		ofxFontStash							font;
 		float									fontSize;
 		#endif
 
 		#ifdef USE_OFX_FONTSTASH2
-		string 									fontStashFile2;
+		std::string 									fontStashFile2;
 		ofxFontStash2::Fonts					font2;
 		float									fontSize2;
 		#endif
@@ -397,7 +397,7 @@ class ofxTimeMeasurements {
 		float									charW; //to draw text flexibly with bitmap / fontstash
 		float									charH;
 
-		void walkTree(core::tree<string>::iterator Arg, int levelArg, vector<string> &result);
+		void walkTree(core::tree<std::string>::iterator Arg, int levelArg, std::vector<std::string> &result);
 
 		bool									drawAuto;
 		unsigned char							dimColorA;
@@ -413,9 +413,9 @@ class ofxTimeMeasurements {
 
 		/// GL measurements
 		#ifndef TARGET_OPENGLES
-		unordered_map<string, GL_Measurement*>	glTimes;
-		string 									measuringGlLabel;
-		const string 							glPrefix = "GL_";
+		std::unordered_map<std::string, GL_Measurement*>	glTimes;
+		std::string 									measuringGlLabel;
+		const std::string 							glPrefix = "GL_";
 		bool glMeasurementMode = false;
 		int threadIDGL = -1;
 		void									updateGLMeasurements();

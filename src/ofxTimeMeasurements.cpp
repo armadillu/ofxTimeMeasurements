@@ -12,6 +12,8 @@
 
 #ifndef TIME_MEASUREMENTS_DISABLED
 
+using namespace std;
+
 ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
 
 ofxTimeMeasurements::ofxTimeMeasurements(){

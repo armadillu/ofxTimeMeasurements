@@ -543,7 +543,7 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 	it = times.find(localID);
 
 	if ( it == times.end() ){	//not found!
-		ofLogWarning("ofxTimeMeasurements") << "ID ("<< localID << ")not found at stopMeasuring(). Make sure you called startMeasuring with that ID first.";
+		ofLogWarning("ofxTimeMeasurements") << "ID \""<< localID << "\" not found at stopMeasuring(). Make sure you called startMeasuring with that ID first.";
 	}else{
 
 		TimeMeasurement* t = it->second;

@@ -1336,23 +1336,32 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 					switch (e.key) {
 
 						case OF_KEY_DOWN:{
-							selIndex ++;
-							if(selIndex >= drawLines.size()) selIndex = 0;
-							while(drawLines[selIndex].tm == NULL){
+							if(ofGetKeyPressed(OF_KEY_SHIFT)){ //shift + UP to grow plot heights
+								plotHeight -= 10;
+								plotHeight = MAX(plotHeight, 10);
+							}else{
 								selIndex ++;
 								if(selIndex >= drawLines.size()) selIndex = 0;
+								while(drawLines[selIndex].tm == NULL){
+									selIndex ++;
+									if(selIndex >= drawLines.size()) selIndex = 0;
+								}
+								selection = drawLines[selIndex].key;
 							}
-							selection = drawLines[selIndex].key;
 						}break;
 
 						case OF_KEY_UP:{
-							selIndex --;
-							if(selIndex < 0 ) selIndex = (int)drawLines.size() - 1;
-							while(drawLines[selIndex].tm == NULL){
+							if(ofGetKeyPressed(OF_KEY_SHIFT)){ //shift + DOWN to shrink plot heights
+								plotHeight += 10;
+							}else{
 								selIndex --;
 								if(selIndex < 0 ) selIndex = (int)drawLines.size() - 1;
+								while(drawLines[selIndex].tm == NULL){
+									selIndex --;
+									if(selIndex < 0 ) selIndex = (int)drawLines.size() - 1;
+								}
+								selection = drawLines[selIndex].key;
 							}
-							selection = drawLines[selIndex].key;
 						}break;
 
 						#if defined(USE_OFX_HISTORYPLOT)

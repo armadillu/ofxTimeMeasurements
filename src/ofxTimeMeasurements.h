@@ -63,7 +63,7 @@
 
 #include "ofxTimeMeasurementsMacros.h"
 
-#define TM_GET_MICROS() ofGetElapsedTimeMicros()
+#define TM_GET_MICROS() std::chrono::time_point_cast<chrono::microseconds>(std::chrono::high_resolution_clock::now()).time_since_epoch().count()
 
 
 #define TIME_MEASUREMENTS_LINE_HEIGHT		(14)

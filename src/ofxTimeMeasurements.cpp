@@ -483,6 +483,9 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 	t->microsecondsStart = TM_GET_MICROS();
 	t->thread = thread;
 
+
+
+
 	mutex.unlock();
 
 	if(internalBenchmark){

@@ -1340,8 +1340,10 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
 						case OF_KEY_DOWN:{
 							if(ofGetKeyPressed(OF_KEY_SHIFT)){ //shift + UP to grow plot heights
+								#if defined(USE_OFX_HISTORYPLOT)
 								plotHeight -= 10;
 								plotHeight = MAX(plotHeight, 10);
+								#endif
 							}else{
 								selIndex ++;
 								if(selIndex >= drawLines.size()) selIndex = 0;
@@ -1355,7 +1357,9 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 
 						case OF_KEY_UP:{
 							if(ofGetKeyPressed(OF_KEY_SHIFT)){ //shift + DOWN to shrink plot heights
+								#if defined(USE_OFX_HISTORYPLOT)
 								plotHeight += 10;
+								#endif
 							}else{
 								selIndex --;
 								if(selIndex < 0 ) selIndex = (int)drawLines.size() - 1;

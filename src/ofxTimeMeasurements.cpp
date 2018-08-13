@@ -1710,12 +1710,14 @@ void ofxTimeMeasurements::drawString(const string & text, const float & x, const
 
 
 void ofxTimeMeasurements::setUiScale(float scale){
-	uiScale = scale;
-	#ifdef USE_OFX_FONTSTASH
-	if(fontStashFile.size()){
-		drawUiWithFontStash(fontStashFile, fontSize);
+	if(fabs(scale - uiScale) > FLT_EPSILON){
+		uiScale = scale;
+		#ifdef USE_OFX_FONTSTASH
+		if(fontStashFile.size()){
+			drawUiWithFontStash(fontStashFile, fontSize);
+		}
+		#endif
 	}
-	#endif
 }
 
 

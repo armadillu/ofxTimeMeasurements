@@ -139,7 +139,7 @@
 	#define TS_STOP_ACC(x)
 
 	#define TS_START_NIF(x, ...)		
-	#define TS_STOP_NIF(x)				
+	#define TS_STOP_NIF(x)			0 /*usually retuns a timing*/
 	#define TS_START_ACC_NIF(x, ...)	
 	#define TS_STOP_ACC_NIF(x)
 

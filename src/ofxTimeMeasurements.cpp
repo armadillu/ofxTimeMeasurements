@@ -377,7 +377,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 
 	if(!bIsMainThread){
 		#ifdef TARGET_WIN32
-			//threadName = ""; //TODO find out thread name on all platforms
+			//threadName = ""; //FIXME: find out thread name on all platforms
 		#else
 			char buf[64];
 			int r = pthread_getname_np(pthread_self(), buf, 64);
@@ -1549,7 +1549,7 @@ string ofxTimeMeasurements::getTimeStringForTM(TimeMeasurement* tm) {
 
 void ofxTimeMeasurements::loadSettings(){
 
-	//todo this might get called before OF is setup, os ofToDataPath gives us weird results sometimes?
+	//FIXME: this might get called before OF is setup, os ofToDataPath gives us weird results sometimes?
 	string f = ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME, true);
 	ifstream myfile(f.c_str());
 	string name, visible, enabled_, plotting;

@@ -652,7 +652,7 @@ void ofxTimeMeasurements::updateLongestLabel(){
 
 #ifndef TARGET_OPENGLES
 void ofxTimeMeasurements::updateGLMeasurements(){
-	for(auto it : glTimes){
+	for(auto & it : glTimes){
 		it.second->update();
 		TimeMeasurement * tm = times[it.first];
 		if (it.second->isMeasurementReady()){

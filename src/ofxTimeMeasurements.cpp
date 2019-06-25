@@ -334,7 +334,7 @@ void ofxTimeMeasurements::stopMeasuringGL(const string & name){
 	}else{
 		GL_Measurement * m;
 		auto it = glTimes.find(glName);
-		if (it == glTimes.end()){ //unkonwn measurement! missmatched start-stop!
+		if (it == glTimes.end()){ //unkonwn measurement! mismatched start-stop!
 			ofLogError("ofxTimeMeasurements") << "Can't stopMeasuringGL()! you haven't started measuring yet! : " << name;
 		}else{
 			m = it->second;

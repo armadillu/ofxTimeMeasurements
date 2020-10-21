@@ -96,6 +96,11 @@
 		#define TSGL_STOP(x)			}ofxTimeMeasurements::instance()->stopMeasuringGL(x);
 		#define TSGL_START_NIF(x)			ofxTimeMeasurements::instance()->startMeasuringGL(x);
 		#define TSGL_STOP_NIF(x)			ofxTimeMeasurements::instance()->stopMeasuringGL(x);
+	#else
+		#define TSGL_START(x)
+		#define TSGL_STOP(x)
+		#define TSGL_START_NIF(x)
+		#define TSGL_STOP_NIF(x)
 	#endif
 
 #else

@@ -5,6 +5,8 @@
 
 int main( ){
 
+	ofGLFWWindowSettings settings;
+
 	#ifdef TARGET_OPENGLES
 		settings.setGLESVersion(2); 
 	#else

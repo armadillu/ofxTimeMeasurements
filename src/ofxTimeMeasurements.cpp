@@ -1007,7 +1007,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	int plotC = 0;
 	for(auto plot : plotsToDraw){
 		if(allPlotsTogether){ //lets find the range that covers all the plots
-			float high = plot->getHigestValue();
+			float high = plot->getHighestValue();
 			if (high > highest) highest = high;
 			plot->setDrawTitle(false);
 			if(plotC == 0){

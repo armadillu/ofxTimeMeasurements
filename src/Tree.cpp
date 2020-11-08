@@ -54,9 +54,28 @@ Tree::Node* Tree::Node::getLastChild() const{
 	return nullptr;
 }
 
+Tree::Node* Tree::Node::getNextChildren() const{
+	if(parent){
+		if(parent->children.size()){
+			auto it = std::find(parent->children.begin(), parent->children.end(), this);
+			if(it != parent->children.end()){
+				int index = it - parent->children.begin();
+				if(index + 1 < parent->children.size()){
+					return parent->children[index + 1];
+				}
+			}
+		}
+	}
+	return nullptr;
+}
 
 const std::vector<Tree::Node*> & Tree::Node::getChildren() const{
 	return children;
+}
+
+
+int Tree::Node::getNumChildren() const{
+	return children.size();
 }
 
 
@@ -73,19 +92,30 @@ Tree::Node* Tree::Node::findInChildren(const TREE_DATA & d){
 	return nullptr;
 }
 
+int Tree::Node::level() const{
 
-void Tree::Node::getAllData1(std::vector<TREE_DATA> & data) const{
-	data.push_back(this->data);
+	int l = 0;
+	const Tree::Node * it = this;
+	while(it->getParent()){
+		it = it->getParent();
+	}
+	return l;
+}
+
+
+void Tree::Node::getAllData1(std::vector<std::pair<Node*, int>> & data) const{
+	data.push_back(std::make_pair((Node*)this, this->level()));
 	for(auto & n : children){
 		n->getAllData1(data);
 	}
 }
 
-void Tree::Node::getAllData2(std::vector<TREE_DATA> & data) const{
+
+void Tree::Node::getAllData2(std::vector<std::pair<Node*, int>> & data) const{
 	for(auto & n : children){
 		n->getAllData2(data);
 	}
-	data.push_back(this->data);
+	data.push_back(std::make_pair((Node*)this, this->level()));
 }
 
 

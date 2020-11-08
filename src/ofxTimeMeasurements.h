@@ -11,6 +11,7 @@
 
 #include "ofMain.h"
 #include "../lib/tree.h"
+#include "Tree.h"
 #include <map>
 #include "GL_Measurement.h"
 
@@ -260,8 +261,12 @@ class ofxTimeMeasurements {
 		};
 
 		struct ThreadInfo{
-			core::tree<std::string>::iterator	tit; //tree iterator, to keep track of which node are we measuring now
-			core::tree<std::string>				tree;
+			//core::tree<std::string>::iterator		tit; //tree iterator, to keep track of which node are we measuring now
+			//core::tree<std::string>				tree;
+
+			Tree 									tree;
+			Tree::Node*	 							tit;
+
 			ofColor							color;
 			int								order;
 		};
@@ -284,7 +289,7 @@ class ofxTimeMeasurements {
 		void _windowResized(ofResizeEventArgs &e);
 
 		void autoDraw();
-		void collapseExpand(std::string sel, bool colapse);
+		void collapseExpand(const string & sel, bool colapse);
 		void updateLongestLabel();
 		void loadSettings();
 		void saveSettings();
@@ -401,8 +406,6 @@ class ofxTimeMeasurements {
 
 		float									charW; //to draw text flexibly with bitmap / fontstash
 		float									charH;
-
-		void walkTree(core::tree<std::string>::iterator Arg, int levelArg, std::vector<std::string> &result);
 
 		bool									drawAuto;
 		unsigned char							dimColorA;

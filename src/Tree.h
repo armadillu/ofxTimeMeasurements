@@ -20,6 +20,8 @@ public:
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+
 	class Node{
 
 		friend class Tree;
@@ -36,32 +38,36 @@ public:
 
 		Node* getFirstChild() const;
 		Node* getLastChild() const;
+		Node* getNextChildren() const;
 		const std::vector<Node*> & getChildren() const;
+		int getNumChildren() const;
 
-		void getAllData1(std::vector<TREE_DATA> & data) const;
-		void getAllData2(std::vector<TREE_DATA> & data) const;
+		void getAllData1(std::vector<std::pair<Node*, int>> & data) const;
+		void getAllData2(std::vector<std::pair<Node*, int>> & data) const;
 
 		Node* findInChildren(const TREE_DATA & d);
+
+		int level() const;
 
 	protected:
 
 		Node(const TREE_DATA & d, Node* parent);
 
-		Node * parent = nullptr;
+		Node* parent = nullptr;
 		std::vector<Node*> children;
 		TREE_DATA data;
 	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	Node * getRoot();
+	Node* getRoot();
 	Node* setup(const TREE_DATA & d);
-	Node * find(const TREE_DATA & d);
+	Node* find(const TREE_DATA & d);
 
 
 protected:
 
-	Node * root = nullptr;
+	Node* root = nullptr;
 
 
 };

@@ -391,7 +391,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 
 	unordered_map<ThreadId, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
 	ThreadInfo * tinfo = NULL;
-	core::tree<string> *tree = NULL;
+	Tree *tree = NULL;
 
 	bool newThread = threadIt == threadInfo.end();
 
@@ -422,13 +422,13 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 			tName = "OpenGL";
 		}
 		#endif
+
 		//init the iterator
-		*tree = tName; //thread name is root
-		tinfo->tit = (core::tree<string>::iterator)*tree;
+		tinfo->tit = tinfo->tree.setup(tName);
 
 	}else{
 		tinfo = &threadIt->second;
-		tree = &(tinfo->tree); //easier to read, tr is our tree from now on
+		tree = &(tinfo->tree);
 	}
 
 	if(tinfo->order > 0){
@@ -450,22 +450,24 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 		unordered_map<string, TimeMeasurementSettings>::iterator it2 = settings.find(localID);
 		if (it2 != settings.end()){
 			t->settings = settings[localID];
-			if(tinfo->tit.out() == tinfo->tit.end()){ //if we are the tree root - we cant be hidden!
+
+			if(tinfo->tit->getParent() == nullptr){ //if we are the tree root - we cant be hidden!
 				t->settings.visible = true;
 			}
 		}
-		tinfo->tit = tinfo->tit.push_back(localID);
+		//tinfo->tit = tinfo->tit.push_back(localID);
+		tinfo->tit = tinfo->tit->addChildren(localID);
 
 	}else{
-		core::tree<string>::iterator temptit = tree->tree_find_depth(localID);
-		if(temptit != tree->end()){
+		Tree::Node* temptit = tree->find(localID);
+		if(temptit){
 			tinfo->tit = temptit;
 		}else{
 			//cout << "gotcha!" << endl;
 			//this is the rare case where we already had a measurement for this ID,
 			//but it must be assigned to another old thread bc we cant find it!
 			//so we re-add that ID for this thread and update the tree iterator
-			tinfo->tit = tinfo->tit.push_back(localID);
+			tinfo->tit = tinfo->tit->addChildren(localID);
 		}
 		t = tit->second;
 	}
@@ -534,12 +536,10 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 		#endif
 	}
 
-	core::tree<string> & tree = tinfo.tree; //easier to read, tr is our tree from now on
-	core::tree<string>::iterator & tit = tinfo.tit;
-	if (tit.out() != tree.end()){
-		tit = tit.out();
+	if (tinfo.tit->getParent()){
+		tinfo.tit =tinfo.tit->getParent();
 	}else{
-		//ofLogError("ofxTimeMeasurements") << "tree climbing too high up! (" << localID << ")";
+		ofLogError("ofxTimeMeasurements") << "tree climbing too high up! (" << localID << ")";
 	}
 
 	unordered_map<string,TimeMeasurement*>::iterator it;
@@ -761,141 +761,131 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	for(size_t k = 0; k < sortedThreadList.size(); k++ ){ //walk all thread trees
 
 		ThreadId thread = sortedThreadList[k].id;
-		core::tree<string> &tree = sortedThreadList[k].info->tree;
+		Tree &tree = sortedThreadList[k].info->tree;
 
 		ThreadInfo & tinfo = threadInfo[thread];
 		PrintedLine header;
-		header.formattedKey = "+ " + *tree;
+		header.formattedKey = "+ " + tree.getRoot()->getData();
 		header.color = tinfo.color;
 		header.lineBgColor = ofColor(header.color, dimColorA * 2); //header twice as alpha
-		header.key = *tree; //key for selection, is thread name
+		header.key = tree.getRoot()->getData(); //key for selection, is thread name
 		drawLines.push_back(header); //add header to drawLines
 
 		int numAlive = 0;
 		int numAdded = 0;
 
-		core::tree<string>::iterator wholeTreeWalker = tree.in();
-		bool finishedWalking = false;
+		//Tree::Node * wholeTreeWalker = tree.getRoot();
+		//bool finishedWalking = false;
 		#if defined(USE_OFX_HISTORYPLOT)
 		float winW = ofGetWidth();
 		#endif
 
-		while( !finishedWalking ){
+		std::vector<std::pair<Tree::Node*, int>> allKeys;
+		tree.getRoot()->getAllData1(allKeys);
 
-			string key = *wholeTreeWalker;
-			TimeMeasurement * t = times[*wholeTreeWalker];
-			if(t->thread == thread){
+		for(auto & pair : allKeys){
 
-				#if defined(USE_OFX_HISTORYPLOT)
-				bool plotActive = false;
-				ofxHistoryPlot* plot = plots[key];
-				if(plot){
-					if(t->settings.plotting){
-						if(t->updatedLastFrame){
-							//update plot res every now and then
-							if(currentFrameNum%120 == 1) plot->setMaxHistory(MIN(maxPlotSamples, winW * plotResolution));
-							if (!freeze && t->settings.enabled) {
-								if (t->accumulating) {
-									plot->update(t->microsecondsAccum / 1000.0f);
-								}
-								else {
-									plot->update(t->avgDuration / 1000.0f);
-								}
-							}
-						}
-						plotsToDraw.push_back(plot);
-						plotActive = true;
-					}
-				}
-				#endif
+			Tree::Node * node = pair.first;
 
-				bool visible = t->settings.visible;
-				bool alive = t->life > 0.0001;
-				if(alive){
-					numAlive++;
-				}
+			if(node->getParent()){ //skip root
+				std::string key = node->getData();
+				int level = pair.second;
 
-				if (visible && (removeExpiredTimings ? alive : true)){
-					PrintedLine l;
-					l.key = key;
-					l.tm = t;
-					l.lineBgColor = ofColor(tinfo.color, dimColorA);
-
-					int depth = (int)wholeTreeWalker.level();
-					for(int i = 0; i < depth; ++i) l.formattedKey += " ";
-
-					if (wholeTreeWalker.size() == 0){
-						l.formattedKey += "-";
-					}else{
-						l.formattedKey += "+";
-					}
-					string keyStr;
-					if (!t->isGL){
-						keyStr = key;
-					}else{ //lets remove the GL_ prefiix on display
-						#ifndef TARGET_OPENGLES
-						keyStr = key.substr(glPrefix.size(), key.size() - glPrefix.size());
-						#endif
-					}
-					l.formattedKey += keyStr + string(t->accumulating ? "[" + ofToString(t->numAccumulations)+ "]" : "" );
-					l.isAccum = t->accumulating;
-					l.time = getTimeStringForTM(t);
-					if(drawPercentageAsGraph){
-						l.percentGraph = getPctForTM(t);
-					}
-
-					l.color = tinfo.color * ((1.0 - idleTimeColorFadePercent) + idleTimeColorFadePercent * t->life);
-					if (!t->settings.enabled){
-						if(t->ifClause){
-							l.color = disabledTextColor;
-						}else{
-							l.color = disabledTextColor.getInverted();
-						}
-					}
+				TimeMeasurement * t = times[key];
+				if(t->thread == thread){
 
 					#if defined(USE_OFX_HISTORYPLOT)
-					if(plotActive){
-						l.plotColor = ofColor(plots[key]->getColor(), 200);
+					bool plotActive = false;
+					ofxHistoryPlot* plot = plots[key];
+					if(plot){
+						if(t->settings.plotting){
+							if(t->updatedLastFrame){
+								//update plot res every now and then
+								if(currentFrameNum%120 == 1) plot->setMaxHistory(MIN(maxPlotSamples, winW * plotResolution));
+								if (!freeze && t->settings.enabled) {
+									if (t->accumulating) {
+										plot->update(t->microsecondsAccum / 1000.0f);
+									}
+									else {
+										plot->update(t->avgDuration / 1000.0f);
+									}
+								}
+							}
+							plotsToDraw.push_back(plot);
+							plotActive = true;
+						}
 					}
 					#endif
 
-					if (menuActive && t->key == selection){
-						if(currentFrameNum%5 < 4){
-							l.color.invert();
-							l.lineBgColor = ofColor(tinfo.color, dimColorA * 1.5);
+					bool visible = t->settings.visible;
+					bool alive = t->life > 0.0001;
+					if(alive){
+						numAlive++;
+					}
+
+					if (visible && (removeExpiredTimings ? alive : true)){
+						PrintedLine l;
+						l.key = key;
+						l.tm = t;
+						l.lineBgColor = ofColor(tinfo.color, dimColorA);
+
+						int depth = level;
+						for(int i = 0; i < depth; ++i) l.formattedKey += " ";
+
+						if (node->getNumChildren() == 0){
+							l.formattedKey += "-";
+						}else{
+							l.formattedKey += "+";
 						}
+						string keyStr;
+						if (!t->isGL){
+							keyStr = key;
+						}else{ //lets remove the GL_ prefiix on display
+							#ifndef TARGET_OPENGLES
+							keyStr = key.substr(glPrefix.size(), key.size() - glPrefix.size());
+							#endif
+						}
+						l.formattedKey += keyStr + string(t->accumulating ? "[" + ofToString(t->numAccumulations)+ "]" : "" );
+						l.isAccum = t->accumulating;
+						l.time = getTimeStringForTM(t);
+						if(drawPercentageAsGraph){
+							l.percentGraph = getPctForTM(t);
+						}
+
+						l.color = tinfo.color * ((1.0 - idleTimeColorFadePercent) + idleTimeColorFadePercent * t->life);
+						if (!t->settings.enabled){
+							if(t->ifClause){
+								l.color = disabledTextColor;
+							}else{
+								l.color = disabledTextColor.getInverted();
+							}
+						}
+
+						#if defined(USE_OFX_HISTORYPLOT)
+						if(plotActive){
+							l.plotColor = ofColor(plots[key]->getColor(), 200);
+						}
+						#endif
+
+						if (menuActive && t->key == selection){
+							if(currentFrameNum%5 < 4){
+								l.color.invert();
+								l.lineBgColor = ofColor(tinfo.color, dimColorA * 1.5);
+							}
+						}
+
+						drawLines.push_back(l);
+						numAdded++;
 					}
 
-					drawLines.push_back(l);
-					numAdded++;
-				}
-
-				//only update() and draw() count to the final %
-				if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
-					percentTotal += (t->avgDuration * 0.1f) / timePerFrame;
-				}
-				//reset accumulator
-				t->accumulating = false;
-				t->numAccumulations = 0;
-				t->microsecondsAccum = 0;
-			}
-
-			//control the iterator to walk the tree "recursively" without doing so.
-			if(wholeTreeWalker.size()){
-				wholeTreeWalker = wholeTreeWalker.in();
-			}else{
-				if ( wholeTreeWalker.next() == wholeTreeWalker.end() ){
-					wholeTreeWalker = wholeTreeWalker.out();
-					while( wholeTreeWalker.next() == wholeTreeWalker.end() && wholeTreeWalker != tree){
-						wholeTreeWalker = wholeTreeWalker.out();
+					//only update() and draw() count to the final %
+					if(key == TIME_MEASUREMENTS_DRAW_KEY || key == TIME_MEASUREMENTS_UPDATE_KEY){
+						percentTotal += (t->avgDuration * 0.1f) / timePerFrame;
 					}
-					if(wholeTreeWalker == tree){
-						finishedWalking = true;
-					}else{
-						wholeTreeWalker++;
-					}
-				}else{
-					++wholeTreeWalker;
+					//reset accumulator
+					t->accumulating = false;
+					t->numAccumulations = 0;
+					t->microsecondsAccum = 0;
 				}
 			}
 		}
@@ -1424,20 +1414,21 @@ bool ofxTimeMeasurements::_keyPressed(ofKeyEventArgs &e){
 }
 
 
-void ofxTimeMeasurements::collapseExpand(string sel, bool collapse){
+void ofxTimeMeasurements::collapseExpand(const string & sel, bool collapse){
 
 	unordered_map<ThreadId, ThreadInfo>::iterator ii;
 
 	for( ii = threadInfo.begin(); ii != threadInfo.end(); ++ii ){
 
-		core::tree<string> &tr = ii->second.tree;
-		core::tree<string>::iterator loc = tr.tree_find_depth(sel);
+		Tree &tr = ii->second.tree;
+		Tree::Node * loc = tr.find(sel);
 
-		if( loc != tr.end()) {
-			vector<string> subTree;
-			walkTree(loc, 0, subTree);
-			for(int p = 0; p < subTree.size(); p++ ){
-				times[subTree[p]]->settings.visible = !collapse;
+		if( loc ) {
+			std::vector<std::pair<Tree::Node*, int>> subTree;
+			loc->getAllData1(subTree);
+			for(auto & pair : subTree){
+				const std::string & key = pair.first->getData();
+				times[key]->settings.visible = !collapse;
 			}
 		}
 	}
@@ -1636,15 +1627,6 @@ void ofxTimeMeasurements::saveSettings(){
 		<< endl;
 	}
 	myfile.close();
-}
-
-
-void ofxTimeMeasurements::walkTree(core::tree<string>::iterator Arg, int levelArg, vector<string> &result){
-	levelArg++;
-	for(core::tree<string>::iterator x = Arg.begin(); x != Arg.end(); ++x){
-		result.push_back(x.data());
-		walkTree(x, levelArg, result);
-	}
 }
 
 

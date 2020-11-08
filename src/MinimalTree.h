@@ -14,13 +14,10 @@
 
 #define TREE_DATA_TYPE	std::string
 
-
 class MinimalTree{
 public:
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 	class Node{
 
@@ -69,7 +66,6 @@ public:
 protected:
 
 	Node* root = nullptr;
-
 
 };
 

@@ -116,7 +116,6 @@ void MinimalTree::Node::walkAndStore(std::vector<std::pair<Node*, int>> & data, 
 }
 
 
-
 ///////////////////////////////////////////////////////////////////
 
 MinimalTree::Node* MinimalTree::setup(const TREE_DATA_TYPE & d){

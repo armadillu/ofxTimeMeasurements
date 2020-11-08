@@ -781,7 +781,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		#endif
 
 		std::vector<std::pair<Tree::Node*, int>> allKeys;
-		tree.getRoot()->getAllData1(allKeys);
+		tree.getRoot()->getAllData(allKeys);
 
 		for(auto & pair : allKeys){
 
@@ -1425,7 +1425,7 @@ void ofxTimeMeasurements::collapseExpand(const string & sel, bool collapse){
 
 		if( loc ) {
 			std::vector<std::pair<Tree::Node*, int>> subTree;
-			loc->getAllData1(subTree);
+			loc->getAllData(subTree);
 			for(auto & pair : subTree){
 				const std::string & key = pair.first->getData();
 				times[key]->settings.visible = !collapse;
@@ -1433,6 +1433,7 @@ void ofxTimeMeasurements::collapseExpand(const string & sel, bool collapse){
 		}
 	}
 }
+
 
 string ofxTimeMeasurements::formatTime(uint64_t microSeconds, int precision){
 

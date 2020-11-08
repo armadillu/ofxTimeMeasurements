@@ -98,25 +98,23 @@ int Tree::Node::level() const{
 	const Tree::Node * it = this;
 	while(it->getParent()){
 		it = it->getParent();
+		l++;
 	}
 	return l;
 }
 
 
-void Tree::Node::getAllData1(std::vector<std::pair<Node*, int>> & data) const{
-	data.push_back(std::make_pair((Node*)this, this->level()));
+void Tree::Node::getAllData(std::vector<std::pair<Node*, int>> & data) const{
+	walkAndStore(data, true);
+}
+
+void Tree::Node::walkAndStore(std::vector<std::pair<Node*, int>> & data, bool isRoot) const{
+	if(!isRoot) data.push_back(std::make_pair((Node*)this, this->level()));
 	for(auto & n : children){
-		n->getAllData1(data);
+		n->walkAndStore(data, false);
 	}
 }
 
-
-void Tree::Node::getAllData2(std::vector<std::pair<Node*, int>> & data) const{
-	for(auto & n : children){
-		n->getAllData2(data);
-	}
-	data.push_back(std::make_pair((Node*)this, this->level()));
-}
 
 
 ///////////////////////////////////////////////////////////////////

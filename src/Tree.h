@@ -42,8 +42,7 @@ public:
 		const std::vector<Node*> & getChildren() const;
 		int getNumChildren() const;
 
-		void getAllData1(std::vector<std::pair<Node*, int>> & data) const;
-		void getAllData2(std::vector<std::pair<Node*, int>> & data) const;
+		void getAllData(std::vector<std::pair<Node*, int>> & data) const;
 
 		Node* findInChildren(const TREE_DATA & d);
 
@@ -56,6 +55,8 @@ public:
 		Node* parent = nullptr;
 		std::vector<Node*> children;
 		TREE_DATA data;
+
+		void walkAndStore(std::vector<std::pair<Node*, int>> & data, bool isRoot = true) const;
 	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////

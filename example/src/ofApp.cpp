@@ -19,21 +19,13 @@ void ofApp::setup(){
 	auto bac = ba->addChildren("bac");
 
 	std::vector<std::pair<Tree::Node*, int>> allData1;
-	root->getAllData1(allData1);
+	root->getAllData(allData1);
 
 	string list1;
 	for(auto & l : allData1){
 		list1 += l.first->getData() + ", ";
 	}
 	ofLogNotice() << "allData1:" << list1;
-
-	std::vector<std::pair<Tree::Node*, int>> allData2;
-	root->getAllData1(allData2);
-	string list2;
-	for(auto & l : allData2){
-		list2 += l.first->getData() + ", ";
-	}
-	ofLogNotice() << "allData2:" << list2;
 
 	auto findRes = t.find("bac");
 

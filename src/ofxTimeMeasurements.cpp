@@ -391,7 +391,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 
 	unordered_map<ThreadId, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
 	ThreadInfo * tinfo = NULL;
-	core::tree<string> *tr = NULL;
+	core::tree<string> *tree = NULL;
 
 	bool newThread = threadIt == threadInfo.end();
 
@@ -400,7 +400,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 		//cout << "NewThread! " << ID << " " << &thread << endl;
 		threadInfo[thread] = ThreadInfo();
 		tinfo = &threadInfo[thread];
-		tr = &tinfo->tree; //easier to read, tr is our tree from now on
+		tree = &tinfo->tree; //easier to read, tr is our tree from now on
 
 		if (!bIsMainThread){
 			tinfo->color = threadColorTable[numThreads%(threadColorTable.size())];
@@ -423,12 +423,12 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 		}
 		#endif
 		//init the iterator
-		*tr = tName; //thread name is root
-		tinfo->tit = (core::tree<string>::iterator)*tr;
+		*tree = tName; //thread name is root
+		tinfo->tit = (core::tree<string>::iterator)*tree;
 
 	}else{
 		tinfo = &threadIt->second;
-		tr = &(tinfo->tree); //easier to read, tr is our tree from now on
+		tree = &(tinfo->tree); //easier to read, tr is our tree from now on
 	}
 
 	if(tinfo->order > 0){
@@ -457,8 +457,8 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 		tinfo->tit = tinfo->tit.push_back(localID);
 
 	}else{
-		core::tree<string>::iterator temptit = tr->tree_find_depth(localID);
-		if(temptit != tr->end()){
+		core::tree<string>::iterator temptit = tree->tree_find_depth(localID);
+		if(temptit != tree->end()){
 			tinfo->tit = temptit;
 		}else{
 			//cout << "gotcha!" << endl;
@@ -534,9 +534,9 @@ float ofxTimeMeasurements::stopMeasuring(const string & ID, bool accumulate){
 		#endif
 	}
 
-	core::tree<string> & tr = tinfo.tree; //easier to read, tr is our tree from now on
+	core::tree<string> & tree = tinfo.tree; //easier to read, tr is our tree from now on
 	core::tree<string>::iterator & tit = tinfo.tit;
-	if (tit.out() != tr.end()){
+	if (tit.out() != tree.end()){
 		tit = tit.out();
 	}else{
 		//ofLogError("ofxTimeMeasurements") << "tree climbing too high up! (" << localID << ")";
@@ -761,20 +761,20 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	for(size_t k = 0; k < sortedThreadList.size(); k++ ){ //walk all thread trees
 
 		ThreadId thread = sortedThreadList[k].id;
-		core::tree<string> &tr = sortedThreadList[k].info->tree;
+		core::tree<string> &tree = sortedThreadList[k].info->tree;
 
 		ThreadInfo & tinfo = threadInfo[thread];
 		PrintedLine header;
-		header.formattedKey = "+ " + *tr;
+		header.formattedKey = "+ " + *tree;
 		header.color = tinfo.color;
 		header.lineBgColor = ofColor(header.color, dimColorA * 2); //header twice as alpha
-		header.key = *tr; //key for selection, is thread name
+		header.key = *tree; //key for selection, is thread name
 		drawLines.push_back(header); //add header to drawLines
 
 		int numAlive = 0;
 		int numAdded = 0;
 
-		core::tree<string>::iterator wholeTreeWalker = tr.in();
+		core::tree<string>::iterator wholeTreeWalker = tree.in();
 		bool finishedWalking = false;
 		#if defined(USE_OFX_HISTORYPLOT)
 		float winW = ofGetWidth();
@@ -886,10 +886,10 @@ void ofxTimeMeasurements::draw(int x, int y) {
 			}else{
 				if ( wholeTreeWalker.next() == wholeTreeWalker.end() ){
 					wholeTreeWalker = wholeTreeWalker.out();
-					while( wholeTreeWalker.next() == wholeTreeWalker.end() && wholeTreeWalker != tr){
+					while( wholeTreeWalker.next() == wholeTreeWalker.end() && wholeTreeWalker != tree){
 						wholeTreeWalker = wholeTreeWalker.out();
 					}
-					if(wholeTreeWalker == tr){
+					if(wholeTreeWalker == tree){
 						finishedWalking = true;
 					}else{
 						wholeTreeWalker++;

@@ -15,7 +15,6 @@
 #include "GL_Measurement.h"
 
 
-
 #if __cplusplus>=201103L || defined(_MSC_VER)
 	#include <unordered_map>
 	#include <memory>
@@ -109,11 +108,11 @@ class ofxTimeMeasurements {
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 											//affects the % busy indicator
 
-		//ifEnabled  > if true, it means that measurement is wrapped aroun with an if() caluse
+		//ifEnabled  > if true, it means that measurement is wrapped around with an if() caluse
 		bool startMeasuring(const std::string & ID, bool accumulate, bool ifEnabled = true);
 		float stopMeasuring(const std::string & ID, bool accumulate);
 
-		// GL
+		// GL (GPU render time) measurements
 		#ifndef TARGET_OPENGLES
 		bool startMeasuringGL(const std::string & name);
 		void stopMeasuringGL(const std::string & name);
@@ -154,7 +153,7 @@ class ofxTimeMeasurements {
 		float getAvgDurationFor(const std::string & ID); //ms
 
 		void setUiScale(float scale);
-		float getUiScale(){return uiScale;}	
+		float getUiScale(){return uiScale;}
 
 		void setRemoveExpiredThreads(bool b){removeExpiredThreads = b;}
 		void setRemoveExpiredTimings(bool r){removeExpiredTimings = r;}
@@ -395,7 +394,7 @@ class ofxTimeMeasurements {
 		#endif
 
 		#ifdef USE_OFX_FONTSTASH2
-		std::string 									fontStashFile2;
+		std::string 								fontStashFile2;
 		ofxFontStash2::Fonts					font2;
 		float									fontSize2;
 		#endif

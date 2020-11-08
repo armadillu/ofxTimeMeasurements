@@ -1,7 +1,48 @@
 #include "ofApp.h"
-
+#include "Tree.h"
 
 void ofApp::setup(){
+
+
+	Tree t;
+	Tree::Node * root = t.setup("root");
+
+	Tree::Node * a = root->addChildren("a");
+	Tree::Node * b = root->addChildren("b");
+	a->addChildren("aa");
+	a->addChildren("ab");
+
+	auto ba = b->addChildren("ba");
+	auto bb = b->addChildren("bb");
+	auto bc = b->addChildren("bc");
+
+	auto bac = ba->addChildren("bac");
+
+	vector<std::string> allData1;
+	root->getAllData1(allData1);
+
+	string list1;
+	for(auto & l : allData1){
+		list1 += l + ", ";
+	}
+	ofLogNotice() << "allData1:" << list1;
+
+	vector<std::string> allData2;
+	root->getAllData1(allData2);
+	string list2;
+	for(auto & l : allData2){
+		list2 += l + ", ";
+	}
+	ofLogNotice() << "allData2:" << list2;
+
+	auto findRes = t.find("bac");
+
+	string fullPath;
+	while(findRes->getParent()){
+		fullPath = findRes->getData() + "/" + fullPath;
+		findRes = findRes->getParent();
+	}
+	ofLogNotice() << "fullPath: " << fullPath;
 
 	ofBackground(22);
 
@@ -21,6 +62,8 @@ void ofApp::setup(){
 	//TIME_SAMPLE_GET_INSTANCE()->drawUiWithFontStash("fonts/UbuntuMono-R.ttf");
 	//TIME_SAMPLE_GET_INSTANCE()->drawUiWithFontStash2("fonts/UbuntuMono-R.ttf");
 	startThread();
+
+
 }
 
 

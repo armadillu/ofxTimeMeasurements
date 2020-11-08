@@ -10,8 +10,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "../lib/tree.h"
-#include "Tree.h"
+#include "MinimalTree.h"
 #include <map>
 #include "GL_Measurement.h"
 
@@ -264,8 +263,8 @@ class ofxTimeMeasurements {
 			//core::tree<std::string>::iterator		tit; //tree iterator, to keep track of which node are we measuring now
 			//core::tree<std::string>				tree;
 
-			Tree 									tree;
-			Tree::Node*	 							tit;
+			MinimalTree 									tree;
+			MinimalTree::Node*	 							tit;
 
 			ofColor							color;
 			int								order;

@@ -207,5 +207,3 @@ This can be useful on retina/4k screens to make the widget more legible, as show
 
 ##LICENSE
 ofxTimeMeasurements is made available under the [MIT](http://opensource.org/licenses/MIT) license.
-
-ofxTimeMeasurements makes small use of [tree.h](http://archive.gamedev.net/archive/reference/programming/features/coretree2/tree.h) by Justin Gottschlich which is licensed under the terms of the GNU Lesser General Public License 2.1 ([LGPL v2.1](http://choosealicense.com/licenses/lgpl-2.1/)).

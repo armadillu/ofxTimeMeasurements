@@ -1,14 +1,14 @@
 #include "ofApp.h"
-#include "Tree.h"
+#include "MinimalTree.h"
 
 void ofApp::setup(){
 
 
-	Tree t;
-	Tree::Node * root = t.setup("root");
+	MinimalTree t;
+	MinimalTree::Node * root = t.setup("root");
 
-	Tree::Node * a = root->addChildren("a");
-	Tree::Node * b = root->addChildren("b");
+	MinimalTree::Node * a = root->addChildren("a");
+	MinimalTree::Node * b = root->addChildren("b");
 	a->addChildren("aa");
 	a->addChildren("ab");
 
@@ -18,7 +18,7 @@ void ofApp::setup(){
 
 	auto bac = ba->addChildren("bac");
 
-	std::vector<std::pair<Tree::Node*, int>> allData1;
+	std::vector<std::pair<MinimalTree::Node*, int>> allData1;
 	root->getAllData(allData1);
 
 	string list1;

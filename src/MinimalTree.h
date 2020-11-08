@@ -1,5 +1,5 @@
 //
-//  Tree.hpp
+//  MinimalTree.hpp
 //  ofxTimeMeasurements_example
 //
 //  Created by Oriol Ferrer Mesià on 07/11/2020.
@@ -15,7 +15,7 @@
 #define TREE_DATA	std::string
 
 
-class Tree{
+class MinimalTree{
 public:
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@ public:
 
 	class Node{
 
-		friend class Tree;
+		friend class MinimalTree;
 
 	public:
 

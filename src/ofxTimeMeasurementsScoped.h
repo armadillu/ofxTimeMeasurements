@@ -9,32 +9,12 @@
 
 #pragma once
 
-#include "ofxTimeMeasurements.h"
-#include "ofxTimeMeasurementsMacros.h"
-
 
 class ofxTimeMeasurementsScoped {
 
 public:
-	ofxTimeMeasurementsScoped(std::string key, bool acc) {
-
-		this->key = key;
-		this->acc = acc;
-
-		if(acc) {
-			TS_START_ACC_NIF(key);
-		} else {
-			TS_START_NIF(key);
-		}
-	}
-
-	~ofxTimeMeasurementsScoped(){
-		if(acc) {
-			TS_STOP_ACC_NIF(key);
-		} else {
-			TS_STOP_NIF(key);
-		}
-	}
+	ofxTimeMeasurementsScoped(std::string key, bool acc);
+	~ofxTimeMeasurementsScoped();
 
 protected:
 

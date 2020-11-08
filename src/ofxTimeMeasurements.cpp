@@ -391,7 +391,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 
 	unordered_map<ThreadId, ThreadInfo>::iterator threadIt = threadInfo.find(thread);
 	ThreadInfo * tinfo = NULL;
-	Tree *tree = NULL;
+	MinimalTree *tree = NULL;
 
 	bool newThread = threadIt == threadInfo.end();
 
@@ -459,7 +459,7 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 		tinfo->tit = tinfo->tit->addChildren(localID);
 
 	}else{
-		Tree::Node* temptit = tree->find(localID);
+		MinimalTree::Node* temptit = tree->find(localID);
 		if(temptit){
 			tinfo->tit = temptit;
 		}else{
@@ -484,9 +484,6 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 	t->updatedLastFrame = true;
 	t->microsecondsStart = TM_GET_MICROS();
 	t->thread = thread;
-
-
-
 
 	mutex.unlock();
 
@@ -761,7 +758,7 @@ void ofxTimeMeasurements::draw(int x, int y) {
 	for(size_t k = 0; k < sortedThreadList.size(); k++ ){ //walk all thread trees
 
 		ThreadId thread = sortedThreadList[k].id;
-		Tree &tree = sortedThreadList[k].info->tree;
+		MinimalTree &tree = sortedThreadList[k].info->tree;
 
 		ThreadInfo & tinfo = threadInfo[thread];
 		PrintedLine header;
@@ -774,18 +771,16 @@ void ofxTimeMeasurements::draw(int x, int y) {
 		int numAlive = 0;
 		int numAdded = 0;
 
-		//Tree::Node * wholeTreeWalker = tree.getRoot();
-		//bool finishedWalking = false;
 		#if defined(USE_OFX_HISTORYPLOT)
 		float winW = ofGetWidth();
 		#endif
 
-		std::vector<std::pair<Tree::Node*, int>> allKeys;
+		std::vector<std::pair<MinimalTree::Node*, int>> allKeys;
 		tree.getRoot()->getAllData(allKeys);
 
 		for(auto & pair : allKeys){
 
-			Tree::Node * node = pair.first;
+			MinimalTree::Node * node = pair.first;
 
 			if(node->getParent()){ //skip root
 				std::string key = node->getData();
@@ -1420,11 +1415,11 @@ void ofxTimeMeasurements::collapseExpand(const string & sel, bool collapse){
 
 	for( ii = threadInfo.begin(); ii != threadInfo.end(); ++ii ){
 
-		Tree &tr = ii->second.tree;
-		Tree::Node * loc = tr.find(sel);
+		MinimalTree &tr = ii->second.tree;
+		MinimalTree::Node * loc = tr.find(sel);
 
 		if( loc ) {
-			std::vector<std::pair<Tree::Node*, int>> subTree;
+			std::vector<std::pair<MinimalTree::Node*, int>> subTree;
 			loc->getAllData(subTree);
 			for(auto & pair : subTree){
 				const std::string & key = pair.first->getData();

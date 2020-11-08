@@ -8,28 +8,28 @@
 #include "MinimalTree.h"
 #include "ofLog.h"
 
-MinimalTree::Node::Node(const TREE_DATA & d){
+MinimalTree::Node::Node(const TREE_DATA_TYPE & d){
 	data = d;
 	parent = nullptr;
 }
 
-MinimalTree::Node::Node(const TREE_DATA & d, MinimalTree::Node* parent){
+MinimalTree::Node::Node(const TREE_DATA_TYPE & d, MinimalTree::Node* parent){
 	data = d;
 	this->parent = parent;
 }
 
-const TREE_DATA & MinimalTree::Node::getData(){
+const TREE_DATA_TYPE & MinimalTree::Node::getData(){
 	return data;
 }
 
-MinimalTree::Node* MinimalTree::Node::addChildren(const TREE_DATA & d){
+MinimalTree::Node* MinimalTree::Node::addChildren(const TREE_DATA_TYPE & d){
 	MinimalTree::Node * n = new MinimalTree::Node(d, this);
 	children.push_back(n);
 	return n;
 }
 
 
-MinimalTree::Node* MinimalTree::Node::addSibling(const TREE_DATA & d){
+MinimalTree::Node* MinimalTree::Node::addSibling(const TREE_DATA_TYPE & d){
 	if(this->parent){
 		return this->parent->addChildren(d);
 	}else{
@@ -79,7 +79,7 @@ int MinimalTree::Node::getNumChildren() const{
 }
 
 
-MinimalTree::Node* MinimalTree::Node::findInChildren(const TREE_DATA & d){
+MinimalTree::Node* MinimalTree::Node::findInChildren(const TREE_DATA_TYPE & d){
 	for(auto & n : children){
 		if(n->data == d) return n;
 	}
@@ -119,7 +119,7 @@ void MinimalTree::Node::walkAndStore(std::vector<std::pair<Node*, int>> & data, 
 
 ///////////////////////////////////////////////////////////////////
 
-MinimalTree::Node* MinimalTree::setup(const TREE_DATA & d){
+MinimalTree::Node* MinimalTree::setup(const TREE_DATA_TYPE & d){
 	root = new Node(d);
 	return root;
 }
@@ -129,7 +129,7 @@ MinimalTree::Node* MinimalTree::getRoot(){
 	return root;
 }
 
-MinimalTree::Node* MinimalTree::find(const TREE_DATA & d){
+MinimalTree::Node* MinimalTree::find(const TREE_DATA_TYPE & d){
 	if(root) return root->findInChildren(d);
 	return nullptr;
 }

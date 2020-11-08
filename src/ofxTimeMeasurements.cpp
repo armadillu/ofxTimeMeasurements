@@ -16,6 +16,19 @@ using namespace std;
 
 ofxTimeMeasurements* ofxTimeMeasurements::singleton = NULL;
 
+ofxTimeMeasurements::TimeMeasurement::TimeMeasurement(){
+	microsecondsAccum = 0;
+	numAccumulations = 0;
+	settings.visible = true;
+	settings.enabled = true;
+	life = 1.0f;
+	accumulating = false;
+	duration = 0;
+	avgDuration = 0.0;
+	isGL = false;
+}
+
+
 ofxTimeMeasurements::ofxTimeMeasurements(){
 
 	currentFrameNum = 0;

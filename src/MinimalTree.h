@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#define TREE_DATA	std::string
+#define TREE_DATA_TYPE	std::string
 
 
 class MinimalTree{
@@ -28,11 +28,11 @@ public:
 
 	public:
 
-		Node(const TREE_DATA & d);
-		const TREE_DATA & getData();
+		Node(const TREE_DATA_TYPE & d);
+		const TREE_DATA_TYPE & getData();
 
-		Node* addChildren(const TREE_DATA & d);
-		Node* addSibling(const TREE_DATA & d);
+		Node* addChildren(const TREE_DATA_TYPE & d);
+		Node* addSibling(const TREE_DATA_TYPE & d);
 
 		Node * getParent() const;
 
@@ -44,17 +44,17 @@ public:
 
 		void getAllData(std::vector<std::pair<Node*, int>> & data) const;
 
-		Node* findInChildren(const TREE_DATA & d);
+		Node* findInChildren(const TREE_DATA_TYPE & d);
 
 		int level() const;
 
 	protected:
 
-		Node(const TREE_DATA & d, Node* parent);
+		Node(const TREE_DATA_TYPE & d, Node* parent);
 
 		Node* parent = nullptr;
 		std::vector<Node*> children;
-		TREE_DATA data;
+		TREE_DATA_TYPE data;
 
 		void walkAndStore(std::vector<std::pair<Node*, int>> & data, bool isRoot = true) const;
 	};
@@ -62,8 +62,8 @@ public:
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Node* getRoot();
-	Node* setup(const TREE_DATA & d);
-	Node* find(const TREE_DATA & d);
+	Node* setup(const TREE_DATA_TYPE & d);
+	Node* find(const TREE_DATA_TYPE & d);
 
 
 protected:

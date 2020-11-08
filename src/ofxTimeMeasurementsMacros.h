@@ -184,9 +184,9 @@
 #ifndef TARGET_WIN32
 inline std::string demangledTypeInfoName(const std::type_info&ti){
 
-	static char demangleBuffer[512];
+	char demangleBuffer[128];
 	int status;
-	size_t len = 512;
+	size_t len = 128;
 	abi::__cxa_demangle(ti.name(),(char*)&demangleBuffer, &len, &status);
 	//note theres no need to free the returned char* as we are providing our own buffer
 	std::string finalS = std::string(demangleBuffer);

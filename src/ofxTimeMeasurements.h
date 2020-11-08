@@ -231,17 +231,7 @@ class ofxTimeMeasurements {
 			bool isGL; //this is a GL measurement, some behaviors don't apply
 			TimeMeasurementSettings settings;
 
-			TimeMeasurement(){
-				microsecondsAccum = 0;
-				numAccumulations = 0;
-				settings.visible = true;
-				settings.enabled = true;
-				life = 1.0f;
-				accumulating = false;
-				duration = 0;
-				avgDuration = 0.0;
-				isGL = false;
-			}
+			TimeMeasurement();
 		};
 
 		struct PrintedLine{

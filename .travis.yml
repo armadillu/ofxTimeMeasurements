@@ -195,9 +195,14 @@ install:
 script:
   - ccache -z
   - ccache -s
-  - echo "CXX=$CXX"
+  - if [ "$TARGET" = "osx" ]; then
+    CXX="ccache clang++";
+    CC="ccache clang";
+  else
+    CXX="ccache g++";
+    CC="ccache gcc";
+  fi
   - travis_wait 30 scripts/ci/addons/build.sh
-  - echo "CXX=$CXX"
   - ccache -s
 
 git:

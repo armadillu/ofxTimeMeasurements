@@ -14,7 +14,6 @@
 language: c++
 compiler: gcc
 sudo: true
-cache: ccache
 matrix:
   include:
   # fully specify builds, include can't dynamically expand matrix entries
@@ -25,6 +24,7 @@ matrix:
     dist: trusty
     sudo: required
     env: TARGET="linux64" OF_BRANCH="master"
+    cache: ccache
     addons:
       apt:
         sources:
@@ -52,6 +52,7 @@ matrix:
   - os: osx
     osx_image: xcode9.4
     compiler: clang
+    cache: ccache
     env: TARGET="osx" OF_BRANCH="master"
 
 # OSX, OF stable:  Not supported yet
@@ -192,9 +193,16 @@ install:
   - git clone --depth=1 --branch=$OF_BRANCH https://github.com/openframeworks/openFrameworks
   - cd openFrameworks
   - travis_wait 30 scripts/ci/addons/install.sh
+  - if [ "$TARGET" = "osx" ]; then
+      brew install ccache;
+      export PATH="/usr/local/opt/ccache/libexec:$PATH";
+    fi
 
 script:
+  - ccache -z
+  - ccache -s
   - travis_wait 30 scripts/ci/addons/build.sh
+  - ccache -s
 
 git:
   depth: 10

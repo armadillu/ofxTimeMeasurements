@@ -191,15 +191,13 @@ install:
   - git clone --depth=1 --branch=$OF_BRANCH https://github.com/openframeworks/openFrameworks
   - cd openFrameworks
   - travis_wait 30 scripts/ci/addons/install.sh
-  - if [ "$TARGET" = "osx" ]; then
-      brew install ccache;
-      export PATH="/usr/local/opt/ccache/libexec:$PATH";
-    fi
 
 script:
   - ccache -z
   - ccache -s
+  - echo "CXX=$CXX"
   - travis_wait 30 scripts/ci/addons/build.sh
+  - echo "CXX=$CXX"
   - ccache -s
 
 git:

@@ -13,7 +13,6 @@
 
 language: c++
 compiler: gcc
-sudo: true
 matrix:
   include:
   # fully specify builds, include can't dynamically expand matrix entries
@@ -22,7 +21,6 @@ matrix:
 # Linux 64bit, OF master
   - os: linux
     dist: trusty
-    sudo: required
     env: TARGET="linux64" OF_BRANCH="master"
     cache: ccache
     addons:

@@ -20,7 +20,7 @@ matrix:
 
 # Linux 64bit, OF master
   - os: linux
-    dist: trusty
+    dist: xenial
     env: TARGET="linux64" OF_BRANCH="master"
     cache: ccache
     addons:

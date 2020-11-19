@@ -181,11 +181,6 @@ matrix:
 #        - ~/android-ndk-r12b
 
 
-  # Exclude the default build that would otherwise be generated
-  # see https://github.com/travis-ci/travis-ci/issues/1228
-  #exclude:
-  #  - compiler: gcc
-
 install:
   - cd ~
   - git clone --depth=1 --branch=$OF_BRANCH https://github.com/openframeworks/openFrameworks
@@ -202,7 +197,18 @@ script:
       CXX="ccache g++";
       CC="ccache gcc";
     fi
+  - ccache -z
+  - ccache -s
+  - if [ "$TARGET" = "osx" ]; then
+      CXX="ccache clang++";
+      CC="ccache clang";
+    else
+      CXX="ccache g++";
+      CC="ccache gcc";
+    fi
   - travis_wait 30 scripts/ci/addons/build.sh
+  - ccache -s
+
   - ccache -s
 
 git:

@@ -135,7 +135,7 @@ ofxTimeMeasurements responds to a few pre-defined keyboard commands:
 
 ## 5. RANDOM NOTES
 
-####5.1 OVERHEAD
+#### 5.1 OVERHEAD
 
 ofxTimeMeasurements adds some overhead when measuring times; and it adds even more when drawing its widget. You can see how much it adds by pressing the "B" key, it will display two extra timings, the time it takes for the measurements to be taken, and the time it takes for the widget to be drawn. When ofxTimeMeasurements is disabled (by pressing PgDown or by calling TIME_SAMPLE_DISABLE() at setup), it barely adds any overhead (it doesn't measure anything when the widget is not drawn) but it does add a tiny bit as the calls to its methods are still going through. To entirely remove all ofxTimeMeasurements calls without actually removing them from your code, you can define "TIME_MEASUREMENTS_DISABLED" in your project pro-processor macros for it to be entirely bypassed at compile time. This will only work if you use the recommended MACRO based API; if you have code that gets the ofxTimeMeasurements instance ```ofxTimeMeasurements::instance()``` and operates with it, your project will not compile.
 
@@ -190,7 +190,7 @@ If you do so, when in interactive mode, you can press 'P' to toggle the plotting
 
 Measurements that are being plotted will show a colored label on the left side, matching the color of the plot. You can plot as many measurements as you like simultaneously; you can press "G" from the interactive menu to toggle stacking the plots or overlaying them all in the same area.
 
-####5.9 USING ofxFontStash
+#### 5.9 USING ofxFontStash
 
 If you include [ofxFontStash](https://github.com/armadillu/ofxFontStash) in your project, you can use it to draw the widget with any font of your liking. FontStash is faster at drawing text than ofDrawBitmapString(), which is what ofxTimeMeasurements uses by default. Define USE_OFX_FONTSTASH in your project's PreProcessor Macros, and call drawUiWithFontStash() supplying a monospaced ttf font.
 
@@ -205,5 +205,5 @@ This can be useful on retina/4k screens to make the widget more legible, as show
 ![img](https://farm1.staticflickr.com/533/20034108485_fdaa20bd72_o_d.png)
 
 
-##LICENSE
+## LICENSE
 ofxTimeMeasurements is made available under the [MIT](http://opensource.org/licenses/MIT) license.

@@ -23,6 +23,7 @@
 //you can define "TIME_MEASUREMENTS_DISABLED" in your project pre-processor macros to ENTIRELY disable time measurements
 #ifndef TIME_MEASUREMENTS_DISABLED
 
+	#define TIME_SAMPLE_SETUP() 				(ofxTimeMeasurements::instance()->setup())
 	#define TIME_SAMPLE_SET_CONFIG_DIR(x) 	(ofxTimeMeasurements::instance()->setConfigsDir(x))
 	#define TIME_SAMPLE_SET_FRAMERATE(x)	(ofxTimeMeasurements::instance()->setDesiredFrameRate(x))
 
@@ -56,6 +57,8 @@
 	#define TIME_SAMPLE_ADD_SETUP_HOOKS()	(ofxTimeMeasurements::instance()->addSetupHooks())
 
 	//shorter macros for most of the above!
+
+	#define TS_SETUP() 	(ofxTimeMeasurements::instance()->setup())
 
 	//time sample a whole method - ie TS(drawMonkeys());
 	#define TS(x)			if(ofxTimeMeasurements::instance()->startMeasuring(#x, false)){ x; }ofxTimeMeasurements::instance()->stopMeasuring(#x, false)
@@ -105,6 +108,7 @@
 
 #else
 
+	#define TIME_SAMPLE_SETUP()
 	#define TIME_SAMPLE_SET_CONFIG_DIR(x)
 	#define TIME_SAMPLE_SET_FRAMERATE(x)
 
@@ -135,6 +139,7 @@
 
 	#define TIME_SAMPLE_ADD_SETUP_HOOKS()
 
+	#define TS_SETUP()
 	#define TS(x)
 	#define TS_ACC(x)
 

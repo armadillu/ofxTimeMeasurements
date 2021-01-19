@@ -104,6 +104,7 @@ class ofxTimeMeasurements {
 
 		static ofxTimeMeasurements* instance();
 
+		void setup();
 		void setConfigsDir(std::string d);
 		void setDesiredFrameRate(float fr);	//forced to do this as I can't access desiredFrameRate once set with ofSetFrameRate
 											//affects the % busy indicator

@@ -239,6 +239,7 @@ ofxTimeMeasurements* ofxTimeMeasurements::instance(){
 	return singleton;
 }
 
+void ofxTimeMeasurements::setup(){}
 
 void ofxTimeMeasurements::setConfigsDir(string d){
 	configsDir = d;

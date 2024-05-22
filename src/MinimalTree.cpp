@@ -5,6 +5,8 @@
 //  Created by Oriol Ferrer Mesià on 07/11/2020.
 //
 
+#include <algorithm> // for std::sort
+
 #include "MinimalTree.h"
 #include "ofLog.h"
 

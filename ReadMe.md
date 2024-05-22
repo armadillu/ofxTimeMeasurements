@@ -41,9 +41,9 @@ void setup(){
 You can measure times across any code section with TS_START() - TS_STOP()
 
 ```c++
-	TS_START("measurement1");
-	//my code here
-	TS_STOP("measurement1")
+TS_START("measurement1");
+//my code here
+TS_STOP("measurement1")
 ```
 The ofxTimeMeasurements widget will list a line named "measurement1" showing how long it took for the section to execute.
 
@@ -52,11 +52,11 @@ The ofxTimeMeasurements widget will list a line named "measurement1" showing how
 You can accumulate the time spent across one frame over sections of your code. This can be handy when a methods is called several times over one frame.
 
 ```c++
-	for(int i = 0; i < 10; i++){
-		TS_START_ACC("acc measurement");
-		//do something here
-		TS_STOP_ACC("acc measurement")
-	}
+for(int i = 0; i < 10; i++){
+	TS_START_ACC("acc measurement");
+	//do something here
+	TS_STOP_ACC("acc measurement")
+}
 ```
 If we were to use TS_START/STOP on the example above, ofxTimeMeasurements would only report the time spent on the last iteration of the for loop. By using TS_START_ACC / TS_STOP_ACC, it accumulates the time spent on each iteration of the loop, reporting the total time spent.
 
@@ -66,11 +66,11 @@ If we were to use TS_START/STOP on the example above, ofxTimeMeasurements would 
 ofxTimeMeasurements wraps your code around an if(){} clause. It does so to be able to disable code on the fly from its GUI. This can be problematic if you declare variables inside a measurement, as they will not be in scope outside the measurement. If that's the case, you use the _NIF extension in your macros, this way your code will not be wrapped around an if(){} clause. The only drawback is that you will not be able to enable/disable that code section from the GUI.
 
 ```c++
-	TS_START_NIF("nif");
-		int a = 0;
-	TS_STOP_NIF("nif");
+TS_START_NIF("nif");
+	int a = 0;
+TS_STOP_NIF("nif");
 
-	a = 1; //we can now access the variable declared in the TM scope.
+a = 1; //we can now access the variable declared in the TM scope.
 ```
 
 You can also use both NIF and ACC, see TS_START_ACC_NIF() and family.
@@ -80,11 +80,11 @@ You can also use both NIF and ACC, see TS_START_ACC_NIF() and family.
 This mode measures execution times in a particular scope. It creates a temporary minimal object that will start measuring when its constructor is called, and it will stop measuring when its destructor is called.
 
 ```c++
-	{
-		TS_SCOPE("myTime");
-		doSomething();
-		doSomethingElse();
-	}
+{
+	TS_SCOPE("myTime");
+	doSomething();
+	doSomethingElse();
+}
 ```
 The example above will report the time it takes for doSomething() and doSomethingElse() to execute. The advantage here is that only one ofxTimeMeasurements call is needed to measure time.
 
@@ -93,7 +93,7 @@ The example above will report the time it takes for doSomething() and doSomethin
 TS() is a very convenient ultra-short macro to measure the time a single method takes to execute. This will show up as "myMethod()" on your measurements widget.
 
 ```c++
-	TS(myMethod());
+TS(myMethod());
 ```
 
 ### 3.6 OpenGL Execution Times
@@ -107,9 +107,9 @@ It does so by sending ```glBeginQuery(GL_TIME_ELAPSED_EXT)``` and ```glEndQuery(
 OpenGL timings will show in their own separate section named "OpenGL", similar to timings in different threads. They can be disabled the same way as CPU timings, and also averaged and plotted.
 
 ```c++
-	TSGL_START("FancyShader");
-	myFancyShader.run();
-	TSGL_STOP("FancyShader");
+TSGL_START("FancyShader");
+myFancyShader.run();
+TSGL_STOP("FancyShader");
 ```
 
 
@@ -143,9 +143,10 @@ ofxTimeMeasurements adds some overhead when measuring times; and it adds even mo
 
 If times vary too much from frame to frame to be readable on the widget, you can enable sample averaging; if you do so, each new time sample will be blended with the previous one; obtaining a smoother reading. Keep in mind that several samples will be required to get accurate readings when using averaging. You can also completely disable averaging.
 
-	TIME_SAMPLE_SET_AVERAGE_RATE(0.01); //every new sample effects 1% of the value shown
-	TIME_SAMPLE_DISABLE_AVERAGE();  //disable time sample averaging
-
+```c++
+TIME_SAMPLE_SET_AVERAGE_RATE(0.01); //every new sample effects 1% of the value shown
+TIME_SAMPLE_DISABLE_AVERAGE();  //disable time sample averaging
+```
 
 #### 5.3 COLORS / THREADS
 
@@ -159,18 +160,22 @@ Active Time Measurements will appear in a bright color if the corresponding code
 #### 5.4 CUSTOMIZATIONS
 Most key commands and ui colors are customizable, you only need to get a hold of the instance. Keep in mind that by doing that the use of the "TIME_MEASUREMENTS_DISABLED" macro might lead to compile errors.
 
-	TIME_SAMPLE_GET_INSTANCE()->setUIActivationKey('T');
-	TIME_SAMPLE_GET_INSTANCE()->setHighlightColor(ofColor::red);
-
+```c++
+TIME_SAMPLE_GET_INSTANCE()->setUIActivationKey('T');
+TIME_SAMPLE_GET_INSTANCE()->setHighlightColor(ofColor::red);
+```
 
 #### 5.5 MEASURING setup()
 If you want the setup() call to be automatically measured, you need to at least call once ofxTimeMeasurements in your main.cpp, just before the ofRunApp() line. This is so that the ofxTimeMeasurements instance is allocated before setup() is called. Make sure you call it after ofSetupOpenGL() otherwise it might not be able to find its settings file, because ofToDataPath might not be set yet.
 
-	int main(){
-		ofSetupOpenGL(1680,1050, OF_WINDOW);
-		TIME_SAMPLE_SET_FRAMERATE(60);
-		ofRunApp(new testApp());
-	}
+
+```c++
+int main(){
+	ofSetupOpenGL(1680,1050, OF_WINDOW);
+	TIME_SAMPLE_SET_FRAMERATE(60);
+	ofRunApp(new testApp());
+}
+```
 
 in OF v09, you need to call ```TIME_SAMPLE_ADD_SETUP_HOOKS()``` in your main()
 

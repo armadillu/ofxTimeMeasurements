@@ -26,7 +26,7 @@ Simple OpenFrameworks addon to easily measure execution times across any section
 
 That's all you need to get basic measurements of update() and draw();
 
-```
+```c++
 #include "ofxTimeMeasurements.h"
 
 void setup(){
@@ -40,7 +40,7 @@ void setup(){
 
 You can measure times across any code section with TS_START() - TS_STOP()
 
-```
+```c++
 	TS_START("measurement1");
 	//my code here
 	TS_STOP("measurement1")
@@ -51,7 +51,7 @@ The ofxTimeMeasurements widget will list a line named "measurement1" showing how
 
 You can accumulate the time spent across one frame over sections of your code. This can be handy when a methods is called several times over one frame.
 
-```
+```c++
 	for(int i = 0; i < 10; i++){
 		TS_START_ACC("acc measurement");
 		//do something here
@@ -65,7 +65,7 @@ If we were to use TS_START/STOP on the example above, ofxTimeMeasurements would 
 
 ofxTimeMeasurements wraps your code around an if(){} clause. It does so to be able to disable code on the fly from its GUI. This can be problematic if you declare variables inside a measurement, as they will not be in scope outside the measurement. If that's the case, you use the _NIF extension in your macros, this way your code will not be wrapped around an if(){} clause. The only drawback is that you will not be able to enable/disable that code section from the GUI.
 
-```
+```c++
 	TS_START_NIF("nif");
 		int a = 0;
 	TS_STOP_NIF("nif");
@@ -79,7 +79,7 @@ You can also use both NIF and ACC, see TS_START_ACC_NIF() and family.
 
 This mode measures execution times in a particular scope. It creates a temporary minimal object that will start measuring when its constructor is called, and it will stop measuring when its destructor is called.
 
-```
+```c++
 	{
 		TS_SCOPE("myTime");
 		doSomething();
@@ -92,7 +92,7 @@ The example above will report the time it takes for doSomething() and doSomethin
 
 TS() is a very convenient ultra-short macro to measure the time a single method takes to execute. This will show up as "myMethod()" on your measurements widget.
 
-```
+```c++
 	TS(myMethod());
 ```
 
@@ -106,7 +106,7 @@ It does so by sending ```glBeginQuery(GL_TIME_ELAPSED_EXT)``` and ```glEndQuery(
 
 OpenGL timings will show in their own separate section named "OpenGL", similar to timings in different threads. They can be disabled the same way as CPU timings, and also averaged and plotted.
 
-```
+```c++
 	TSGL_START("FancyShader");
 	myFancyShader.run();
 	TSGL_STOP("FancyShader");
@@ -194,7 +194,7 @@ Measurements that are being plotted will show a colored label on the left side, 
 
 If you include [ofxFontStash](https://github.com/armadillu/ofxFontStash) in your project, you can use it to draw the widget with any font of your liking. FontStash is faster at drawing text than ofDrawBitmapString(), which is what ofxTimeMeasurements uses by default. Define USE_OFX_FONTSTASH in your project's PreProcessor Macros, and call drawUiWithFontStash() supplying a monospaced ttf font.
 
-```
+```c++
 TIME_SAMPLE_GET_INSTANCE()->setUiScale( 2.0 ); //x2 the size for 4k screens
 TIME_SAMPLE_GET_INSTANCE()->drawUiWithFontStash("VeraMono.ttf");
 ```

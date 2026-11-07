@@ -9,6 +9,7 @@
 
 #include "MinimalTree.h"
 #include "ofLog.h"
+#include <algorithm>
 
 MinimalTree::Node::Node(const TREE_DATA_TYPE & d){
 	data = d;

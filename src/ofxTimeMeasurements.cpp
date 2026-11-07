@@ -417,7 +417,11 @@ bool ofxTimeMeasurements::startMeasuring(const string & ID, bool accumulate, boo
 		tree = &tinfo->tree; //easier to read, tr is our tree from now on
 
 		if (!bIsMainThread){
-			tinfo->color = threadColorTable[numThreads%(threadColorTable.size())];
+			if (!threadColorTable.empty()) {
+				tinfo->color = threadColorTable[numThreads % threadColorTable.size()];
+			} else {
+				tinfo->color = hilightColor;
+			}
 			numThreads++;
 		}else{ //main thread
 			tinfo->color = hilightColor;
@@ -1554,53 +1558,40 @@ void ofxTimeMeasurements::loadSettings(){
 	string f = ofToDataPath(TIME_MEASUREMENTS_SETTINGS_FILENAME, true);
 	ifstream myfile(f.c_str());
 	string name, visible, enabled_, plotting;
-	bool fileHasPlotData = false;
 	if (myfile.is_open()){
 
-		int c = 0;
-		while( !myfile.eof() ){
-
-			if (c == 0){ //see if file has PlotData, 2 '|' per line if it does, only 1 if it doesnt
-				string wholeLine;
-				getline( myfile, wholeLine, '\n' );//see what version we are on
-				int numBars = 0;
-				for(size_t i = 0; i < wholeLine.size(); i++){
-					if (wholeLine[i] == '|') numBars++;
-				}
-				if(numBars == 2) fileHasPlotData = true;
-				myfile.clear();
-				myfile.seekg(0, ios::beg);
-				c++;
+		string wholeLine;
+		while (getline(myfile, wholeLine)) {
+			size_t equals = wholeLine.find('=');
+			if (equals == string::npos || equals == 0) continue;
+			name = wholeLine.substr(0, equals);
+			size_t firstBar = wholeLine.find('|', equals + 1);
+			if (firstBar == string::npos) continue;
+			visible = wholeLine.substr(equals + 1, firstBar - equals - 1);
+			size_t secondBar = wholeLine.find('|', firstBar + 1);
+			if (secondBar != string::npos) {
+				enabled_ = wholeLine.substr(firstBar + 1, secondBar - firstBar - 1);
+				plotting = wholeLine.substr(secondBar + 1);
+			} else {
+				enabled_ = wholeLine.substr(firstBar + 1);
+				plotting.clear();
 			}
 
-			getline( myfile, name, '=' );//name
-
-			if(name.length()){
-				getline( myfile, visible, '|' ); //visible
-				if(fileHasPlotData){
-					getline( myfile, enabled_, '|' ); //enabled
-					getline( myfile, plotting, '\n' ); //plotting
-				}else{
-					getline( myfile, enabled_, '\n' ); //enabled
-				}
-
-				if (name == TIME_MEASUREMENTS_SETUP_KEY ||
-					name == TIME_MEASUREMENTS_UPDATE_KEY ||
-					name == TIME_MEASUREMENTS_DRAW_KEY ){
-					visible = enabled_ = "1";
-				}
-
-				settings[name].visible = bool(visible == "1" ? true : false);
-				settings[name].enabled = bool(enabled_ == "1" ? true : false);
-				#if defined(USE_OFX_HISTORYPLOT)
-				settings[name].plotting = bool(plotting == "1" ? true : false);
-				if(settings[name].plotting){
-					ofxHistoryPlot * plot = makeNewPlot(name);
-					plots[name] = plot;
-				}
-				#endif
+			if (name == TIME_MEASUREMENTS_SETUP_KEY ||
+				name == TIME_MEASUREMENTS_UPDATE_KEY ||
+				name == TIME_MEASUREMENTS_DRAW_KEY) {
+				visible = enabled_ = "1";
 			}
-			//ofLogVerbose("ofxTimeMeasurements") << "loaded settings for " << name << " enabled: " << settings[name].enabled << " visible: " << settings[name].visible ;
+
+			settings[name].visible = (visible == "1");
+			settings[name].enabled = (enabled_ == "1");
+			#if defined(USE_OFX_HISTORYPLOT)
+			settings[name].plotting = (plotting == "1");
+			if (settings[name].plotting) {
+				ofxHistoryPlot * plot = makeNewPlot(name);
+				plots[name] = plot;
+			}
+			#endif
 		}
 		myfile.close();
 	}else{
@@ -1714,17 +1705,10 @@ void ofxTimeMeasurements::setUiScale(float scale){
 
 
 
-float ofxTimeMeasurements::durationForID( const string & ID){
-
-	unordered_map<string,TimeMeasurement*>::iterator it;
-	it = times.find(ID);
-
-	if ( it == times.end() ){	//not found!
-		if ( times[ID]->error ){
-			return times[ID]->duration / 1000.0; //to ms
-		}
-	}
-	return 0;
+float ofxTimeMeasurements::durationForID(const string & ID){
+	auto it = times.find(ID);
+	if (it == times.end()) return 0.0f;
+	return it->second->duration / 1000.0f; //to ms
 }
 
 

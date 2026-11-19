@@ -279,7 +279,7 @@ class ofxTimeMeasurements {
 		void _windowResized(ofResizeEventArgs &e);
 
 		void autoDraw();
-		void collapseExpand(const string & sel, bool colapse);
+		void collapseExpand(const std::string & sel, bool colapse);
 		void updateLongestLabel();
 		void loadSettings();
 		void saveSettings();

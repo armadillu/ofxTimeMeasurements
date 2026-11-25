@@ -303,38 +303,31 @@ bool ofxTimeMeasurements::startMeasuringGL(const string & name){
 
 	if (!enabled) return true;
 
-	if(measuringGlLabel.size() > 0){
-		ofLogError("ofxTimeMeasurements") << "Can't startMeasuringGL()! You can't have nested GL measurements : " << name;
-		return true;
+	string glName = glPrefix + name;
+	GL_Measurement * m;
+	auto it = glTimes.find(glName);
+	if (it == glTimes.end()){
+		m = new GL_Measurement();
+		m->init();
+		glTimes[glName] = m;
+		glMeasurementMode = true;
+		TS_START_NIF(glName);
+		TS_STOP_NIF(glName);
+		glMeasurementMode = false;
 	}else{
-
-		string glName = glPrefix + name;
-		measuringGlLabel = glName;
-		GL_Measurement * m;
-		auto it = glTimes.find(glName);
-		if (it == glTimes.end()){ //new measurement, we need to create an object for it
-			m = new GL_Measurement();
-			m->init();
-			glTimes[glName] = m;
-			// we fake 1 single measurement! note the horrible hack glMeasurementMode == true to modify the start & stop behavior
-			// the whole thing is about prentending GL calls are in an immaginary thread, so that they are drawn separatelly
-			// automatically. search for "if(glMeasurementMode)" to see all the nasty stuff necessary to make this work.
-			// Note we only have 1 measurement, and we hijack the data object with the values obtained from the GL measurement.
-			glMeasurementMode = true;
-			TS_START_NIF(glName);
-			TS_STOP_NIF(glName);
-			glMeasurementMode = false;
-		}else{
-			m = it->second;
-		}
-		TimeMeasurement * tm = times[glName];
-		if (tm->settings.enabled){
-			if (m->canStartMeasuring()){
-				m->start();
-			}
-		}
-		return tm->settings.enabled;
+		m = it->second;
 	}
+	TimeMeasurement * tm = times[glName];
+	bool started = false;
+	bool nested = !measuringGlStack.empty();
+	if (nested && !m->supportsNesting()){
+		ofLogError("ofxTimeMeasurements") << "Can't startMeasuringGL()! You can't have nested GL measurements : " << name;
+	}else if (tm->settings.enabled && m->canStartMeasuring()){
+		m->start();
+		started = true;
+	}
+	measuringGlStack.emplace_back(glName, started);
+	return tm->settings.enabled;
 }
 
 void ofxTimeMeasurements::stopMeasuringGL(const string & name){
@@ -342,24 +335,14 @@ void ofxTimeMeasurements::stopMeasuringGL(const string & name){
 	if (!enabled) return;
 
 	string glName = glPrefix + name;
-
-	if (measuringGlLabel != glName){
-		ofLogError("ofxTimeMeasurements") << "Can't stopMeasuringGL()! you haven't started measuring yet! : " << name;
-	}else{
-		GL_Measurement * m;
-		auto it = glTimes.find(glName);
-		if (it == glTimes.end()){ //unkonwn measurement! mismatched start-stop!
-			ofLogError("ofxTimeMeasurements") << "Can't stopMeasuringGL()! you haven't started measuring yet! : " << name;
-		}else{
-			m = it->second;
-		}
-		TimeMeasurement * tm = times[glName];
-		if (tm->settings.enabled){
-			if (m->canStopMeasuring()){
-				m->stop();
-			}
-		}
-		measuringGlLabel = "";
+	if (measuringGlStack.empty() || measuringGlStack.back().first != glName){
+		ofLogError("ofxTimeMeasurements") << "Can't stopMeasuringGL()! Measurements must stop in reverse start order : " << name;
+		return;
+	}
+	bool started = measuringGlStack.back().second;
+	measuringGlStack.pop_back();
+	if (started){
+		glTimes.at(glName)->stop();
 	}
 }
 #endif

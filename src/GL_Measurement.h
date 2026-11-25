@@ -16,17 +16,54 @@ class GL_Measurement{
 public:
 	
 	void init(){
-		glGenQueries(1, queryID);
+		if (glGenQueries && glBeginQuery && glEndQuery && glGetQueryiv && glGetQueryObjectiv && glDeleteQueries){
+			if ((GLEW_VERSION_3_3 || GLEW_ARB_timer_query) && glGetQueryObjectui64v && glQueryCounter){
+				backend = CORE;
+			}
+		}
+		if (backend == CORE){
+			GLint counterBits = 0;
+			glGetQueryiv(GL_TIMESTAMP, GL_QUERY_COUNTER_BITS, &counterBits);
+			if (counterBits == 0){
+				backend = UNSUPPORTED;
+			}
+		}
+		if (backend == UNSUPPORTED && glGenQueries && glBeginQuery && glEndQuery && glGetQueryiv && glGetQueryObjectiv && glDeleteQueries){
+			GLint counterBits = 0;
+			if (((GLEW_VERSION_3_3 || GLEW_ARB_timer_query) && glGetQueryObjectui64v) || glGetQueryObjectui64vEXT){
+				glGetQueryiv(GL_TIME_ELAPSED, GL_QUERY_COUNTER_BITS, &counterBits);
+				if (counterBits > 0){
+					backend = glGetQueryObjectui64vEXT ? EXTENSION : CORE_ELAPSED;
+				}
+			}
+		}
+		if (backend == UNSUPPORTED){
+			static bool warned = false;
+			if (!warned){
+				ofLogWarning("ofxTimeMeasurements") << "GPU timer queries are not supported by the current OpenGL context";
+				warned = true;
+			}
+			return;
+		}
+		glGenQueries(backend == CORE ? 2 : 1, queryID);
 		state = INITED;
 	}
 
 	void start(){
-		glBeginQuery(GL_TIME_ELAPSED_EXT, queryID[0]);
+		if (backend == CORE){
+			glQueryCounter(queryID[0], GL_TIMESTAMP);
+		}else{
+			glBeginQuery(GL_TIME_ELAPSED, queryID[0]);
+		}
 		state = MEASURING;
 	}
 
 	void stop(){
-		glEndQuery(GL_TIME_ELAPSED_EXT);
+		if (backend == CORE){
+			glQueryCounter(queryID[1], GL_TIMESTAMP);
+		}else{
+			glEndQuery(GL_TIME_ELAPSED);
+		}
 		state = MEASURED;
 		measuredFrame = ofGetFrameNum();
 	}
@@ -34,11 +71,21 @@ public:
 	void update(){
 		if (state == MEASURED && ofGetFrameNum() - measuredFrame > 2 ){
 			GLint available = false;
-			glGetQueryObjectiv(queryID[0], GL_QUERY_RESULT_AVAILABLE, &available);
+			glGetQueryObjectiv(queryID[backend == CORE ? 1 : 0], GL_QUERY_RESULT_AVAILABLE, &available);
 			if (available){
 				GLuint64 measurementResult;
 				state = RESULT_READY;
-				glGetQueryObjectui64vEXT(queryID[0], GL_QUERY_RESULT, &measurementResult);
+				if (backend == CORE){
+					GLuint64 startTime = 0;
+					GLuint64 endTime = 0;
+					glGetQueryObjectui64v(queryID[0], GL_QUERY_RESULT, &startTime);
+					glGetQueryObjectui64v(queryID[1], GL_QUERY_RESULT, &endTime);
+					measurementResult = endTime >= startTime ? endTime - startTime : 0;
+				}else if (backend == CORE_ELAPSED){
+					glGetQueryObjectui64v(queryID[0], GL_QUERY_RESULT, &measurementResult);
+				}else{
+					glGetQueryObjectui64vEXT(queryID[0], GL_QUERY_RESULT, &measurementResult);
+				}
 				this->measurementResult = measurementResult * 0.000001; //convert to msec
 			}else{
 				ofLogError("ofxTimeMeasurements") << "GL measurement not ready yet!";
@@ -54,14 +101,22 @@ public:
 
 	bool canStartMeasuring(){return state == INITED || state == RESULT_READY;}
 	bool canStopMeasuring(){return state == MEASURING;}
+	bool supportsNesting(){return backend == CORE || backend == UNSUPPORTED;}
 
 	~GL_Measurement(){
 		if (state > UNINITED){
-			glDeleteQueries(1, queryID);
+			glDeleteQueries(backend == CORE ? 2 : 1, queryID);
 		}
 	}
 
 protected:
+
+	enum Backend{
+		UNSUPPORTED,
+		CORE,
+		CORE_ELAPSED,
+		EXTENSION
+	};
 
 	enum State{
 		UNINITED,
@@ -74,7 +129,8 @@ protected:
 	int measuredFrame;
 	double measurementResult = 0.0; //msec
 	State state = UNINITED;
-	GLuint queryID[1];
+	Backend backend = UNSUPPORTED;
+	GLuint queryID[2];
 };
 
 

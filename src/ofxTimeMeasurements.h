@@ -412,7 +412,7 @@ class ofxTimeMeasurements {
 		/// GL measurements
 		#ifndef TARGET_OPENGLES
 		std::unordered_map<std::string, GL_Measurement*>	glTimes;
-		std::string 									measuringGlLabel;
+		std::vector<std::pair<std::string, bool>> measuringGlStack;
 		const std::string 							glPrefix = "GL_";
 		bool glMeasurementMode = false;
 		int threadIDGL = -1;
